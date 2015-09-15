@@ -7,9 +7,12 @@
 namespace VS_QuickNavigation
 {
 	using Microsoft.VisualStudio.Shell;
+	using System;
+	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.Windows.Controls;
 	using System.Windows.Data;
+	using System.Windows.Documents;
 
 	/// <summary>
 	/// Interaction logic for QuickMethodToolWindowControl.
@@ -18,8 +21,22 @@ namespace VS_QuickNavigation
 	{
 		private class SymbolData
 		{
+			static System.Windows.Media.Brush sBackgroundBrush;
+			static SymbolData()
+			{
+				System.Windows.Media.BrushConverter converter = new System.Windows.Media.BrushConverter();
+				sBackgroundBrush = (System.Windows.Media.Brush)(converter.ConvertFromString("#FFFFA0"));
+			}
+			public SymbolData(string symbol, int line)
+			{
+				Symbol = symbol;
+				Line = line;
+				GetScore("");
+			}
+
 			public string Symbol { get; set; }
 			public int Line { get; set; }
+			public InlineCollection FileFormatted { get; set; }
 
 			private string mLastSearch;
 
@@ -42,11 +59,54 @@ namespace VS_QuickNavigation
 				if (sSearch != mLastSearch)
 				{
 					mLastSearch = sSearch;
-					//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
-					//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
-					//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Symbol.ToLower()) * 100);
-					//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
-					SearchScore = StringScore.Search(sSearch, Symbol);
+
+					Bold block = new Bold();
+
+					if (!string.IsNullOrEmpty(mLastSearch))
+					{
+						//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
+						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
+						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Symbol.ToLower()) * 100);
+						//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
+						List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
+						SearchScore = StringScore.Search(sSearch, Symbol, matches);
+
+						if (matches.Count > 0)
+						{
+							string sSymbol = Symbol;
+
+							int previousIndex = 0;
+							foreach (var match in matches)
+							{
+								if (match.Item1 > 0)
+								{
+									block.Inlines.Add(new Run(sSymbol.Substring(previousIndex, match.Item1 - previousIndex)));
+								}
+								//block.Inlines.Add(new Bold(new Run(sFile.Substring(match.Item1, match.Item2))));
+								Run text = new Run(sSymbol.Substring(match.Item1, match.Item2));
+								text.Background = sBackgroundBrush;
+								block.Inlines.Add(text);
+
+								previousIndex = match.Item1 + match.Item2;
+							}
+
+							Tuple<int, int> lastMatch = matches[matches.Count - 1];
+							if ((lastMatch.Item1 + lastMatch.Item2) < sSymbol.Length)
+							{
+								block.Inlines.Add(new Run(sSymbol.Substring(lastMatch.Item1 + lastMatch.Item2)));
+							}
+						}
+						else
+						{
+							block.Inlines.Add(new Run(Symbol));
+						}
+					}
+					else
+					{
+						block.Inlines.Add(new Run(Symbol));
+					}
+
+					FileFormatted = block.Inlines;
 				}
 				return SearchScore;
 			}
@@ -58,9 +118,11 @@ namespace VS_QuickNavigation
 			{
 				var lhs = (SymbolData)b;
 				var rhs = (SymbolData)a;
+				int lScore = lhs.GetScore(mSearchText);
+				int rScore = rhs.GetScore(mSearchText);
 				if (!string.IsNullOrEmpty(mSearchText))
 				{
-					return lhs.GetScore(mSearchText).CompareTo(rhs.GetScore(mSearchText));
+					return lScore.CompareTo(rScore);
 				}
 
 				return lhs.Symbol.CompareTo(rhs.Symbol);
@@ -103,7 +165,6 @@ namespace VS_QuickNavigation
 					if (objCodeElement is EnvDTE.CodeFunction)
 					{
 						EnvDTE.CodeFunction objCodeFunction = objCodeElement as EnvDTE.CodeFunction;
-						SymbolData oSymbol = new SymbolData();
 						string sSymbol = objCodeElement.FullName;
 						sSymbol += "(";
 
@@ -129,9 +190,8 @@ namespace VS_QuickNavigation
 						}
 
 						sSymbol += ")";
-						oSymbol.Symbol = sSymbol;
-						oSymbol.Line = objCodeElement.StartPoint.Line;
-						mRows.Add(oSymbol);
+						
+						mRows.Add(new SymbolData(sSymbol, objCodeElement.StartPoint.Line));
 					}
 					else
 					{

@@ -75,10 +75,10 @@ namespace VS_QuickNavigation
 							{
 								if (match.Item1 > 0)
 								{
-									block.Inlines.Add(new Run(Data.File.Substring(previousIndex, match.Item1 - previousIndex)));
+									block.Inlines.Add(new Run(sFile.Substring(previousIndex, match.Item1 - previousIndex)));
 								}
-								//block.Inlines.Add(new Bold(new Run(Data.File.Substring(match.Item1, match.Item2))));
-								Run text = new Run(Data.File.Substring(match.Item1, match.Item2));
+								//block.Inlines.Add(new Bold(new Run(sFile.Substring(match.Item1, match.Item2))));
+								Run text = new Run(sFile.Substring(match.Item1, match.Item2));
 								text.Background = sBackgroundBrush;
 								block.Inlines.Add(text);
 
@@ -88,7 +88,7 @@ namespace VS_QuickNavigation
 							Tuple<int, int> lastMatch = matches[matches.Count - 1];
 							if ((lastMatch.Item1 + lastMatch.Item2) < sFile.Length)
 							{
-								block.Inlines.Add(new Run(Data.File.Substring(lastMatch.Item1 + lastMatch.Item2)));
+								block.Inlines.Add(new Run(sFile.Substring(lastMatch.Item1 + lastMatch.Item2)));
 							}
 						}
 						else
@@ -114,12 +114,15 @@ namespace VS_QuickNavigation
 			{
 				var lhs = (FileData)b;
 				var rhs = (FileData)a;
+				int lScore = lhs.GetScore(mSearchText);
+				int rScore = rhs.GetScore(mSearchText);
 				if (!string.IsNullOrEmpty(mSearchText))
 				{
-					return lhs.GetScore(mSearchText).CompareTo(rhs.GetScore(mSearchText));
+					return lScore.CompareTo(rScore);
 				}
 
 				return lhs.Data.File.CompareTo(rhs.Data.File);
+				return lhs.SearchScore.CompareTo(rhs.SearchScore);
 			}
 
 			public string mSearchText;

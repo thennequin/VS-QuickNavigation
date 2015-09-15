@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace VS_QuickNavigation
 {
@@ -45,6 +46,7 @@ namespace VS_QuickNavigation
 
 						if (tokenIndex >= query.Length)
 						{
+							++stringIndex;
 							break;
 						}
 					}
@@ -54,6 +56,7 @@ namespace VS_QuickNavigation
 					combo = 1;
 					if (null != matchIndexOut && currentMatch.HasValue)
 					{
+						Debug.Assert((stringIndex - currentMatch.Value) > 0);
 						matchIndexOut.Add(new Tuple<int, int>(currentMatch.Value, stringIndex - currentMatch.Value));
 						currentMatch = null;
 					}
@@ -64,6 +67,7 @@ namespace VS_QuickNavigation
 
 			if (null != matchIndexOut && currentMatch.HasValue)
 			{
+				Debug.Assert((stringIndex - currentMatch.Value) > 0);
 				matchIndexOut.Add(new Tuple<int,int>(currentMatch.Value, stringIndex - currentMatch.Value));
 			}
 
