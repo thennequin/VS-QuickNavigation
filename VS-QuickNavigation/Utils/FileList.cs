@@ -58,8 +58,6 @@ namespace VS_QuickNavigation
 		{
 			get
 			{
-				//DTE2 dte2 = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject("VisualStudio.DTE.8.0");
-
 				List<FileData> files = new List<FileData>();
 				IEnumerable<IVsProject> projects = LoadedProjects;
 

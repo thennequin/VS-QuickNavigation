@@ -14,8 +14,8 @@ namespace VS_QuickNavigation
 
 			this.Content = new QuickMethodToolWindowControl();
 
-			this.Width = 750;
-			this.Height = 300;
+			this.Width = 1000;
+			this.Height = 400;
 		}
 	}
 }

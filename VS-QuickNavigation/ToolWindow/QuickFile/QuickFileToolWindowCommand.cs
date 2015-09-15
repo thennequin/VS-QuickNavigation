@@ -1,9 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="QuickFileToolWindowCommand.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
+﻿
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
@@ -93,12 +88,12 @@ namespace VS_QuickNavigation
 			// is actually the only one.
 			// The last flag is set to true so that if the tool window does not exists it will be created.
 			/*ToolWindowPane window = this.package.FindToolWindow(typeof(QuickFileToolWindow), 0, true);
-            if ((null == window) || (null == window.Frame))
-            {
-                throw new NotSupportedException("Cannot create tool window");
-            }
+			if ((null == window) || (null == window.Frame))
+			{
+				throw new NotSupportedException("Cannot create tool window");
+			}
 
-            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+			IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
 			Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());*/
 
 			QuickFileToolWindow window = new QuickFileToolWindow();

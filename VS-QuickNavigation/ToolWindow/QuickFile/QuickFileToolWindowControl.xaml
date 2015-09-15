@@ -25,7 +25,7 @@
             </ListView.Style>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="300" Header="File" DisplayMemberBinding="{Binding Path=File}" />
+                    <GridViewColumn Width="700" Header="File" DisplayMemberBinding="{Binding Path=File}" />
                     <GridViewColumn Width="50" Header="Match" DisplayMemberBinding="{Binding Path=SearchScore}" />
                     <GridViewColumn Width="200" Header="Project" DisplayMemberBinding="{Binding Path=Project}" />
                 </GridView>
