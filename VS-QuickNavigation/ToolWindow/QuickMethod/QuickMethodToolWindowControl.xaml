@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="VS_QuickNavigation.QuickMethodToolWindowControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             Background="{DynamicResource VsBrush.Window}"
+             Foreground="{DynamicResource VsBrush.WindowText}"
+             mc:Ignorable="d"
+             Name="MyToolWindow"
+             Height="Auto" Width="Auto">
+    <DockPanel Width="Auto" Height="Auto" LastChildFill="True" Margin="10">
+            <TextBox x:Name="textBox"
+                 DockPanel.Dock="Top" Width="Auto" Height="23"
+                 Margin="0,0,0,3"
+                 TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
+            <ListView x:Name="listView"
+                  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                  SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown">
+                <ListView.Style>
+                    <Style TargetType="{x:Type ListView}">
+                        <Style.Resources>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#9449b0" />
+                            <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#9449b0" />
+                        </Style.Resources>
+                    </Style>
+                </ListView.Style>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="300" Header="File" DisplayMemberBinding="{Binding Path=Symbol}" />
+                    <GridViewColumn Width="80" Header="Line" DisplayMemberBinding="{Binding Path=Line}" />
+                    <GridViewColumn Width="50" Header="Match" DisplayMemberBinding="{Binding Path=SearchScore}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </DockPanel>
+    </UserControl>
