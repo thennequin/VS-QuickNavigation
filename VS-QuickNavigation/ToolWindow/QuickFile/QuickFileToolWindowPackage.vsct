@@ -46,14 +46,14 @@
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>QuickFileToolWindow</ButtonText>
+          <ButtonText>QuickFile</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidQuickFileToolWindowPackageCmdSet" id="cmdidQuickMethodToolWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="guidImages1" id="bmpPic1" />
         <Strings>
-          <ButtonText>QuickMethodToolWindow</ButtonText>
+          <ButtonText>QuickMethod</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -69,6 +69,11 @@
       <Bitmap guid="guidImages1" href="..\..\Resources\QuickMethodToolWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
   </Commands>
+
+  <KeyBindings>
+    <KeyBinding guid="guidQuickFileToolWindowPackageCmdSet" id="QuickFileToolWindowCommandId" key1="O" mod1="SHIFT" mod2="ALT" editor="guidVSStd97" />
+    <KeyBinding guid="guidQuickFileToolWindowPackageCmdSet" id="cmdidQuickMethodToolWindowCommand" key1="M" mod1="ALT" editor="guidVSStd97" />
+  </KeyBindings>
 
   <Symbols>
     <!-- This is the package guid. -->

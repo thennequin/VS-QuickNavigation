@@ -5,6 +5,71 @@ namespace VS_QuickNavigation
 {
 	internal class StringScore
 	{
+		private static int CharScore(char a, char b)
+		{
+			if ( a == b )
+			{
+				return 2;
+			}else if (char.ToUpperInvariant(a) == char.ToUpperInvariant(b))
+			{
+				return 1;
+			}
+			return 0;
+		}
+
+		
+		public static int Search(string query, string inText, List<Tuple<int,int>> matchIndexOut = null)
+		{
+			int tokenIndex = 0;
+			int stringIndex = 0;
+			int totalScore = 0;
+			int combo = 1;
+			int? currentMatch = null;
+			
+			while (stringIndex < inText.Length)
+			{
+				int charScore = CharScore(inText[stringIndex], query[tokenIndex]);
+				if (charScore > 0)
+				{
+					if (!currentMatch.HasValue)
+					{
+						currentMatch = stringIndex;
+					}
+					
+					totalScore += charScore * combo;
+
+					//if (charScore == 2) //To test : ignore
+					{
+						++tokenIndex;
+						++combo;
+
+						if (tokenIndex >= query.Length)
+						{
+							break;
+						}
+					}
+				}
+				else
+				{
+					combo = 1;
+					if (null != matchIndexOut && currentMatch.HasValue)
+					{
+						matchIndexOut.Add(new Tuple<int, int>(currentMatch.Value, stringIndex - currentMatch.Value));
+						currentMatch = null;
+					}
+				}
+
+				++stringIndex;
+			}
+
+			if (null != matchIndexOut && currentMatch.HasValue)
+			{
+				matchIndexOut.Add(new Tuple<int,int>(currentMatch.Value, stringIndex - currentMatch.Value));
+			}
+
+			return totalScore;
+		}
+
 		public static List<string> Search(
 			string search,
 			string words,

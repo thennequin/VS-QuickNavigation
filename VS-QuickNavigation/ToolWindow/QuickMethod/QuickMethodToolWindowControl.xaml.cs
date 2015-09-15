@@ -44,8 +44,9 @@ namespace VS_QuickNavigation
 					mLastSearch = sSearch;
 					//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
 					//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
-					SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Symbol.ToLower()) * 100);
+					//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Symbol.ToLower()) * 100);
 					//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
+					SearchScore = StringScore.Search(sSearch, Symbol);
 				}
 				return SearchScore;
 			}
@@ -72,9 +73,6 @@ namespace VS_QuickNavigation
 
 		private ObservableCollection<SymbolData> mRows;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickMethodToolWindowControl"/> class.
-		/// </summary>
 		public QuickMethodToolWindowControl()
 		{
 			this.InitializeComponent();
@@ -91,15 +89,8 @@ namespace VS_QuickNavigation
 			EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 			EnvDTE.CodeElements codeElements = dte2.ActiveDocument.ProjectItem.FileCodeModel.CodeElements;
 
-			System.Diagnostics.Debug.WriteLine("//////////////////////////");
-			System.Diagnostics.Debug.WriteLine("CodeElements");
-			System.Diagnostics.Debug.WriteLine("//////////////////////////");
-
 			AnalyseCodeElements(codeElements);
-
-			//System.Diagnostics.Debug.WriteLine(codeElements);
-			//System.Diagnostics.Debug.WriteLine(codeElement);
-
+			
 			textBox.Focus();
 		}
 

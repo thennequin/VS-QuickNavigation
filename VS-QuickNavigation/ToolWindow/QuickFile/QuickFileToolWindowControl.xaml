@@ -25,9 +25,21 @@
             </ListView.Style>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="670" Header="File" DisplayMemberBinding="{Binding Path=File}" />
+                    <GridViewColumn Width="670" Header="File" >
+                        <GridViewColumn.CellTemplate >
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding FileFormatted}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Width="50" Header="Match" DisplayMemberBinding="{Binding Path=SearchScore}" />
-                    <GridViewColumn Width="200" Header="Project" DisplayMemberBinding="{Binding Path=Project}" />
+                    <GridViewColumn Width="200" Header="Project" DisplayMemberBinding="{Binding Path=Data.Project}" />
                 </GridView>
             </ListView.View>
         </ListView>

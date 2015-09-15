@@ -1,9 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="QuickFileToolWindowControl.xaml.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
+﻿
 namespace VS_QuickNavigation
 {
 	using Microsoft.VisualStudio.Shell;
@@ -13,126 +8,145 @@ namespace VS_QuickNavigation
 	using System.Threading.Tasks;
 	using System.Windows.Controls;
 	using System.Windows.Data;
+	using System.Linq;
+	using System.Windows.Documents;
 
-	/// <summary>
-	/// Interaction logic for QuickFileToolWindowControl.
-	/// </summary>
 	public partial class QuickFileToolWindowControl : UserControl
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickFileToolWindowControl"/> class.
-		/// </summary>
-		///
-		private IEnumerable<FileList.FileData> mFiles;
+		public class FileData
+		{
+			static System.Windows.Media.Brush sBackgroundBrush;
+			static FileData()
+			{
+				System.Windows.Media.BrushConverter converter = new System.Windows.Media.BrushConverter();
+				sBackgroundBrush = (System.Windows.Media.Brush)(converter.ConvertFromString("#FFFFA0"));
+			}
 
-		private ObservableCollection<FileList.FileData> mRows;
-		private Task<IEnumerable<string>> mTask;
-		private FileDataComparer mComparer;
+
+			public FileData(FileList.FileData data)
+			{
+				Data = data;
+				GetScore("");
+			}
+
+			public InlineCollection FileFormatted { get; set; }
+
+			public FileList.FileData Data { get; set; }
+
+			private string mLastSearch;
+
+			public string Search
+			{
+				get
+				{
+					return mLastSearch;
+				}
+				set
+				{
+					GetScore(value);
+				}
+			}
+
+			public int SearchScore { get; private set; }
+
+			public int GetScore(string sSearch)
+			{
+				if (sSearch != mLastSearch)
+				{
+					mLastSearch = sSearch;
+
+					Bold block = new Bold();
+
+					if (!string.IsNullOrEmpty(mLastSearch))
+					{
+						//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
+						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
+						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Data.File.ToLower()) * 100);
+						//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
+						List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
+						SearchScore = StringScore.Search(sSearch, Data.File, matches);
+
+						if (matches.Count > 0)
+						{
+							string sFile = Data.File;
+
+							int previousIndex = 0;
+							foreach (var match in matches)
+							{
+								if (match.Item1 > 0)
+								{
+									block.Inlines.Add(new Run(Data.File.Substring(previousIndex, match.Item1 - previousIndex)));
+								}
+								//block.Inlines.Add(new Bold(new Run(Data.File.Substring(match.Item1, match.Item2))));
+								Run text = new Run(Data.File.Substring(match.Item1, match.Item2));
+								text.Background = sBackgroundBrush;
+								block.Inlines.Add(text);
+
+								previousIndex = match.Item1 + match.Item2;
+							}
+
+							Tuple<int, int> lastMatch = matches[matches.Count - 1];
+							if ((lastMatch.Item1 + lastMatch.Item2) < sFile.Length)
+							{
+								block.Inlines.Add(new Run(Data.File.Substring(lastMatch.Item1 + lastMatch.Item2)));
+							}
+						}
+						else
+						{
+							block.Inlines.Add(new Run(Data.File));
+						}
+					}
+					else
+					{
+						block.Inlines.Add(new Run(Data.File));
+					}
+
+					FileFormatted = block.Inlines;
+				}
+				
+				return SearchScore;
+			}
+		}
 
 		public sealed class FileDataComparer : System.Collections.IComparer
 		{
 			public int Compare(object a, object b)
 			{
-				var lhs = (FileList.FileData)b;
-				var rhs = (FileList.FileData)a;
+				var lhs = (FileData)b;
+				var rhs = (FileData)a;
 				if (!string.IsNullOrEmpty(mSearchText))
 				{
 					return lhs.GetScore(mSearchText).CompareTo(rhs.GetScore(mSearchText));
 				}
 
-				return lhs.File.CompareTo(rhs.File);
+				return lhs.Data.File.CompareTo(rhs.Data.File);
 			}
 
 			public string mSearchText;
 		}
 
+		private FileDataComparer mComparer;
+		private ObservableCollection<FileData> mRows;
+
 		public QuickFileToolWindowControl()
 		{
 			this.InitializeComponent();
 
-			//listView.color
-			//listView.UseCustomSelectionColors = true;
-			//listView.HighlightBackgroundColor = Color.Lime;
-			//listView.UnfocusedHighlightBackgroundColor = Color.Lime;
-
-			mFiles = FileList.files;
-
-			mRows = new ObservableCollection<FileList.FileData>();
+			mRows = new ObservableCollection<FileData>();
 
 			listView.Items.Clear();
 			listView.ItemsSource = mRows;
-
+		
 			ListCollectionView view = (ListCollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
-			//view.Filter = SearchFilter;
 			mComparer = new FileDataComparer();
 			view.CustomSort = mComparer;
 
+			foreach (FileList.FileData fileData in FileList.files)
+			{
+				mRows.Add(new FileData(fileData));
+			}
+
 			textBox.Focus();
-
-			RefreshListView();
-		}
-
-		private bool SearchFilter(object item)
-		{
-			if (String.IsNullOrEmpty(textBox.Text))
-				return true;
-			else
-				//return ((item as FileList.FileData).Name.IndexOf(textBox.Text, StringComparison.OrdinalIgnoreCase) >= 0);
-				return ((item as FileList.FileData).File.IndexOf(textBox.Text, StringComparison.OrdinalIgnoreCase) >= 0);
-		}
-
-		private void RefreshListView()
-		{
-			//Async async;
-			if (null != mTask)
-			{
-				mTask.Dispose();
-			}
-
-			//mTask = new Task<IEnumerable<string>>(
-			//	delegate()
-			{
-				IEnumerable<FileList.FileData> files = mFiles;
-				string text = textBox.Text;
-				if (!string.IsNullOrEmpty(text))
-				{
-					//files = files.Where(file => file.File.Contains(text));
-					//
-
-					//files = files.Where(file => StringScore.LevenshteinDistance(text, file) > 0);
-				}
-
-				mRows.Clear();
-				foreach (FileList.FileData file in files)
-				{
-					mRows.Add(file);
-				}
-
-				//if (mTask.IsCompleted)
-				/*{
-					listView.Items.Clear();
-					foreach (string filename in filenames)
-					{
-						listView.Items.Add(new FileData(filename));
-					}
-				}*/
-
-				//listView.DataContext = mRows;
-
-				//return filenames;
-			}
-			//	);
-			//mTask.Start();
-
-			//mTask.Wait();
-			//if (mTask.IsCompleted)
-			//{
-			//	listBox.Items.Clear();
-			//	foreach (string filename in mTask.Result)
-			//	{
-			//		listBox.Items.Add(filename);
-			//	}
-			//}
 		}
 
 		private void textBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -157,8 +171,8 @@ namespace VS_QuickNavigation
 					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 					int selectedIndex = listView.SelectedIndex;
 					if (selectedIndex == -1) selectedIndex = 0;
-					FileList.FileData file = listView.Items[selectedIndex] as FileList.FileData;
-					dte2.ItemOperations.OpenFile(file.Path);
+					FileData file = listView.Items[selectedIndex] as FileData;
+					dte2.ItemOperations.OpenFile(file.Data.Path);
 					(this.Parent as QuickFileToolWindow).Close();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
@@ -171,7 +185,6 @@ namespace VS_QuickNavigation
 		private void textBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			mComparer.mSearchText = textBox.Text;
-			//RefreshListView();
 
 			CollectionViewSource.GetDefaultView(listView.ItemsSource).Refresh();
 		}
@@ -185,8 +198,8 @@ namespace VS_QuickNavigation
 					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 					int selectedIndex = listView.SelectedIndex;
 					if (selectedIndex == -1) selectedIndex = 0;
-					FileList.FileData file = listView.Items[selectedIndex] as FileList.FileData;
-					dte2.ItemOperations.OpenFile(file.Path);
+					FileData file = listView.Items[selectedIndex] as FileData;
+					dte2.ItemOperations.OpenFile(file.Data.Path);
 					(this.Parent as QuickFileToolWindow).Close();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)

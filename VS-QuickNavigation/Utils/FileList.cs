@@ -23,35 +23,6 @@ namespace VS_QuickNavigation
 			public string File { get; set; }
 			public string Path { get; set; }
 			public string Project { get; set; }
-
-			private string mLastSearch;
-
-			public string Search
-			{
-				get
-				{
-					return mLastSearch;
-				}
-				set
-				{
-					GetScore(value);
-				}
-			}
-
-			public int SearchScore { get; private set; }
-
-			public int GetScore(string sSearch)
-			{
-				if (sSearch != mLastSearch)
-				{
-					mLastSearch = sSearch;
-					//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
-					//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
-					SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), File.ToLower()) * 100);
-					//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
-				}
-				return SearchScore;
-			}
 		}
 
 		static public IEnumerable<FileData> files
