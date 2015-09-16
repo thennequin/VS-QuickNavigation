@@ -54,11 +54,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FuzzyStrings\DiceCoefficientExtensions.cs" />
-    <Compile Include="FuzzyStrings\DoubleMetaphoneExtensions.cs" />
-    <Compile Include="FuzzyStrings\LevenshteinDistanceExtensions.cs" />
-    <Compile Include="FuzzyStrings\LongestCommonSubsequenceExtensions.cs" />
-    <Compile Include="FuzzyStrings\StringExtensions.cs" />
     <Compile Include="Utils\CodeElementList.cs" />
     <Compile Include="Utils\FileList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -84,14 +79,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="index.html" />
     <VSCTCompile Include="ToolWindow\QuickFile\QuickFileToolWindowPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
     <Content Include="Resources\QuickFileToolWindowCommand.png" />
     <Content Include="Resources\QuickMethodToolWindowCommand.png" />
-    <Content Include="Resources\VSQuickNavigationPackage.ico" />
-    <Content Include="stylesheet.css" />
+    <Content Include="Resources\VSQuickNavigationPackage.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Include="ToolWindow\QuickFile\QuickFileToolWindowControl.xaml">
