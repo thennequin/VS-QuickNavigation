@@ -30,9 +30,12 @@ namespace VS_QuickNavigation
 	/// </para>
 	/// </remarks>
 	[PackageRegistration(UseManagedResourcesOnly = true)]
-	[InstalledProductRegistration("#1110", "#1112", "0.1", IconResourceID = 1400)] // Info on this package for Help/About
+	[InstalledProductRegistration("#1110", "#1112", "0.3", IconResourceID = 1400)] // Info on this package for Help/About
 	[Guid(VSQuickNavigationPackage.PackageGuidString)]
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+	[ProvideMenuResource("Menus.ctmenu", 1)]
+	[ProvideToolWindow(typeof(QuickFileToolWindow))]
+	[ProvideToolWindow(typeof(QuickMethodToolWindow))]
 	public sealed class VSQuickNavigationPackage : Package
 	{
 		private IVsShell vsShell = null;
@@ -63,6 +66,9 @@ namespace VS_QuickNavigation
 		protected override void Initialize()
 		{
 			base.Initialize();
+
+			QuickFileToolWindowCommand.Initialize(this);
+			QuickMethodToolWindowCommand.Initialize(this);
 
 			vsShell = ServiceProvider.GlobalProvider.GetService(typeof(SVsShell)) as IVsShell;
 			if (vsShell != null)

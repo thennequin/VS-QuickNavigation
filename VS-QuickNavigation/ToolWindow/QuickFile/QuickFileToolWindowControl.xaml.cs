@@ -122,7 +122,6 @@ namespace VS_QuickNavigation
 				}
 
 				return lhs.Data.File.CompareTo(rhs.Data.File);
-				return lhs.SearchScore.CompareTo(rhs.SearchScore);
 			}
 
 			public string mSearchText;

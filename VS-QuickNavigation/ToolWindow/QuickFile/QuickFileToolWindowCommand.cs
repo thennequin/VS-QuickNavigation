@@ -44,6 +44,7 @@ namespace VS_QuickNavigation
 			{
 				var menuCommandID = new CommandID(CommandSet, CommandId);
 				var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
+				
 				commandService.AddCommand(menuItem);
 			}
 		}

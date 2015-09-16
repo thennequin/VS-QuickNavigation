@@ -62,7 +62,6 @@
     <Compile Include="ToolWindow\QuickFile\QuickFileToolWindowControl.xaml.cs">
       <DependentUpon>QuickFileToolWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ToolWindow\QuickFile\QuickFileToolWindowPackage.cs" />
     <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindow.cs" />
     <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindowCommand.cs" />
     <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindowControl.xaml.cs">
@@ -79,11 +78,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="ToolWindow\QuickFile\QuickFileToolWindowPackage.vsct">
+    <VSCTCompile Include="VSQuickNavigationPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
-    <Content Include="Resources\QuickFileToolWindowCommand.png" />
-    <Content Include="Resources\QuickMethodToolWindowCommand.png" />
+    <Content Include="Resources\Commands.png" />
     <Content Include="Resources\VSQuickNavigationPackage.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
