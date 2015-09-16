@@ -81,6 +81,10 @@
     <VSCTCompile Include="VSQuickNavigationPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
+    <Content Include="Preview.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Commands.png" />
     <Content Include="Resources\VSQuickNavigationPackage.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
