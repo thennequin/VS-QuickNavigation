@@ -89,7 +89,6 @@
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
     <Content Include="Resources\QuickFileToolWindowCommand.png" />
-    <Content Include="Resources\QuickFileToolWindowPackage.ico" />
     <Content Include="Resources\QuickMethodToolWindowCommand.png" />
     <Content Include="Resources\VSQuickNavigationPackage.ico" />
     <Content Include="stylesheet.css" />
@@ -215,6 +214,7 @@
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
