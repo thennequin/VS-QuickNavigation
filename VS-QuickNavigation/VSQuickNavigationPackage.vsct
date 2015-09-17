@@ -93,7 +93,7 @@
   </Commands>
 
   <KeyBindings>
-    <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFileToolWindowCommandId" key1="O" mod1="SHIFT" mod2="ALT" editor="guidVSStd97" />
+    <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFileToolWindowCommandId" key1="O" mod1="ALT" mod2="SHIFT" editor="guidVSStd97" />
     <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickMethodToolWindowCommand" key1="M" mod1="ALT" editor="guidVSStd97" />
   </KeyBindings>
 
