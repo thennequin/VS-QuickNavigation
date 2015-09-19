@@ -14,7 +14,9 @@
                  TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
         <ListView x:Name="listView"
                   VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                  SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown">
+                  SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown"
+                  VirtualizingStackPanel.IsVirtualizing="True" MouseDoubleClick="listView_MouseDoubleClick"
+                  >
             <ListView.Style>
                 <Style TargetType="{x:Type ListView}">
                     <Style.Resources>
@@ -25,16 +27,13 @@
             </ListView.Style>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="670" Header="File" >
+                    <GridViewColumn Width="670" Header="{Binding FileHeader}" >
                         <GridViewColumn.CellTemplate >
                             <DataTemplate>
-                                <ItemsControl ItemsSource="{Binding FileFormatted}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding Path=Data.Icon}" Width="16" Height="16"/>
+                                    <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" />
+                                </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

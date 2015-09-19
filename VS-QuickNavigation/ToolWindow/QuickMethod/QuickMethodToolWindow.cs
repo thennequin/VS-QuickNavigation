@@ -12,7 +12,7 @@ namespace VS_QuickNavigation
 		{
 			this.Title = "QuickMethod";
 
-			this.Content = new QuickMethodToolWindowControl();
+			this.Content = new QuickMethodToolWindowControl(this);
 
 			this.Width = 1000;
 			this.Height = 400;

@@ -12,7 +12,7 @@ namespace VS_QuickNavigation
 		{
 			this.Title = "QuickFile";
 
-			this.Content = new QuickFileToolWindowControl();
+			this.Content = new QuickFileToolWindowControl(this);
 
 			this.Width = 1000;
 			this.Height = 400;

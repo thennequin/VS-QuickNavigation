@@ -31,25 +31,27 @@
     group; your package should define its own command set in order to avoid collisions
     with command ids defined by other packages. -->
 
+
     <!--IDG_VS_VIEW_DEV_WINDOWS-->
-    <!--
     <Menus>
-      <Menu guid="guidVSQuickNavigationPackageCmdSet" id="TopLevelMenu" priority="0x700" type="Menu">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_VIEW_DEV_WINDOWS" />
+      <Menu guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenu" priority="0x0700" type="Menu">
+        <Parent guid="guidVSQuickNavigationPackageCmdSet" id="TopLevelMenuGroup" />
         <Strings>
-          <ButtonText>QuickNavigation</ButtonText>
           <CommandName>QuickNavigation</CommandName>
+          <ButtonText>Quick Navigation</ButtonText>
         </Strings>
       </Menu>
     </Menus>
-    
 
     <Groups>
-      <Group guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationMenu" priority="0x0600">
-        <Parent guid="guidVSQuickNavigationPackageCmdSet" id="TopLevelMenu"/>
+      <Group guid="guidVSQuickNavigationPackageCmdSet" id="TopLevelMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_VIEW" />
+        <!--<Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />-->
+      </Group>
+      <Group guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenuGroup" priority="0x0600">
+        <Parent guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenu"/>
       </Group>
     </Groups>
-    -->
 
     
     <!--Buttons section. -->
@@ -64,19 +66,26 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
 
-      <Button guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFileToolWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
-        <!-- <Parent guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationMenu" /> -->
+      <Button guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFile" priority="0x0100" type="Button">
+        <!--<Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />-->
+        <Parent guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenuGroup" />
         <Icon guid="guidImages" id="bmpIcon" />
+        <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>QuickFile</ButtonText>
+          <CommandName>cmdidQuickFile</CommandName>
+          <ButtonText>QuickNavigation.QuickFile</ButtonText>
+          <MenuText>Quick File</MenuText>
         </Strings>
       </Button>
-      <Button guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickMethodToolWindowCommand" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+      <Button guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickMethod" priority="0x0100" type="Button">
+        <!--<Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />-->
+        <Parent guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenuGroup" />
         <Icon guid="guidImages" id="bmpIcon" />
+        <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>QuickMethod</ButtonText>
+          <CommandName>cmdidQuickMethod</CommandName>
+          <ButtonText>QuickNavigation.QuickMethod</ButtonText>
+          <MenuText>Quick Method</MenuText>
         </Strings>
       </Button>
     </Buttons>
@@ -93,8 +102,8 @@
   </Commands>
 
   <KeyBindings>
-    <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFileToolWindowCommandId" key1="O" mod1="ALT" mod2="SHIFT" editor="guidVSStd97" />
-    <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickMethodToolWindowCommand" key1="M" mod1="ALT" editor="guidVSStd97" />
+    <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFile" key1="T" mod1="ALT" editor="guidVSStd97" />
+    <KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickMethod" key1="M" mod1="ALT" editor="guidVSStd97" />
   </KeyBindings>
 
   <Symbols>
@@ -103,10 +112,12 @@
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidVSQuickNavigationPackageCmdSet" value="{ad64a987-3060-494b-94c1-07bab75f9da3}">
-      <IDSymbol name="TopLevelMenu" value="0x1021"/>
-      <IDSymbol name="QuickNavigationMenu" value="0x1020" />
-      <IDSymbol name="cmdidQuickFileToolWindowCommandId" value="0x0100" />
-      <IDSymbol name="cmdidQuickMethodToolWindowCommand" value="0x0101"/>
+      <IDSymbol name="TopLevelMenuGroup" value="0x1020"/>
+      <IDSymbol name="QuickNavigationSubMenuGroup" value="0x1021"/>
+      <IDSymbol name="QuickNavigationSubMenu" value="0x2020" />
+      
+      <IDSymbol name="cmdidQuickFile" value="0x0100" />
+      <IDSymbol name="cmdidQuickMethod" value="0x0101"/>
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{2adb76a2-a290-46b7-9870-647ad2293084}">

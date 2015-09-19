@@ -19,8 +19,13 @@ namespace VS_QuickNavigation
 		}
 
 		
-		public static int Search(string query, string inText, List<Tuple<int,int>> matchIndexOut = null)
+		public static int Search(string query, string inText, List<Tuple<int,int>> matchIndexOut = null, int doubleScoreStart = 0)
 		{
+			if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(inText))
+			{
+				return 0;
+			}
+
 			int tokenIndex = 0;
 			int stringIndex = 0;
 			int totalScore = 0;
@@ -29,6 +34,9 @@ namespace VS_QuickNavigation
 			
 			while (stringIndex < inText.Length)
 			{
+				//int bestScore = 0;
+				//int bestScoreLastCharPos = 0;
+
 				int charScore = CharScore(inText[stringIndex], query[tokenIndex]);
 				if (charScore > 0)
 				{
@@ -36,8 +44,10 @@ namespace VS_QuickNavigation
 					{
 						currentMatch = stringIndex;
 					}
-					
-					totalScore += charScore * combo;
+
+					int multScore = stringIndex >= doubleScoreStart ? 2 : 1; // Double score
+					totalScore += charScore * combo * multScore;
+
 
 					//if (charScore == 2) //To test : ignore
 					{
@@ -72,6 +82,93 @@ namespace VS_QuickNavigation
 			}
 
 			return totalScore;
+		}
+
+		/*void SearchBestToken(string query, string inText, int inTextStart, int queryStart, out int bestScore, out int startBest, out int len)
+		{
+			int tokenIndex = queryStart;
+			int stringIndex = inTextStart;
+			int totalScore = 0;
+			int combo = 1;
+			int? currentMatch = null;
+
+			//int bestScore = 0;
+			//int bestScoreLastCharPos = 0;
+
+			while (stringIndex < inText.Length)
+			{
+				
+
+				int charScore = CharScore(inText[stringIndex], query[tokenIndex]);
+				if (charScore > 0)
+				{
+					if (!currentMatch.HasValue)
+					{
+						currentMatch = stringIndex;
+					}
+
+					int multScore = stringIndex >= doubleScoreStart ? 2 : 1; // Double score
+					totalScore += charScore * combo * multScore;
+
+
+					//if (charScore == 2) //To test : ignore
+					{
+						++tokenIndex;
+						++combo;
+
+						if (tokenIndex >= query.Length)
+						{
+							++stringIndex;
+							break;
+						}
+					}
+				}
+				else
+				{
+					combo = 1;
+					if (null != matchIndexOut && currentMatch.HasValue)
+					{
+						Debug.Assert((stringIndex - currentMatch.Value) > 0);
+						matchIndexOut.Add(new Tuple<int, int>(currentMatch.Value, stringIndex - currentMatch.Value));
+						currentMatch = null;
+					}
+				}
+
+				++stringIndex;
+			}
+		}*/
+
+		public static void FormatMatches(string sString, List<Tuple<int, int>> matches, List<Tuple<string, bool>> formatted, int start = 0, int end = -1)
+		{
+			formatted.Clear();
+			if (matches.Count > 0)
+			{
+				int previousIndex = start;
+				foreach (var match in matches)
+				{
+					if (match.Item1 < start && (match.Item1 + match.Item2) < start)
+					{
+						continue;
+					}
+					if (match.Item1 > start)
+					{
+						formatted.Add(Tuple.Create(sString.Substring(previousIndex, match.Item1 - previousIndex), false));
+					}
+					formatted.Add(Tuple.Create(sString.Substring(match.Item1, match.Item2), true));
+
+					previousIndex = match.Item1 + match.Item2;
+				}
+
+				Tuple<int, int> lastMatch = matches[matches.Count - 1];
+				if ((lastMatch.Item1 + lastMatch.Item2) < sString.Length)
+				{
+					formatted.Add(Tuple.Create(sString.Substring(lastMatch.Item1 + lastMatch.Item2), false));
+				}
+			}
+			else
+			{
+				formatted.Add(Tuple.Create(sString, false));
+			}
 		}
 
 		public static List<string> Search(

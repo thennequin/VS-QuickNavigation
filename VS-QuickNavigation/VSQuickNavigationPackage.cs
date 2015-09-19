@@ -4,6 +4,7 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
@@ -38,9 +39,6 @@ namespace VS_QuickNavigation
 	[ProvideToolWindow(typeof(QuickMethodToolWindow))]
 	public sealed class VSQuickNavigationPackage : Package
 	{
-		private IVsShell vsShell = null;
-		private IVsSolution2 solution = null;
-
 		/// <summary>
 		/// VSQuickNavigationPackage GUID string.
 		/// </summary>
@@ -51,11 +49,12 @@ namespace VS_QuickNavigation
 		/// </summary>
 		public VSQuickNavigationPackage()
 		{
-			// Inside this method you can place any initialization code that does not require
-			// any Visual Studio service because at this point the package object is created but
-			// not sited yet inside Visual Studio environment. The place to do all the other
-			// initialization is the Initialize method.
-		}
+			Common.Instance.Package = this;
+			Common.Instance.Shell = ServiceProvider.GlobalProvider.GetService(typeof(SVsShell)) as IVsShell;
+			Common.Instance.Solution = ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) as IVsSolution2;
+
+			Common.Instance.SolutionWatcher = new SolutionWatcher();
+        }
 
 		#region Package Members
 
@@ -66,20 +65,18 @@ namespace VS_QuickNavigation
 		protected override void Initialize()
 		{
 			base.Initialize();
+			//solution;
 
 			QuickFileToolWindowCommand.Initialize(this);
 			QuickMethodToolWindowCommand.Initialize(this);
-
-			vsShell = ServiceProvider.GlobalProvider.GetService(typeof(SVsShell)) as IVsShell;
-			if (vsShell != null)
-			{
-			}
-
-			solution = ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) as IVsSolution2;
-			if (solution != null)
-			{
-			}
 		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			Common.Instance.SolutionWatcher.Dispose();
+        }
 
 		#endregion Package Members
 	}

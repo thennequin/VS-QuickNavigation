@@ -54,6 +54,13 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
+    <Compile Include="Data\FileData.cs" />
+    <Compile Include="Data\FileIcon.cs" />
+    <Compile Include="Data\SearchResult.cs" />
+    <Compile Include="Data\SymbolData.cs" />
+    <Compile Include="Watcher\IntellisenseWatcher.cs" />
+    <Compile Include="Watcher\SolutionWatcher.cs" />
     <Compile Include="Utils\CodeElementList.cs" />
     <Compile Include="Utils\FileList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -81,11 +88,11 @@
     <VSCTCompile Include="VSQuickNavigationPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
-    <Content Include="Preview.png">
+    <Content Include="Resources\Commands.png" />
+    <Content Include="Resources\Preview.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\Commands.png" />
     <Content Include="Resources\VSQuickNavigationPackage.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -192,6 +199,10 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="SignVSIX, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SignVSIXLibrary.1.0.1\lib\net40-client\SignVSIX.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <HintPath>..\packages\VSSDK.DTE.7.0.4\lib\net20\stdole.dll</HintPath>
@@ -207,7 +218,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Include="VSQuickNavigationPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

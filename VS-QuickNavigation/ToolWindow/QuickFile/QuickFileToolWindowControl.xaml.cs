@@ -8,147 +8,67 @@ namespace VS_QuickNavigation
 	using System.Threading.Tasks;
 	using System.Windows.Controls;
 	using System.Windows.Data;
-	using System.Linq;
 	using System.Windows.Documents;
+	using System.Threading;
+	using System.Windows.Media;
+	using System.ComponentModel;
+	using System.Linq;
+	using VS_QuickNavigation.Data;
 
-	public partial class QuickFileToolWindowControl : UserControl
+	public partial class QuickFileToolWindowControl : UserControl, INotifyPropertyChanged
 	{
-		public class FileData
+		private QuickFileToolWindow mQuickFileToolWindow;
+
+		private CancellationTokenSource mToken;
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		public string FileHeader
 		{
-			static System.Windows.Media.Brush sBackgroundBrush;
-			static FileData()
+			get
 			{
-				System.Windows.Media.BrushConverter converter = new System.Windows.Media.BrushConverter();
-				sBackgroundBrush = (System.Windows.Media.Brush)(converter.ConvertFromString("#FFFFA0"));
-			}
-
-
-			public FileData(FileList.FileData data)
-			{
-				Data = data;
-				GetScore("");
-			}
-
-			public InlineCollection FileFormatted { get; set; }
-
-			public FileList.FileData Data { get; set; }
-
-			private string mLastSearch;
-
-			public string Search
-			{
-				get
-				{
-					return mLastSearch;
-				}
-				set
-				{
-					GetScore(value);
-				}
-			}
-
-			public int SearchScore { get; private set; }
-
-			public int GetScore(string sSearch)
-			{
-				if (sSearch != mLastSearch)
-				{
-					mLastSearch = sSearch;
-
-					Bold block = new Bold();
-
-					if (!string.IsNullOrEmpty(mLastSearch))
-					{
-						//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
-						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
-						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Data.File.ToLower()) * 100);
-						//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
-						List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
-						SearchScore = StringScore.Search(sSearch, Data.File, matches);
-
-						if (matches.Count > 0)
-						{
-							string sFile = Data.File;
-
-							int previousIndex = 0;
-							foreach (var match in matches)
-							{
-								if (match.Item1 > 0)
-								{
-									block.Inlines.Add(new Run(sFile.Substring(previousIndex, match.Item1 - previousIndex)));
-								}
-								//block.Inlines.Add(new Bold(new Run(sFile.Substring(match.Item1, match.Item2))));
-								Run text = new Run(sFile.Substring(match.Item1, match.Item2));
-								text.Background = sBackgroundBrush;
-								block.Inlines.Add(text);
-
-								previousIndex = match.Item1 + match.Item2;
-							}
-
-							Tuple<int, int> lastMatch = matches[matches.Count - 1];
-							if ((lastMatch.Item1 + lastMatch.Item2) < sFile.Length)
-							{
-								block.Inlines.Add(new Run(sFile.Substring(lastMatch.Item1 + lastMatch.Item2)));
-							}
-						}
-						else
-						{
-							block.Inlines.Add(new Run(Data.File));
-						}
-					}
-					else
-					{
-						block.Inlines.Add(new Run(Data.File));
-					}
-
-					FileFormatted = block.Inlines;
-				}
-				
-				return SearchScore;
+				return "Files (" + Common.Instance.SolutionWatcher.FilesCount + ")";
 			}
 		}
 
-		public sealed class FileDataComparer : System.Collections.IComparer
+		protected virtual void OnPropertyChanged(string propertyName)
 		{
-			public int Compare(object a, object b)
+			PropertyChangedEventHandler handler = this.PropertyChanged;
+			if (handler != null)
 			{
-				var lhs = (FileData)b;
-				var rhs = (FileData)a;
-				int lScore = lhs.GetScore(mSearchText);
-				int rScore = rhs.GetScore(mSearchText);
-				if (!string.IsNullOrEmpty(mSearchText))
-				{
-					return lScore.CompareTo(rScore);
-				}
-
-				return lhs.Data.File.CompareTo(rhs.Data.File);
+				var e = new PropertyChangedEventArgs(propertyName);
+				handler(this, e);
 			}
-
-			public string mSearchText;
 		}
 
-		private FileDataComparer mComparer;
-		private ObservableCollection<FileData> mRows;
-
-		public QuickFileToolWindowControl()
+		public QuickFileToolWindowControl(QuickFileToolWindow oQuickFileToolWindow)
 		{
 			this.InitializeComponent();
 
-			mRows = new ObservableCollection<FileData>();
+			mQuickFileToolWindow = oQuickFileToolWindow;
 
-			listView.Items.Clear();
-			listView.ItemsSource = mRows;
-		
-			ListCollectionView view = (ListCollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
-			mComparer = new FileDataComparer();
-			view.CustomSort = mComparer;
+			mQuickFileToolWindow.Closing += OnClosing;
 
-			foreach (FileList.FileData fileData in FileList.files)
-			{
-				mRows.Add(new FileData(fileData));
-			}
+			Common.Instance.SolutionWatcher.RefreshFileList();
+			Common.Instance.SolutionWatcher.OnFilesChanged += OnFilesChanged;
+
+			DataContext = this;
+
+			RefreshList();
 
 			textBox.Focus();
+			
+		}
+
+		private void OnClosing(object sender, CancelEventArgs e)
+		{
+			Common.Instance.SolutionWatcher.OnFilesChanged -= OnFilesChanged;
+		}
+
+		private void OnFilesChanged()
+		{
+			OnPropertyChanged("FileHeader");
+			RefreshList();
 		}
 
 		private void textBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -157,12 +77,22 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Up)
 				{
-					listView.SelectedIndex--;
+					if (listView.SelectedIndex > 0)
+					{
+						listView.SelectedIndex--;
+					}
 					e.Handled = true;
 				}
 				else if (e.Key == System.Windows.Input.Key.Down)
 				{
-					listView.SelectedIndex++;
+					if (listView.SelectedIndex == -1)
+					{
+						listView.SelectedIndex = 1;
+					}
+					else
+					{
+						listView.SelectedIndex++;
+					}
 					e.Handled = true;
 				}
 			}
@@ -170,12 +100,7 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
-					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
-					int selectedIndex = listView.SelectedIndex;
-					if (selectedIndex == -1) selectedIndex = 0;
-					FileData file = listView.Items[selectedIndex] as FileData;
-					dte2.ItemOperations.OpenFile(file.Data.Path);
-					(this.Parent as QuickFileToolWindow).Close();
+					OpenCurrentSelection();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
@@ -186,9 +111,7 @@ namespace VS_QuickNavigation
 
 		private void textBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
-			mComparer.mSearchText = textBox.Text;
-
-			CollectionViewSource.GetDefaultView(listView.ItemsSource).Refresh();
+			RefreshList();
 		}
 
 		private void listView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -197,18 +120,60 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
-					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
-					int selectedIndex = listView.SelectedIndex;
-					if (selectedIndex == -1) selectedIndex = 0;
-					FileData file = listView.Items[selectedIndex] as FileData;
-					dte2.ItemOperations.OpenFile(file.Data.Path);
-					(this.Parent as QuickFileToolWindow).Close();
+					OpenCurrentSelection();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
-					(this.Parent as QuickFileToolWindow).Close();
+					mQuickFileToolWindow.Close();
 				}
 			}
+		}
+
+		private async void RefreshList()
+		{
+			if ( null != mToken)
+			{
+				mToken.Cancel();
+			}
+			mToken = new CancellationTokenSource();
+
+			//try
+			{
+				string sSearch = textBox.Text;
+				IEnumerable<SearchResult<FileData>> results = Common.Instance.SolutionWatcher.Files
+					.AsParallel()
+					.WithCancellation(mToken.Token)
+					.Select( fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\") )
+					.Where(fileData => fileData.SearchScore > 0)
+					.OrderByDescending(fileData => fileData.SearchScore)
+					.Take(250)
+					;
+
+				
+				if (!mToken.Token.IsCancellationRequested)
+				{
+					listView.ItemsSource = results;
+				}
+			}
+			//catch (Exception)
+			//{
+
+			//}
+		}
+
+		private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		{
+			OpenCurrentSelection();
+		}
+
+		private void OpenCurrentSelection()
+		{
+			EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
+			int selectedIndex = listView.SelectedIndex;
+			if (selectedIndex == -1) selectedIndex = 0;
+			SearchResult<FileData> results = listView.Items[selectedIndex] as SearchResult<FileData>;
+			dte2.ItemOperations.OpenFile(results.Data.Path);
+			mQuickFileToolWindow.Close();
 		}
 	}
 }

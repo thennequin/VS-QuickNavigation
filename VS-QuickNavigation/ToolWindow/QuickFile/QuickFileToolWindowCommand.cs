@@ -48,7 +48,7 @@ namespace VS_QuickNavigation
 				commandService.AddCommand(menuItem);
 			}
 		}
-
+		
 		/// <summary>
 		/// Gets the instance of the command.
 		/// </summary>

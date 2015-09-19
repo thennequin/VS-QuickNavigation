@@ -10,149 +10,39 @@ namespace VS_QuickNavigation
 	using System;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
+	using System.Threading;
 	using System.Windows.Controls;
 	using System.Windows.Data;
 	using System.Windows.Documents;
+	using Data;
+	using System.Linq;
 
 	/// <summary>
 	/// Interaction logic for QuickMethodToolWindowControl.
 	/// </summary>
 	public partial class QuickMethodToolWindowControl : UserControl
 	{
-		private class SymbolData
-		{
-			static System.Windows.Media.Brush sBackgroundBrush;
-			static SymbolData()
-			{
-				System.Windows.Media.BrushConverter converter = new System.Windows.Media.BrushConverter();
-				sBackgroundBrush = (System.Windows.Media.Brush)(converter.ConvertFromString("#FFFFA0"));
-			}
-			public SymbolData(string symbol, int line)
-			{
-				Symbol = symbol;
-				Line = line;
-				GetScore("");
-			}
+		
 
-			public string Symbol { get; set; }
-			public int Line { get; set; }
-			public InlineCollection FileFormatted { get; set; }
+		private QuickMethodToolWindow mQuickMethodToolWindow;
+		private List<SymbolData> mSymbols = new List<SymbolData>();
+		private CancellationTokenSource mToken;
 
-			private string mLastSearch;
-
-			public string Search
-			{
-				get
-				{
-					return mLastSearch;
-				}
-				set
-				{
-					GetScore(value);
-				}
-			}
-
-			public int SearchScore { get; private set; }
-
-			public int GetScore(string sSearch)
-			{
-				if (sSearch != mLastSearch)
-				{
-					mLastSearch = sSearch;
-
-					Bold block = new Bold();
-
-					if (!string.IsNullOrEmpty(mLastSearch))
-					{
-						//SearchScore = StringScore.LevenshteinDistance(File, sSearch);
-						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch, File) * 100);
-						//SearchScore = (int)(DuoVia.FuzzyStrings.DiceCoefficientExtensions.DiceCoefficient(sSearch.ToLower(), Symbol.ToLower()) * 100);
-						//SearchScore = (int)(DuoVia.FuzzyStrings.StringExtensions.FuzzyMatch(sSearch, File) * 100);
-						List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
-						SearchScore = StringScore.Search(sSearch, Symbol, matches);
-
-						if (matches.Count > 0)
-						{
-							string sSymbol = Symbol;
-
-							int previousIndex = 0;
-							foreach (var match in matches)
-							{
-								if (match.Item1 > 0)
-								{
-									block.Inlines.Add(new Run(sSymbol.Substring(previousIndex, match.Item1 - previousIndex)));
-								}
-								//block.Inlines.Add(new Bold(new Run(sFile.Substring(match.Item1, match.Item2))));
-								Run text = new Run(sSymbol.Substring(match.Item1, match.Item2));
-								text.Background = sBackgroundBrush;
-								block.Inlines.Add(text);
-
-								previousIndex = match.Item1 + match.Item2;
-							}
-
-							Tuple<int, int> lastMatch = matches[matches.Count - 1];
-							if ((lastMatch.Item1 + lastMatch.Item2) < sSymbol.Length)
-							{
-								block.Inlines.Add(new Run(sSymbol.Substring(lastMatch.Item1 + lastMatch.Item2)));
-							}
-						}
-						else
-						{
-							block.Inlines.Add(new Run(Symbol));
-						}
-					}
-					else
-					{
-						block.Inlines.Add(new Run(Symbol));
-					}
-
-					FileFormatted = block.Inlines;
-				}
-				return SearchScore;
-			}
-		}
-
-		public sealed class SymbolDataComparer : System.Collections.IComparer
-		{
-			public int Compare(object a, object b)
-			{
-				var lhs = (SymbolData)b;
-				var rhs = (SymbolData)a;
-				int lScore = lhs.GetScore(mSearchText);
-				int rScore = rhs.GetScore(mSearchText);
-				if (!string.IsNullOrEmpty(mSearchText))
-				{
-					return lScore.CompareTo(rScore);
-				}
-
-				return lhs.Symbol.CompareTo(rhs.Symbol);
-			}
-
-			public string mSearchText;
-		}
-
-		private SymbolDataComparer mComparer;
-
-		private ObservableCollection<SymbolData> mRows;
-
-		public QuickMethodToolWindowControl()
+		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent)
 		{
 			this.InitializeComponent();
 
-			mRows = new ObservableCollection<SymbolData>();
-
-			listView.Items.Clear();
-			listView.ItemsSource = mRows;
-
-			ListCollectionView view = (ListCollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
-			mComparer = new SymbolDataComparer();
-			view.CustomSort = mComparer;
+			mQuickMethodToolWindow = oParent;
 
 			EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 			EnvDTE.CodeElements codeElements = dte2.ActiveDocument.ProjectItem.FileCodeModel.CodeElements;
 
 			AnalyseCodeElements(codeElements);
-			
+
+			DataContext = this;
+
+			RefreshResults();
+
 			textBox.Focus();
 		}
 
@@ -190,8 +80,8 @@ namespace VS_QuickNavigation
 						}
 
 						sSymbol += ")";
-						
-						mRows.Add(new SymbolData(sSymbol, objCodeElement.StartPoint.Line));
+
+						mSymbols.Add(new SymbolData(sSymbol, objCodeElement.StartPoint.Line));
 					}
 					else
 					{
@@ -246,25 +136,21 @@ namespace VS_QuickNavigation
 					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 					int selectedIndex = listView.SelectedIndex;
 					if (selectedIndex == -1) selectedIndex = 0;
-					SymbolData symbolData = listView.Items[selectedIndex] as SymbolData;
-					//dte2.ItemOperations.OpenFile(file.Path);
-					((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(symbolData.Line);
+					SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
+					((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
 
-					(this.Parent as QuickMethodToolWindow).Close();
+					mQuickMethodToolWindow.Close();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
-					(this.Parent as QuickMethodToolWindow).Close();
+					mQuickMethodToolWindow.Close();
 				}
 			}
 		}
 
 		private void textBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
-			mComparer.mSearchText = textBox.Text;
-			//RefreshListView();
-
-			CollectionViewSource.GetDefaultView(listView.ItemsSource).Refresh();
+			RefreshResults();
 		}
 
 		private void listView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -276,9 +162,8 @@ namespace VS_QuickNavigation
 					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 					int selectedIndex = listView.SelectedIndex;
 					if (selectedIndex == -1) selectedIndex = 0;
-					SymbolData symbolData = listView.Items[selectedIndex] as SymbolData;
-					//dte2.ItemOperations.OpenFile(file.Path);
-					((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(symbolData.Line);
+					SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
+					((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
 
 					(this.Parent as QuickFileToolWindow).Close();
 				}
@@ -287,6 +172,38 @@ namespace VS_QuickNavigation
 					(this.Parent as QuickFileToolWindow).Close();
 				}
 			}
+		}
+
+		private async void RefreshResults()
+		{
+			if (null != mToken)
+			{
+				mToken.Cancel();
+			}
+			mToken = new CancellationTokenSource();
+
+			//try
+			{
+				string sSearch = textBox.Text;
+				IEnumerable<SearchResult<SymbolData>> results = mSymbols
+					.AsParallel()
+					.WithCancellation(mToken.Token)
+					.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol))
+					.Where(fileData => fileData.SearchScore >= 0)
+					.OrderByDescending(fileData => fileData.SearchScore)
+					//.Take(250)
+					;
+
+
+				if (!mToken.Token.IsCancellationRequested)
+				{
+					listView.ItemsSource = results;
+				}
+			}
+			//catch (Exception)
+			//{
+
+			//}
 		}
 	}
 }

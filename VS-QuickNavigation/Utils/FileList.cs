@@ -6,25 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using VS_QuickNavigation.Data;
 
 namespace VS_QuickNavigation
 {
 	public class FileList
 	{
-		public class FileData
-		{
-			public FileData(string file, string project)
-			{
-				Path = file;
-				File = file.Substring(file.LastIndexOf('\\') + 1);
-				Project = project;
-			}
-
-			public string File { get; set; }
-			public string Path { get; set; }
-			public string Project { get; set; }
-		}
-
 		static public IEnumerable<FileData> files
 		{
 			get
