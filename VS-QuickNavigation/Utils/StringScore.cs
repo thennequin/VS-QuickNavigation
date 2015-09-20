@@ -138,7 +138,7 @@ namespace VS_QuickNavigation
 			}
 		}*/
 
-		public static void FormatMatches(string sString, List<Tuple<int, int>> matches, List<Tuple<string, bool>> formatted, int start = 0, int end = -1)
+		public static void FormatMatches(string sString, List<Tuple<int, int>> matches, List<Tuple<string, bool>> formatted, int start = 0/*, int end = -1*/)
 		{
 			formatted.Clear();
 			if (matches.Count > 0)
@@ -162,12 +162,12 @@ namespace VS_QuickNavigation
 				Tuple<int, int> lastMatch = matches[matches.Count - 1];
 				if ((lastMatch.Item1 + lastMatch.Item2) < sString.Length)
 				{
-					formatted.Add(Tuple.Create(sString.Substring(lastMatch.Item1 + lastMatch.Item2), false));
+					formatted.Add(Tuple.Create(sString.Substring(Math.Max(start,lastMatch.Item1 + lastMatch.Item2)), false));
 				}
 			}
 			else
 			{
-				formatted.Add(Tuple.Create(sString, false));
+				formatted.Add(Tuple.Create(sString.Substring(start), false));
 			}
 		}
 
