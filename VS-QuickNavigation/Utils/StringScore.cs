@@ -19,44 +19,44 @@ namespace VS_QuickNavigation
 		}
 
 		
-		public static int Search(string query, string inText, List<Tuple<int,int>> matchIndexOut = null, int doubleScoreStart = 0)
+		public static int Search(string query, string content, List<Tuple<int,int>> matchIndexOut = null, int doubleScoreStart = 0)
 		{
-			if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(inText))
+			if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(content))
 			{
 				return 0;
 			}
 
-			int tokenIndex = 0;
-			int stringIndex = 0;
+			int queryIndex = query.Length - 1;
+			int contentIndex = content.Length - 1;
 			int totalScore = 0;
 			int combo = 1;
 			int? currentMatch = null;
 			
-			while (stringIndex < inText.Length)
+			while (contentIndex >= 0)
 			{
 				//int bestScore = 0;
 				//int bestScoreLastCharPos = 0;
 
-				int charScore = CharScore(inText[stringIndex], query[tokenIndex]);
+				int charScore = CharScore(content[contentIndex], query[queryIndex]);
 				if (charScore > 0)
 				{
 					if (!currentMatch.HasValue)
 					{
-						currentMatch = stringIndex;
+						currentMatch = contentIndex;
 					}
 
-					int multScore = stringIndex >= doubleScoreStart ? 2 : 1; // Double score
+					int multScore = contentIndex >= doubleScoreStart ? 2 : 1; // Double score
 					totalScore += charScore * combo * multScore;
 
 
 					//if (charScore == 2) //To test : ignore
 					{
-						++tokenIndex;
+						--queryIndex;
 						++combo;
 
-						if (tokenIndex >= query.Length)
+						if (queryIndex < 0)
 						{
-							++stringIndex;
+							--contentIndex;
 							break;
 						}
 					}
@@ -66,19 +66,19 @@ namespace VS_QuickNavigation
 					combo = 1;
 					if (null != matchIndexOut && currentMatch.HasValue)
 					{
-						Debug.Assert((stringIndex - currentMatch.Value) > 0);
-						matchIndexOut.Add(new Tuple<int, int>(currentMatch.Value, stringIndex - currentMatch.Value));
+						Debug.Assert((contentIndex - currentMatch.Value) < 0);
+						matchIndexOut.Insert(0, new Tuple<int, int>(contentIndex+1, currentMatch.Value - contentIndex));
 						currentMatch = null;
 					}
 				}
 
-				++stringIndex;
+				--contentIndex;
 			}
 
 			if (null != matchIndexOut && currentMatch.HasValue)
 			{
-				Debug.Assert((stringIndex - currentMatch.Value) > 0);
-				matchIndexOut.Add(new Tuple<int,int>(currentMatch.Value, stringIndex - currentMatch.Value));
+				Debug.Assert((contentIndex - currentMatch.Value) < 0);
+				matchIndexOut.Insert(0, new Tuple<int, int>(contentIndex+1, currentMatch.Value - contentIndex));
 			}
 
 			return totalScore;
