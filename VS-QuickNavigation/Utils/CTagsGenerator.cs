@@ -106,13 +106,15 @@ namespace VS_QuickNavigation.Utils
 			args += "-f \"" + tagsPath + "\" ";		// Output tag file
 			args += "−−c++−kinds=+p ";				// Include declarations
 			args += "--fields=+S+m ";               // Add parameters fields & Implementation information
-			args += filePath;						// Input file list
-			Process process = ExecCTags(args);
-			process.WaitForExit();
-			IEnumerable<SymbolData> results = null;
-			if (process.ExitCode == 0)
+			args += filePath;                       // Input file list
+			using (Process process = ExecCTags(args))
 			{
-				results = ParseTagFile(tagsPath, SymbolData.ESymbolType.Method);
+				process.WaitForExit();
+				IEnumerable<SymbolData> results = null;
+				if (process.ExitCode == 0)
+				{
+					results = ParseTagFile(tagsPath, SymbolData.ESymbolType.Method);
+				}
 			}
 			System.IO.File.Delete(tagsPath);
 			return results;
@@ -173,37 +175,38 @@ namespace VS_QuickNavigation.Utils
 			args += "-f \"" + tagsPath + "\" "; //Output tag file
 			args += "-L \"" + filePath + "\" "; //Input file list
 
-			Process process = ExecCTags(args);
-
-			int fileCount = files.Count();
-			int currentFile = 0;
-			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-			bool startScan = false;
-			while (!process.HasExited)
+			using (Process process = ExecCTags(args))
 			{
-				if ((currentFile % 5) == 0)
+				int fileCount = files.Count();
+				int currentFile = 0;
+				EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+				bool startScan = false;
+				while (!process.HasExited)
 				{
-					sbar.Progress(true, "QuickNavigation Scan solution " + currentFile + "/" + fileCount, currentFile, fileCount);
-				}
-				string line = process.StandardOutput.ReadLine();
-				if (startScan)
-				{
-					if (line.StartsWith("OPENING ") || line.StartsWith("ignoring ") || line.StartsWith("ctags: Warning: cannot open"))
+					if ((currentFile % 5) == 0)
 					{
-						++currentFile;
+						sbar.Progress(true, "QuickNavigation Scan solution " + currentFile + "/" + fileCount, currentFile, fileCount);
 					}
-				}
-				else
-				{
-					if (line == "Reading list file")
+					string line = process.StandardOutput.ReadLine();
+					if (startScan)
 					{
-						startScan = true;
+						if (line.StartsWith("OPENING ") || line.StartsWith("ignoring ") || line.StartsWith("ctags: Warning: cannot open"))
+						{
+							++currentFile;
+						}
 					}
+					else
+					{
+						if (line == "Reading list file")
+						{
+							startScan = true;
+						}
+					}
+
 				}
-				
+				sbar.Progress(false);
+				string output = process.StandardOutput.ReadToEnd();
 			}
-			sbar.Progress(false);
-			string output = process.StandardOutput.ReadToEnd();
 		}
 
 		/*
