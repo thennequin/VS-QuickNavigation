@@ -1,9 +1,6 @@
 ﻿using Microsoft.VisualStudio.Shell.Interop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
 
 namespace VS_QuickNavigation
 {
@@ -11,7 +8,11 @@ namespace VS_QuickNavigation
 	{
 		private static Common instance;
 
-		private Common() { }
+		private Common()
+		{
+			ExtensionFolder = Path.GetDirectoryName(System.Uri.UnescapeDataString(
+				new System.UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
+		}
 
 		public static Common Instance
 		{
@@ -27,13 +28,37 @@ namespace VS_QuickNavigation
 
 		public VSQuickNavigationPackage Package { get; set; }
 
+		/*public EnvDTE80.DTE2 DTE2
+		{
+			get
+			{
+				return ServiceProvider.GlobalProvider.GetService(typeof(SDTE)) as EnvDTE80.DTE2;
+			}
+		}*/
+		public EnvDTE80.DTE2 DTE2 { get; set; }
 		public IVsShell Shell { get; set; }
-
 		public IVsSolution Solution { get; set; }
 
 		public SolutionWatcher SolutionWatcher { get; set; }
+		public Settings Settings { get; set; }
 
-		//public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
-		//public uint SolutionCookie { get; set; }
+		public string ExtensionFolder { get; private set; }
+		public string DataFolder
+		{
+			get
+			{
+				string dataFolder = ExtensionFolder + "\\Data";
+				if (!Directory.Exists(dataFolder))
+				{
+					Directory.CreateDirectory(dataFolder);
+				}
+				return dataFolder;
+			}
+		}
+
+		public void ShowOptionsPage()
+		{
+			Package.ShowOptionPage(typeof(Options.OptionsDialogPage));
+		}
 	}
 }

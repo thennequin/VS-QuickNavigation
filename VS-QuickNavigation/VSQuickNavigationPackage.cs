@@ -31,12 +31,14 @@ namespace VS_QuickNavigation
 	/// </para>
 	/// </remarks>
 	[PackageRegistration(UseManagedResourcesOnly = true)]
-	[InstalledProductRegistration("#1110", "#1112", "0.3.1", IconResourceID = 1400)] // Info on this package for Help/About
+	[InstalledProductRegistration("#1110", "#1112", "0.4", IconResourceID = 1400)] // Info on this package for Help/About
 	[Guid(VSQuickNavigationPackage.PackageGuidString)]
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+	[ProvideAutoLoad(UIContextGuids80.SolutionExists)]
 	[ProvideMenuResource("Menus.ctmenu", 1)]
-	[ProvideToolWindow(typeof(QuickFileToolWindow))]
-	[ProvideToolWindow(typeof(QuickMethodToolWindow))]
+	//[ProvideToolWindow(typeof(QuickFileToolWindow))]
+	//[ProvideToolWindow(typeof(QuickMethodToolWindow))]
+	[ProvideOptionPage(typeof(Options.OptionsDialogPage), "QuickNavigation", "Settings", 0, 0, supportsAutomation: true)]
 	public sealed class VSQuickNavigationPackage : Package
 	{
 		/// <summary>
@@ -50,11 +52,13 @@ namespace VS_QuickNavigation
 		public VSQuickNavigationPackage()
 		{
 			Common.Instance.Package = this;
+			Common.Instance.DTE2 = ServiceProvider.GlobalProvider.GetService(typeof(SDTE)) as EnvDTE80.DTE2;
 			Common.Instance.Shell = ServiceProvider.GlobalProvider.GetService(typeof(SVsShell)) as IVsShell;
 			Common.Instance.Solution = ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) as IVsSolution2;
+			Common.Instance.Settings = new Settings();
 
 			Common.Instance.SolutionWatcher = new SolutionWatcher();
-        }
+		}
 
 		#region Package Members
 
@@ -65,10 +69,15 @@ namespace VS_QuickNavigation
 		protected override void Initialize()
 		{
 			base.Initialize();
+
+			Common.Instance.Settings.Refresh();
+			Common.Instance.Settings.LoadSettingsFromStorage();
 			//solution;
 
 			QuickFileToolWindowCommand.Initialize(this);
 			QuickMethodToolWindowCommand.Initialize(this);
+
+			//ShowOptionPage(typeof(Options.OptionsDialogPage));
 		}
 
 		protected override void Dispose(bool disposing)
@@ -76,7 +85,7 @@ namespace VS_QuickNavigation
 			base.Dispose(disposing);
 
 			Common.Instance.SolutionWatcher.Dispose();
-        }
+		}
 
 		#endregion Package Members
 	}
