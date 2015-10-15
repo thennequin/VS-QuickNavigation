@@ -15,7 +15,7 @@
                  TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
             <ListView x:Name="listView"
                   VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                  SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown">
+                  SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown" MouseDoubleClick="listView_MouseDoubleClick">
                 <ListView.Style>
                     <Style TargetType="{x:Type ListView}">
                         <Style.Resources>
@@ -29,12 +29,21 @@
                     <GridViewColumn Width="800" Header="Symbol">
                         <GridViewColumn.CellTemplate >
                             <DataTemplate>
-                                <Label Content="{Binding SearchFormatted}" Padding="1,1,1,1" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="30" Height="16">
+                                        <Label Content="{Binding SearchScore}" Padding="0,0,5,0" 
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"
+                                           FontWeight="DemiBold"
+                                           Foreground="Gray"/>
+                                    </Viewbox>
+                                    <Image Source="{Binding Path=Data.IconString}" Width="16" Height="16"/>
+                                    <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" />
+                                </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Width="80" Header="Line" DisplayMemberBinding="{Binding Path=StartLine}" />
-                    <GridViewColumn Width="50" Header="Match" DisplayMemberBinding="{Binding Path=SearchScore}" />
+                    <GridViewColumn Width="80" Header="Line" DisplayMemberBinding="{Binding Path=Data.StartLine}" />
                     </GridView>
                 </ListView.View>
             </ListView>

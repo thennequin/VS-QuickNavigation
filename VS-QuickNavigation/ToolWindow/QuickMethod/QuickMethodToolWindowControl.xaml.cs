@@ -16,16 +16,17 @@ namespace VS_QuickNavigation
 	using System.Windows.Documents;
 	using Data;
 	using System.Linq;
+	using Utils;
+	using System.Collections;
 
 	/// <summary>
 	/// Interaction logic for QuickMethodToolWindowControl.
 	/// </summary>
 	public partial class QuickMethodToolWindowControl : UserControl
 	{
-		
-
 		private QuickMethodToolWindow mQuickMethodToolWindow;
-		private List<SymbolData> mSymbols = new List<SymbolData>();
+		private object mSymbolLocker = new object();
+		private List<SymbolData> mSymbols = null;
 		private CancellationTokenSource mToken;
 
 		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent)
@@ -34,16 +35,45 @@ namespace VS_QuickNavigation
 
 			mQuickMethodToolWindow = oParent;
 
-			EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
-			EnvDTE.CodeElements codeElements = dte2.ActiveDocument.ProjectItem.FileCodeModel.CodeElements;
-
-			AnalyseCodeElements(codeElements);
+			//For test
+			/*System.Threading.Tasks.Task.Run(() =>
+			{
+				System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+				stopwatch.Start();
+				CTagsGenerator.GeneratorFromSolution();
+				stopwatch.Stop();
+				System.Diagnostics.Debug.WriteLine("GeneratorFromSolution " + stopwatch.ElapsedMilliseconds);
+				stopwatch.Restart();
+				CTagsGenerator.GeneratorFromSolution3();
+				stopwatch.Stop();
+				System.Diagnostics.Debug.WriteLine("GeneratorFromSolution3 " + stopwatch.ElapsedMilliseconds);
+			});*/
+			
 
 			DataContext = this;
 
 			RefreshResults();
 
 			textBox.Focus();
+
+
+			// An aggregate catalog that combines multiple catalogs
+			/*
+			var catalog = new AggregateCatalog();
+
+			// Adds all the parts found in the necessary assemblies
+			catalog.Catalogs.Add(new AssemblyCatalog(typeof(IGlyphService).Assembly));
+			catalog.Catalogs.Add(new AssemblyCatalog(typeof(SmartTagSurface).Assembly));
+
+			// Create the CompositionContainer with the parts in the catalog
+			CompositionContainer mefContainer = new CompositionContainer(catalog);
+
+			// Fill the imports of this object
+			mefContainer.ComposeParts(this);
+
+			[Import]
+			public IGlyphService GlyphService { get; set; }
+			*/
 		}
 
 		private void AnalyseCodeElements(EnvDTE.CodeElements codeElements)
@@ -81,7 +111,7 @@ namespace VS_QuickNavigation
 
 						sSymbol += ")";
 
-						mSymbols.Add(new SymbolData(sSymbol, objCodeElement.StartPoint.Line));
+						mSymbols.Add(new SymbolData(sSymbol, objCodeElement.StartPoint.Line, SymbolData.ESymbolType.Method));
 					}
 					else
 					{
@@ -120,12 +150,22 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Up)
 				{
-					listView.SelectedIndex--;
+					if (listView.SelectedIndex > 0)
+					{
+						listView.SelectedIndex--;
+					}
 					e.Handled = true;
 				}
 				else if (e.Key == System.Windows.Input.Key.Down)
 				{
-					listView.SelectedIndex++;
+					if (listView.SelectedIndex == -1)
+					{
+						listView.SelectedIndex = 1;
+					}
+					else
+					{
+						listView.SelectedIndex++;
+					}
 					e.Handled = true;
 				}
 			}
@@ -133,12 +173,7 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
-					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
-					int selectedIndex = listView.SelectedIndex;
-					if (selectedIndex == -1) selectedIndex = 0;
-					SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
-					((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
-
+					OpenCurrentSelection();
 					mQuickMethodToolWindow.Close();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
@@ -159,22 +194,17 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
-					EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
-					int selectedIndex = listView.SelectedIndex;
-					if (selectedIndex == -1) selectedIndex = 0;
-					SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
-					((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
-
-					(this.Parent as QuickFileToolWindow).Close();
+					OpenCurrentSelection();
+					mQuickMethodToolWindow.Close();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
-					(this.Parent as QuickFileToolWindow).Close();
+					mQuickMethodToolWindow.Close();
 				}
 			}
 		}
 
-		private async void RefreshResults()
+		private void RefreshResults()
 		{
 			if (null != mToken)
 			{
@@ -182,28 +212,72 @@ namespace VS_QuickNavigation
 			}
 			mToken = new CancellationTokenSource();
 
-			//try
+			string sSearch = textBox.Text;
+
+			System.Threading.Tasks.Task.Run(() =>
 			{
-				string sSearch = textBox.Text;
-				IEnumerable<SearchResult<SymbolData>> results = mSymbols
-					.AsParallel()
-					.WithCancellation(mToken.Token)
-					.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol))
-					.Where(fileData => fileData.SearchScore >= 0)
-					.OrderByDescending(fileData => fileData.SearchScore)
-					//.Take(250)
-					;
-
-
-				if (!mToken.Token.IsCancellationRequested)
+				lock(mSymbolLocker)
 				{
-					listView.ItemsSource = results;
-				}
-			}
-			//catch (Exception)
-			//{
+					if (!mToken.IsCancellationRequested)
+					{
+						if (mSymbols == null)
+						{
+							mSymbols = new List<SymbolData>();
+							/*if (Common.Instance.DTE2.ActiveDocument != null && Common.Instance.DTE2.ActiveDocument.ProjectItem != null)
+							{
+								EnvDTE.CodeElements codeElements = Common.Instance.DTE2.ActiveDocument.ProjectItem.FileCodeModel.CodeElements;
 
-			//}
+								AnalyseCodeElements(codeElements);
+							}*/
+
+							mSymbols.AddRange(CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument));
+						}
+
+						
+						IEnumerable<SearchResult<SymbolData>> results = mSymbols
+//#if !DEBUG
+						.AsParallel()
+						.WithCancellation(mToken.Token)
+//#endif
+						.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters))
+							.Where(fileData => fileData.SearchScore >= 0)
+							.OrderByDescending(fileData => fileData.SearchScore)
+							//.Take(250)
+							;
+
+
+						//EnvDTE.FontsAndColorsItems fontsAndColor = Common.Instance.DTE2.Properties.Item("FontsAndColorsItems") as EnvDTE.FontsAndColorsItems;
+						//fontsAndColor.Item("Line Number").Foreground
+						//fontsAndColor.Item("Keywords").Foreground
+
+
+						if (!mToken.Token.IsCancellationRequested)
+						{
+							Action<IEnumerable> setMethod = (res) =>
+							{
+								listView.ItemsSource = res;
+							};
+							Dispatcher.BeginInvoke(setMethod, results);
+						}
+					}
+					
+				}
+			});
+			
+		}
+
+		private void OpenCurrentSelection()
+		{
+			int selectedIndex = listView.SelectedIndex;
+			if (selectedIndex == -1) selectedIndex = 0;
+			SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
+			((EnvDTE.TextSelection)Common.Instance.DTE2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
+		}
+
+		private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		{
+			OpenCurrentSelection();
+			mQuickMethodToolWindow.Close();
 		}
 	}
 }

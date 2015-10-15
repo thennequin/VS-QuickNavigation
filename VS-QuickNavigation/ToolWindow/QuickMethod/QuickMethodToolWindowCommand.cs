@@ -90,6 +90,7 @@ namespace VS_QuickNavigation
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
 			QuickMethodToolWindow window = new QuickMethodToolWindow();
+			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
 			window.ShowModal();
 		}
 	}
