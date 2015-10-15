@@ -20,27 +20,70 @@
             <ListView.Style>
                 <Style TargetType="{x:Type ListView}">
                     <Style.Resources>
-                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#9449b0" />
-                        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#9449b0" />
+                        <!--<SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#9449b0" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#9449b0" />-->
                     </Style.Resources>
+                    <Style.Triggers>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListView">
+                                        <TextBlock Text="Loading..." HorizontalAlignment="Center" Padding="10,10,10,10" Background="White" FontSize="18" Foreground="Gray"/>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
                 </Style>
             </ListView.Style>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="670" Header="{Binding FileHeader}" >
-                        <GridViewColumn.CellTemplate >
+                    <GridViewColumn Width="600" Header="{Binding FileHeader}" >
+                        <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="30" Height="16">
+                                        <Label Content="{Binding SearchScore}" Padding="0,0,5,0" 
+                                           HorizontalContentAlignment="Center"
+                                           VerticalContentAlignment="Center"
+                                           FontWeight="DemiBold"
+                                           Foreground="Gray"/>
+                                    </Viewbox>
                                     <Image Source="{Binding Path=Data.Icon}" Width="16" Height="16"/>
                                     <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" />
                                 </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Width="50" Header="Match" DisplayMemberBinding="{Binding Path=SearchScore}" />
-                    <GridViewColumn Width="200" Header="Project" DisplayMemberBinding="{Binding Path=Data.Project}" />
+                    <GridViewColumn Width="200" Header="Project" DisplayMemberBinding="{Binding Path=Data.ProjectsString}" />
                 </GridView>
             </ListView.View>
+            <ListView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontWeight="Bold" FontSize="12" Text="{Binding Name}"/>
+                                    <TextBlock FontSize="12" Text=" ("/>
+                                    <TextBlock FontSize="12" Text="{Binding ItemCount}"/>
+                                    <TextBlock FontSize="12" Text=")"/>
+                                </StackPanel>
+                                <!--<Line Width="300" Height="2" Fill="HorizontalGradient #758DA2FF #758DA200"></Line>-->
+                                <Line Width="300" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                      Stretch="Uniform" StrokeThickness="1" X1="0" Y1="0" X2="1" Y2="0">
+                                    <Shape.Stroke>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#FF758DA2" Offset="0" />
+                                            <GradientStop Color="#00758DA2" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Shape.Stroke>
+                                </Line>
+                            </StackPanel>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListView.GroupStyle>
         </ListView>
     </DockPanel>
 </UserControl>

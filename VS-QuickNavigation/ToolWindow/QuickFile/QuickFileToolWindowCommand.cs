@@ -97,7 +97,10 @@ namespace VS_QuickNavigation
 			IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
 			Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());*/
 
+			//Common.Instance.SolutionWatcher.TestSpeed();
+
 			QuickFileToolWindow window = new QuickFileToolWindow();
+			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
 			window.ShowModal();
 		}
 	}

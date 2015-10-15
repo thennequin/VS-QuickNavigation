@@ -1,19 +1,17 @@
 ﻿
 namespace VS_QuickNavigation
 {
-	using Microsoft.VisualStudio.Shell;
+	//using Microsoft.VisualStudio.Shell;
 	using System;
 	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
 	using System.Threading.Tasks;
 	using System.Windows.Controls;
 	using System.Windows.Data;
-	using System.Windows.Documents;
 	using System.Threading;
-	using System.Windows.Media;
 	using System.ComponentModel;
 	using System.Linq;
 	using VS_QuickNavigation.Data;
+	using System.Collections;
 
 	public partial class QuickFileToolWindowControl : UserControl, INotifyPropertyChanged
 	{
@@ -49,15 +47,16 @@ namespace VS_QuickNavigation
 
 			mQuickFileToolWindow.Closing += OnClosing;
 
-			Common.Instance.SolutionWatcher.RefreshFileList();
+			//Common.Instance.SolutionWatcher.RefreshFileList();
 			Common.Instance.SolutionWatcher.OnFilesChanged += OnFilesChanged;
 
 			DataContext = this;
 
-			RefreshList();
-
 			textBox.Focus();
-			
+
+			listView.SelectedIndex = 0;
+
+			RefreshList();
 		}
 
 		private void OnClosing(object sender, CancelEventArgs e)
@@ -68,7 +67,7 @@ namespace VS_QuickNavigation
 		private void OnFilesChanged()
 		{
 			OnPropertyChanged("FileHeader");
-			RefreshList();
+			Dispatcher.BeginInvoke(new Action(RefreshList));
 		}
 
 		private void textBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -104,7 +103,7 @@ namespace VS_QuickNavigation
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
-					(this.Parent as QuickFileToolWindow).Close();
+					mQuickFileToolWindow.Close();
 				}
 			}
 		}
@@ -129,36 +128,64 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		private async void RefreshList()
+		private void RefreshList()
 		{
-			if ( null != mToken)
+			if (null != mToken)
 			{
 				mToken.Cancel();
 			}
 			mToken = new CancellationTokenSource();
-
-			//try
+			string sSearch = textBox.Text;
+			Task.Run(() =>
 			{
-				string sSearch = textBox.Text;
-				IEnumerable<SearchResult<FileData>> results = Common.Instance.SolutionWatcher.Files
+				//Common.Instance.SolutionWatcher.SetNeedRefresh();
+				IEnumerable<SearchResult<FileData>> results = null;
+				if (string.IsNullOrWhiteSpace(sSearch))
+				{
+					results = Common.Instance.SolutionWatcher.Files
 					.AsParallel()
 					.WithCancellation(mToken.Token)
-					.Select( fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\") )
+					.Where(fileData => fileData.Status == FileStatus.Recent)
+					.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
+					.OrderByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
+					;
+				}
+				else
+				{
+					results = Common.Instance.SolutionWatcher.Files
+					.AsParallel()
+					.WithCancellation(mToken.Token)
+					.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
 					.Where(fileData => fileData.SearchScore > 0)
-					.OrderByDescending(fileData => fileData.SearchScore)
+					.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
 					.Take(250)
 					;
+				}
+						
 
-				
 				if (!mToken.Token.IsCancellationRequested)
 				{
-					listView.ItemsSource = results;
-				}
-			}
-			//catch (Exception)
-			//{
+					Action<IEnumerable> setMethod = (res) =>
+					{
+						listView.ItemsSource = res;
+						CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
+						view.GroupDescriptions.Clear();
 
-			//}
+						if (string.IsNullOrWhiteSpace(sSearch))
+						{
+							PropertyGroupDescription groupDescription = new PropertyGroupDescription("Data.StatusString");
+							//groupDescription.GroupNames.Add(FileStatus.Recent.ToString());
+							/*foreach (string status in Enum.GetNames(typeof(FileStatus)))
+							{
+								groupDescription.GroupNames.Add(status);
+							}*/
+
+							view.GroupDescriptions.Add(groupDescription);
+						}
+					};
+					Dispatcher.BeginInvoke(setMethod, results);
+				}
+			});
 		}
 
 		private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -168,11 +195,10 @@ namespace VS_QuickNavigation
 
 		private void OpenCurrentSelection()
 		{
-			EnvDTE80.DTE2 dte2 = ServiceProvider.GlobalProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 			int selectedIndex = listView.SelectedIndex;
 			if (selectedIndex == -1) selectedIndex = 0;
 			SearchResult<FileData> results = listView.Items[selectedIndex] as SearchResult<FileData>;
-			dte2.ItemOperations.OpenFile(results.Data.Path);
+			Common.Instance.DTE2.ItemOperations.OpenFile(results.Data.Path);
 			mQuickFileToolWindow.Close();
 		}
 	}
