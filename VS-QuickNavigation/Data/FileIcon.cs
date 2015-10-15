@@ -17,12 +17,18 @@ namespace VS_QuickNavigation.Data
 			}
 			else
 			{
-				var sysicon = System.Drawing.Icon.ExtractAssociatedIcon(file);
-				var bmpSrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-							sysicon.Handle,
-							System.Windows.Int32Rect.Empty,
-							System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
-				sysicon.Dispose();
+				BitmapSource bmpSrc = null;
+				try
+				{
+					var sysicon = System.Drawing.Icon.ExtractAssociatedIcon(file);
+					bmpSrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+								sysicon.Handle,
+								System.Windows.Int32Rect.Empty,
+								System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+					sysicon.Dispose();
+
+				}
+				catch (System.Exception) { }
 
 				sExtensionsIcons.Add(ext, bmpSrc);
 				return bmpSrc;
