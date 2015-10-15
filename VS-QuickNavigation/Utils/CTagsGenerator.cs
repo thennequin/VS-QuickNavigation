@@ -107,10 +107,10 @@ namespace VS_QuickNavigation.Utils
 			args += "−−c++−kinds=+p ";				// Include declarations
 			args += "--fields=+S+m ";               // Add parameters fields & Implementation information
 			args += filePath;                       // Input file list
+			IEnumerable<SymbolData> results = null;
 			using (Process process = ExecCTags(args))
 			{
 				process.WaitForExit();
-				IEnumerable<SymbolData> results = null;
 				if (process.ExitCode == 0)
 				{
 					results = ParseTagFile(tagsPath, SymbolData.ESymbolType.Method);
