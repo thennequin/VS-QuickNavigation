@@ -11,9 +11,11 @@ namespace VS_QuickNavigation.Data
 {
 	class SearchResult<T>
 	{
-		public SearchResult(T data, string sQuery, string sSearchIn, string sSplitLast = null)
+		public SearchResult(T data, string sQuery, string sSearchIn, string sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
 		{
 			Data = data;
+			mBeforeFormatted = beforeFormatted;
+			mAfterFormatted = afterFormatted;
 			Search(sQuery, sSearchIn, sSplitLast);
 		}
 
@@ -21,6 +23,8 @@ namespace VS_QuickNavigation.Data
 
 		List<Tuple<string, bool>> mFormatted = new List<Tuple<string, bool>>();
 		List<Tuple<string, bool>> mSubFormatted = new List<Tuple<string, bool>>();
+		string mBeforeFormatted;
+		string mAfterFormatted;
 
 		public int SearchScore { get; private set; }
 		
@@ -48,6 +52,10 @@ namespace VS_QuickNavigation.Data
 				TextBlock block = new TextBlock();
 				SolidColorBrush matchBrush = new SolidColorBrush(Color.FromRgb(255, 255, 160));
 				SolidColorBrush subBrush = new SolidColorBrush(Color.FromRgb(128, 128, 128));
+				if (null != mBeforeFormatted)
+				{
+					block.Inlines.Add(new Run(mBeforeFormatted));
+				}
 				foreach (Tuple<string, bool> formatted in mFormatted)
 				{
 					Run text = new Run(formatted.Item1);
@@ -71,6 +79,10 @@ namespace VS_QuickNavigation.Data
 						text.FontSize = 12;
 						block.Inlines.Add(text);
 					}
+				}
+				if (null != mAfterFormatted)
+				{
+					block.Inlines.Add(new Run(mAfterFormatted));
 				}
 				return block;
 			}
