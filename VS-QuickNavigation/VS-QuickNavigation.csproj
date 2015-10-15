@@ -55,14 +55,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Common.cs" />
+    <Compile Include="Settings.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="VSQuickNavigationPackage.cs" />
     <Compile Include="Data\FileData.cs" />
     <Compile Include="Data\FileIcon.cs" />
+    <Compile Include="Data\HistoryList.cs" />
     <Compile Include="Data\SearchResult.cs" />
     <Compile Include="Data\SymbolData.cs" />
-    <Compile Include="Watcher\IntellisenseWatcher.cs" />
-    <Compile Include="Watcher\SolutionWatcher.cs" />
+    <Compile Include="Options\OptionsDialogPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Utils\CodeElementList.cs" />
+    <Compile Include="Utils\CTagsGenerator.cs" />
+    <Compile Include="Utils\DeferredAction.cs" />
+    <Compile Include="Utils\DteHelper.cs" />
     <Compile Include="Utils\FileList.cs" />
+    <Compile Include="Utils\StringScore.cs" />
+    <Compile Include="Watcher\SolutionWatcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ToolWindow\QuickFile\QuickFileToolWindow.cs" />
     <Compile Include="ToolWindow\QuickFile\QuickFileToolWindowCommand.cs" />
@@ -74,12 +85,12 @@
     <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindowControl.xaml.cs">
       <DependentUpon>QuickMethodToolWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utils\StringScore.cs" />
-    <Compile Include="VSQuickNavigationPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Key.snk" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -88,9 +99,15 @@
     <VSCTCompile Include="VSQuickNavigationPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
+    <Content Include="external\ctags.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Commands.png" />
     <Content Include="Resources\Preview.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Symbols\Method.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\VSQuickNavigationPackage.ico">
@@ -224,7 +241,6 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
