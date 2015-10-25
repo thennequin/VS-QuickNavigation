@@ -54,6 +54,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commands\QuickFileToolWindowCommand.cs" />
+    <Compile Include="Commands\QuickMethodToolWindowCommand.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Settings.cs">
       <SubType>Component</SubType>
@@ -76,12 +78,10 @@
     <Compile Include="Watcher\SolutionWatcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ToolWindow\QuickFile\QuickFileToolWindow.cs" />
-    <Compile Include="ToolWindow\QuickFile\QuickFileToolWindowCommand.cs" />
     <Compile Include="ToolWindow\QuickFile\QuickFileToolWindowControl.xaml.cs">
       <DependentUpon>QuickFileToolWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindow.cs" />
-    <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindowCommand.cs" />
     <Compile Include="ToolWindow\QuickMethod\QuickMethodToolWindowControl.xaml.cs">
       <DependentUpon>QuickMethodToolWindowControl.xaml</DependentUpon>
     </Compile>
