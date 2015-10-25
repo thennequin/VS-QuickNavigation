@@ -54,8 +54,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commands\QuickFileToolWindowCommand.cs" />
-    <Compile Include="Commands\QuickMethodToolWindowCommand.cs" />
+    <Compile Include="Commands\QuickFileCommand.cs" />
+    <Compile Include="Commands\QuickMethodCommand.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Settings.cs">
       <SubType>Component</SubType>
