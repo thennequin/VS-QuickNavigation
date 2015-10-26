@@ -18,9 +18,9 @@ namespace VS_QuickNavigation
 
 		private EnvDTE.WindowEvents mWindowEvents;
 		private EnvDTE.DocumentEvents mDocumentEvents;
+		private EnvDTE.ProjectItemsEvents mSolutionItemsEvents;
 
-		HistoryList<string> mFileHistory = new HistoryList<string>();
-		//Dictionary<string, DateTime> mFileHistory = new Dictionary<string, DateTime>();
+		HistoryList<string> mFileHistory = new HistoryList<string>(50);
 
 		Dictionary<string, FileData> mFiles = new Dictionary<string, FileData>();
 
@@ -36,12 +36,15 @@ namespace VS_QuickNavigation
 			mWindowEvents = Common.Instance.DTE2.Events.WindowEvents;
 			mWindowEvents.WindowActivated += OnWindowActivated;
 			mWindowEvents.WindowCreated += OnWindowCreated;
+
 			mDocumentEvents = Common.Instance.DTE2.Events.DocumentEvents;
+			mDocumentEvents.DocumentOpening += OnDocumentOpening;
 			mDocumentEvents.DocumentOpened += OnDocumentOpened;
 
-			//Common.Instance.DTE2.Events.SolutionItemsEvents.ItemAdded
-			//Common.Instance.DTE2.Events.SolutionItemsEvents.ItemRemoved
-			//Common.Instance.DTE2.Events.SolutionItemsEvents.ItemRenamed
+			mSolutionItemsEvents = Common.Instance.DTE2.Events.SolutionItemsEvents;
+			mSolutionItemsEvents.ItemAdded += OnItemAdded;
+			mSolutionItemsEvents.ItemRemoved += OnItemRemoved;
+			mSolutionItemsEvents.ItemRenamed += OnItemRenamed;
 
 			RefreshOpenHistory();
 		}
@@ -55,30 +58,54 @@ namespace VS_QuickNavigation
 		}
 
 		#region Window events
-		void OnWindowActivated(EnvDTE.Window window, EnvDTE.Window previousWindow)
+		void OnWindowActivated(EnvDTE.Window oWindow, EnvDTE.Window oPreviousWindow)
 		{
-			if (null != window.Document)
+			if (null != oWindow.Document)
 			{
-				mFileHistory.Push(window.Document.FullName);
+				mFileHistory.Push(oWindow.Document.FullName);
 				RefreshHistoryFileList();
 			}
 		}
 
-		void OnWindowCreated(EnvDTE.Window window)
+		void OnWindowCreated(EnvDTE.Window oWindow)
 		{
-			if (null != window.Document)
+			if (null != oWindow.Document)
 			{
-				mFileHistory.Push(window.Document.FullName);
+				mFileHistory.Push(oWindow.Document.FullName);
 				RefreshHistoryFileList();
 			}
 		}
 		#endregion
 
 		#region Document events
-		void OnDocumentOpened(EnvDTE.Document doc)
+
+		void OnDocumentOpening(string sPath, bool bReadOnly)
 		{
-			mFileHistory.Push(doc.FullName);
+			mFileHistory.Push(sPath);
 			RefreshHistoryFileList();
+		}
+
+		void OnDocumentOpened(EnvDTE.Document oDoc)
+		{
+			mFileHistory.Push(oDoc.FullName);
+			RefreshHistoryFileList();
+		}
+		#endregion
+
+		#region Project Items events
+		void OnItemAdded(EnvDTE.ProjectItem oProjectItem)
+		{
+			mNeedRefresh = true;
+		}
+
+		void OnItemRemoved(EnvDTE.ProjectItem oProjectItem)
+		{
+			mNeedRefresh = true;
+		}
+
+		void OnItemRenamed(EnvDTE.ProjectItem oProjectItem, string sOldName)
+		{
+			mNeedRefresh = true;
 		}
 		#endregion
 
