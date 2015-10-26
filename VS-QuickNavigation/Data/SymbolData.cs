@@ -10,19 +10,24 @@ namespace VS_QuickNavigation.Data
 {
 	public class SymbolData
 	{
+		[Flags]
 		public enum ESymbolType
 		{
-			ClassName			= 1,
-			Define				= 2,
-			Enumerator			= 4,
-			Method				= 8,
-			EnumerationName		= 16,
-			Member				= 32,
-			FunctionPrototype	= 64,
-			StructureName		= 128,
-			TypeDef				= 256,
-			UnionName			= 512,
-			Variable			= 1024
+			Namespace			= 1 << 0,
+			Class				= 1 << 1,
+			Interface			= 1 << 2,
+			Macro				= 1 << 3,
+			Enumerator			= 1 << 4,
+			Enumeration			= 1 << 5,
+			Method				= 1 << 6,
+			MethodPrototype		= 1 << 7,
+
+			Field				= 1 << 8,
+			Property			= 1 << 9,
+
+			//StructureName		= 1024,
+			//TypeDef				= 2048,
+			//UnionName			= 4096,
 		}
 
 		public string Symbol { get; set; }
@@ -38,26 +43,12 @@ namespace VS_QuickNavigation.Data
 			Type = eType;
 		}
 
-		static Dictionary<ESymbolType, BitmapImage> sIconMap = new Dictionary<ESymbolType, BitmapImage>();
-		public BitmapImage Icon
+		public string ImagePath
 		{
 			get
 			{
-				if (!sIconMap.ContainsKey(Type))
-				{
-					sIconMap.Add(Type, new BitmapImage(new Uri(Common.Instance.ExtensionFolder + "/Resources/Symbols/" + Type.ToString() + ".png", UriKind.Relative)));
-				}
-
-				return sIconMap[Type];
+				return Common.Instance.ExtensionFolder + "/Resources/Symbols/" + Common.Instance.Settings.SymbolsTheme + "/" + Type.ToString() + ".png";
 			}
-		}
-
-		public string IconString
-		{
-			get
-			{
-				return Common.Instance.ExtensionFolder + "/Resources/Symbols/" + Type.ToString() + ".png";
-            }
 		}
 	}
 }
