@@ -55,6 +55,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\QuickFileCommand.cs" />
+    <Compile Include="Commands\QuickHistoryCommand.cs" />
     <Compile Include="Commands\QuickMethodCommand.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Settings.cs">
