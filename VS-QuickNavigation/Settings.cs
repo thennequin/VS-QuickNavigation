@@ -33,14 +33,14 @@ namespace VS_QuickNavigation
 				string exts;
 				//EnvDTE.Property prop = Utils.DteHelper.GetProperty(props, "ListedExtensions");
 				EnvDTE.Property prop = props.Item("");
-                if (Utils.DteHelper.GetPropertyString(props, "ListedExtensions", out exts))
+				if (Utils.DteHelper.GetPropertyString(props, "ListedExtensions", out exts))
 				{
 					ListedExtensionsString = exts;
 				}
 				else
 				{
 					ListedExtensions = DefaultListedExtensions;
-                }
+				}
 			}
 			catch(Exception)
 			{ }
@@ -129,7 +129,22 @@ namespace VS_QuickNavigation
 		public void ResetSettings()
 		{
 			ListedExtensions = DefaultListedExtensions;
-        }
+		}
+
+		static public string[] DefaultListedExtensions
+		{
+			get
+			{
+				return new string[] {
+					".vb",".cs",".resx",".resw",".xsd",".wsdl",".xaml",".xml",".htm",".html",".css",
+					".xsd",".aspx",".ascx",".asmx",".svc",".asax",".config",".asp",".asa",".cshtml",".vbhtml",
+					".xsl",".xslt",".dtd",
+					".c",".cpp",".cxx",".cc",".tli",".tlh",".h",".hh",".hpp",".hxx",".hh",".inl",".rc",".resx",".idl",".asm",".inc"
+				};
+			}
+		}
+
+		/// 
 
 		public string[] ListedExtensions { get; set; }
 		public string ListedExtensionsString
@@ -158,16 +173,15 @@ namespace VS_QuickNavigation
 
 		public int MaxFileHistory { get; set; } = 10;
 
-		static public string[] DefaultListedExtensions
+		public string SymbolsTheme
 		{
 			get
 			{
-				return new string[] {
-					".vb",".cs",".resx",".resw",".xsd",".wsdl",".xaml",".xml",".htm",".html",".css",
-					".xsd",".aspx",".ascx",".asmx",".svc",".asax",".config",".asp",".asa",".cshtml",".vbhtml",
-					".xsl",".xslt",".dtd",
-					".c",".cpp",".cxx",".cc",".tli",".tlh",".h",".hh",".hpp",".hxx",".hh",".inl",".rc",".resx",".idl",".asm",".inc"
-				};
+				//return "Default";
+				//return "VS2010";
+				return "VS2012";
+				//return "Eclipse";
+				//return "Netbeans";
 			}
 		}
 	}
