@@ -17,6 +17,8 @@ namespace VS_QuickNavigation
 	{
 		private QuickFileToolWindow mQuickFileToolWindow;
 
+		private bool mHistoryOnly;
+
 		private CancellationTokenSource mToken;
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -39,13 +41,15 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		public QuickFileToolWindowControl(QuickFileToolWindow oQuickFileToolWindow)
+		public QuickFileToolWindowControl(QuickFileToolWindow oQuickFileToolWindow, bool bHistoryOnly)
 		{
 			this.InitializeComponent();
 
 			mQuickFileToolWindow = oQuickFileToolWindow;
 
 			mQuickFileToolWindow.Closing += OnClosing;
+
+			mHistoryOnly = bHistoryOnly;
 
 			//Common.Instance.SolutionWatcher.RefreshFileList();
 			Common.Instance.SolutionWatcher.OnFilesChanged += OnFilesChanged;
@@ -79,6 +83,7 @@ namespace VS_QuickNavigation
 					if (listView.SelectedIndex > 0)
 					{
 						listView.SelectedIndex--;
+						listView.ScrollIntoView(listView.SelectedItem);
 					}
 					e.Handled = true;
 				}
@@ -92,6 +97,7 @@ namespace VS_QuickNavigation
 					{
 						listView.SelectedIndex++;
 					}
+					listView.ScrollIntoView(listView.SelectedItem);
 					e.Handled = true;
 				}
 			}
@@ -138,33 +144,36 @@ namespace VS_QuickNavigation
 			string sSearch = textBox.Text;
 			Task.Run(() =>
 			{
-				//Common.Instance.SolutionWatcher.SetNeedRefresh();
-				IEnumerable<SearchResult<FileData>> results = null;
-				if (string.IsNullOrWhiteSpace(sSearch))
+				try
 				{
-					results = Common.Instance.SolutionWatcher.Files
-					.AsParallel()
-					.WithCancellation(mToken.Token)
-					.Where(fileData => fileData.Status == FileStatus.Recent)
-					.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
-					.OrderByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
-					;
-				}
-				else
-				{
-					results = Common.Instance.SolutionWatcher.Files
-					.AsParallel()
-					.WithCancellation(mToken.Token)
-					.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
-					.Where(fileData => fileData.SearchScore > 0)
-					.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
-					.Take(250)
-					;
-				}
+					//Common.Instance.SolutionWatcher.SetNeedRefresh();
+					IEnumerable<SearchResult<FileData>> results = null;
+					if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
+					{
+						results = Common.Instance.SolutionWatcher.Files
+						.AsParallel()
+						.WithCancellation(mToken.Token)
+						.Where(fileData => fileData.Status == FileStatus.Recent)
+						.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
+						.OrderByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
+						;
+					}
+					else
+					{
 						
+						string[] exts = Common.Instance.Settings.ListedExtensions;
 
-				if (!mToken.Token.IsCancellationRequested)
-				{
+						results = Common.Instance.SolutionWatcher.Files
+						.AsParallel()
+						.WithCancellation(mToken.Token)
+						.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
+						.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
+						.Where(fileData => fileData.SearchScore > 0)
+						.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
+						.Take(250)
+						;
+					}
+
 					Action<IEnumerable> setMethod = (res) =>
 					{
 						listView.ItemsSource = res;
@@ -185,6 +194,8 @@ namespace VS_QuickNavigation
 					};
 					Dispatcher.BeginInvoke(setMethod, results);
 				}
+				catch (Exception e) { }
+				
 			});
 		}
 

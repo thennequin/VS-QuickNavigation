@@ -153,6 +153,8 @@ namespace VS_QuickNavigation
 					if (listView.SelectedIndex > 0)
 					{
 						listView.SelectedIndex--;
+						listView.ScrollIntoView(listView.SelectedItem);
+
 					}
 					e.Handled = true;
 				}
@@ -166,6 +168,7 @@ namespace VS_QuickNavigation
 					{
 						listView.SelectedIndex++;
 					}
+					listView.ScrollIntoView(listView.SelectedItem);
 					e.Handled = true;
 				}
 			}
@@ -233,32 +236,32 @@ namespace VS_QuickNavigation
 							mSymbols.AddRange(CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument));
 						}
 
-						
-						IEnumerable<SearchResult<SymbolData>> results = mSymbols
-//#if !DEBUG
-						.AsParallel()
-						.WithCancellation(mToken.Token)
-//#endif
-						.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters))
-							.Where(fileData => fileData.SearchScore >= 0)
-							.OrderByDescending(fileData => fileData.SearchScore)
-							//.Take(250)
-							;
-
-
-						//EnvDTE.FontsAndColorsItems fontsAndColor = Common.Instance.DTE2.Properties.Item("FontsAndColorsItems") as EnvDTE.FontsAndColorsItems;
-						//fontsAndColor.Item("Line Number").Foreground
-						//fontsAndColor.Item("Keywords").Foreground
-
-
-						if (!mToken.Token.IsCancellationRequested)
+						try
 						{
+							IEnumerable<SearchResult<SymbolData>> results = mSymbols
+							//#if !DEBUG
+							.AsParallel()
+							.WithCancellation(mToken.Token)
+							//#endif
+							.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters))
+								.Where(fileData => fileData.SearchScore >= 0)
+								.OrderByDescending(fileData => fileData.SearchScore)
+								//.Take(250)
+								;
+
+
+							//EnvDTE.FontsAndColorsItems fontsAndColor = Common.Instance.DTE2.Properties.Item("FontsAndColorsItems") as EnvDTE.FontsAndColorsItems;
+							//fontsAndColor.Item("Line Number").Foreground
+							//fontsAndColor.Item("Keywords").Foreground
+
+
 							Action<IEnumerable> setMethod = (res) =>
 							{
 								listView.ItemsSource = res;
 							};
 							Dispatcher.BeginInvoke(setMethod, results);
 						}
+						catch (Exception e) { }
 					}
 					
 				}
