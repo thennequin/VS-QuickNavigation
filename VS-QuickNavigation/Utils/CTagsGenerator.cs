@@ -57,9 +57,11 @@ namespace VS_QuickNavigation.Utils
 		static string GetTempFile()
 		{
 			//System.IO.Path.GetTempPath() + Guid.NewGuid().ToString() + ".db";
+#if DEBUG
+			return Common.Instance.DataFolder + "\\temp-" + Guid.NewGuid().ToString() + ".db";
+#else
 			return System.IO.Path.GetTempFileName();
-			//String dataFolder = Common.Instance.DataFolder;
-			//return dataFolder + "\\temp." + ext;
+#endif
 		}
 
 		static public IEnumerable<SymbolData> GeneratorFromDocument(EnvDTE.Document document)
@@ -85,6 +87,10 @@ namespace VS_QuickNavigation.Utils
 		}
 
 		
+		static string[] ToArray(params string[] strings)
+		{
+			return strings;
+		}
 
 		static public IEnumerable<SymbolData> GeneratorFromString(string fileContent, string ext)
 		{
@@ -92,121 +98,109 @@ namespace VS_QuickNavigation.Utils
 			File.WriteAllText(filePath, fileContent);
 
 			IEnumerable<SymbolData> results = GeneratorFromFile(filePath);
+#if !DEBUG
 			System.IO.File.Delete(filePath);
+#endif
 			return results;
 		}
 
-		
-
 		static public IEnumerable<SymbolData> GeneratorFromFile(string filePath)
 		{
+			return GeneratorFromFiles(ToArray(filePath));
+		}
+
+		static public IEnumerable<SymbolData> GeneratorFromFiles(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
+		{
+			string filePath = GetTempFile();
+			
+			File.WriteAllLines(filePath, filePaths);
+			int fileCount = filePaths.Count();
+
 			string tagsPath = GetTempFile();
 			string args = "";
+			if (null != progressAction)
+			{
+				args += "-V ";						// Verbose for checking current file
+			}
+			
 			args += "-n ";							// Symbol stored by line number instead of pattern or line number
+			args += "-L \"" + filePath + "\" ";		// Input file list
 			args += "-f \"" + tagsPath + "\" ";		// Output tag file
-			args += "−−c++−kinds=+p ";				// Include declarations
-			args += "--fields=+S+m ";               // Add parameters fields & Implementation information
-			args += filePath;                       // Input file list
+
+			args += "--extra=";						// Extra
+			args += "+q ";
+
+			args += "−−c++−kinds=";					// C++ kinds
+			args += "+p ";							// Include function prototypes
+
+			args += "--fields=";					// Fields
+			args += "+S";							// Signature of routine
+			args += "+m";							// Implementation information
+			args += "+i";							// Inheritance information
+			args += "+n";							// Line number of tag definition
+			args += "+K";							// Kind of tag as full name
+			args += "-k";							// Kind of tag as a single letter
+			
 			IEnumerable<SymbolData> results = null;
 			using (Process process = ExecCTags(args))
 			{
-				process.WaitForExit();
+				if (null != progressAction)
+				{
+					bool startScan = false;
+					int currentFile = 0;
+					while (!process.HasExited)
+					{
+						string line = process.StandardOutput.ReadLine();
+						if (startScan)
+						{
+							if (line.StartsWith("OPENING ") || line.StartsWith("ignoring ") || line.StartsWith("ctags: Warning: cannot open"))
+							{
+								++currentFile;
+								progressAction(currentFile, fileCount);
+							}
+						}
+						else
+						{
+							if (line == "Reading list file")
+							{
+								startScan = true;
+							}
+						}
+					}
+				}
+				else
+				{
+					process.WaitForExit();
+				}
+				
+				string output = process.StandardOutput.ReadToEnd();
+
 				if (process.ExitCode == 0)
 				{
 					results = ParseTagFile(tagsPath, SymbolData.ESymbolType.Method);
 				}
 			}
+#if !DEBUG
 			System.IO.File.Delete(tagsPath);
+#endif
 			return results;
-		}
-
-		static public void GeneratorFromSolution2()
-		{
-			IEnumerable<string> files = Common.Instance.SolutionWatcher.Files.Select(file => file.Path);
-
-			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-
-			int fileCount = files.Count();
-			int currentFile = 0;
-			foreach (string file in files)
-			{
-				sbar.Progress(true, "QuickNavigation Scan solution " + currentFile + "/" + fileCount, currentFile, fileCount);
-				GeneratorFromFile(file);
-				++currentFile;
-			}
-			sbar.Progress(false);
-		}
-
-		static public void GeneratorFromSolution3()
-		{
-			IEnumerable<string> files = Common.Instance.SolutionWatcher.Files.Select(file => file.Path);
-
-			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-
-
-			int fileCount = files.Count();
-			int currentFile = 0;
-
-			files.AsParallel().WithDegreeOfParallelism(128).ForAll(file => 
-			{
-				if ((currentFile % 5) == 0)
-				{
-					sbar.Progress(true, "QuickNavigation Scan solution " + currentFile + "/" + fileCount, currentFile, fileCount);
-				}
-				
-				GeneratorFromFile(file);
-				++currentFile;
-			});
-			sbar.Progress(false);
 		}
 
 		static public void GeneratorFromSolution()
 		{
 			IEnumerable<string> files = Common.Instance.SolutionWatcher.Files.Select(file => file.Path);
-			
-			String dataFolder = Common.Instance.DataFolder;
-			string filePath = dataFolder + "\\files";
-			string tagsPath = dataFolder + "\\tags.db";
-			File.WriteAllLines(filePath, files.ToArray());
-			string args = "";
-			args += "-V "; //Verbose : need for progress counting
-			//args += "-append=yes ";
-			args += "--extra=+q ";
-			args += "-f \"" + tagsPath + "\" "; //Output tag file
-			args += "-L \"" + filePath + "\" "; //Input file list
 
-			using (Process process = ExecCTags(args))
+			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			Action<int,int> progressAction = (current, total) =>
 			{
-				int fileCount = files.Count();
-				int currentFile = 0;
-				EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-				bool startScan = false;
-				while (!process.HasExited)
+				if ((current % 5) == 0)
 				{
-					if ((currentFile % 5) == 0)
-					{
-						sbar.Progress(true, "QuickNavigation Scan solution " + currentFile + "/" + fileCount, currentFile, fileCount);
-					}
-					string line = process.StandardOutput.ReadLine();
-					if (startScan)
-					{
-						if (line.StartsWith("OPENING ") || line.StartsWith("ignoring ") || line.StartsWith("ctags: Warning: cannot open"))
-						{
-							++currentFile;
-						}
-					}
-					else
-					{
-						if (line == "Reading list file")
-						{
-							startScan = true;
-						}
-					}
-
+					sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + total, current, total);
 				}
-				sbar.Progress(false);
-				string output = process.StandardOutput.ReadToEnd();
-			}
+			};
+			sbar.Progress(true, "QuickNavigation Scan solution ...", 0,0);
+			GeneratorFromFiles(files, progressAction).ToArray();
+			sbar.Progress(false);
 		}
 
 		/*
@@ -251,9 +245,18 @@ namespace VS_QuickNavigation.Utils
 
 							if ((types & SymbolData.ESymbolType.Method) != 0)
 							{
-								if (tagInfos[3] == "f" || tagInfos[3] == "p" || tagInfos[3] == "m")
+								if (tagInfos[3] == "function" || tagInfos[3] == "prototype" || tagInfos[3] == "method")
 								{
-									SymbolData oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Method);
+									SymbolData.ESymbolType type = SymbolData.ESymbolType.Method;
+									if (tagInfos[3] == "prototype")
+									{
+										type = SymbolData.ESymbolType.MethodPrototype;
+									}
+									else if (tagInfos[3] == "property")
+									{
+										type = SymbolData.ESymbolType.Property;
+									}
+									SymbolData oSymbol = new SymbolData(tagInfos[0], fileLine, type);
 
 									for (int i = 4; i < tagInfos.Length; ++i)
 									{
