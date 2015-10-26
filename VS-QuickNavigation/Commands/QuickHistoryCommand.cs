@@ -8,12 +8,12 @@ namespace VS_QuickNavigation
 	/// <summary>
 	/// Command handler
 	/// </summary>
-	internal sealed class QuickFileCommand
+	internal sealed class QuickHistoryCommand
 	{
 		/// <summary>
 		/// Command ID.
 		/// </summary>
-		public const int CommandId = 0x0100;
+		public const int CommandId = 0x0101;
 
 		/// <summary>
 		/// Command menu group (command set GUID).
@@ -26,11 +26,11 @@ namespace VS_QuickNavigation
 		private readonly Package package;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickFileCommand"/> class.
+		/// Initializes a new instance of the <see cref="QuickHistoryCommand"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
 		/// </summary>
 		/// <param name="package">Owner package, not null.</param>
-		private QuickFileCommand(Package package)
+		private QuickHistoryCommand(Package package)
 		{
 			if (package == null)
 			{
@@ -51,7 +51,7 @@ namespace VS_QuickNavigation
 		/// <summary>
 		/// Gets the instance of the command.
 		/// </summary>
-		public static QuickFileCommand Instance
+		public static QuickHistoryCommand Instance
 		{
 			get;
 			private set;
@@ -74,7 +74,7 @@ namespace VS_QuickNavigation
 		/// <param name="package">Owner package, not null.</param>
 		public static void Initialize(Package package)
 		{
-			Instance = new QuickFileCommand(package);
+			Instance = new QuickHistoryCommand(package);
 		}
 
 		/// <summary>
@@ -84,21 +84,7 @@ namespace VS_QuickNavigation
 		/// <param name="e">The event args.</param>
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
-			// Get the instance number 0 of this tool window. This window is single instance so this instance
-			// is actually the only one.
-			// The last flag is set to true so that if the tool window does not exists it will be created.
-			/*ToolWindowPane window = this.package.FindToolWindow(typeof(QuickFileToolWindow), 0, true);
-			if ((null == window) || (null == window.Frame))
-			{
-				throw new NotSupportedException("Cannot create tool window");
-			}
-
-			IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-			Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());*/
-
-			//Common.Instance.SolutionWatcher.TestSpeed();
-
-			QuickFileToolWindow window = new QuickFileToolWindow(false);
+			QuickFileToolWindow window = new QuickFileToolWindow(true);
 			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
 			window.ShowModal();
 		}

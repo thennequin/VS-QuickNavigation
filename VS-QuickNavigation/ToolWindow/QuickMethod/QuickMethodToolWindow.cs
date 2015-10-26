@@ -10,7 +10,7 @@ namespace VS_QuickNavigation
 	{
 		public QuickMethodToolWindow() : base()
 		{
-			this.Title = "QuickMethod";
+			this.Title = "Quick Method";
 
 			this.Content = new QuickMethodToolWindowControl(this);
 

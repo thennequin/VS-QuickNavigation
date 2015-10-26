@@ -27,7 +27,19 @@ namespace VS_QuickNavigation.Data
 		string mAfterFormatted;
 
 		public int SearchScore { get; private set; }
-		
+
+		public String SearchScoreString
+		{
+			get
+			{
+				if (SearchScore > 0)
+				{
+					return SearchScore.ToString();
+				}
+				return "";
+			}
+		}
+
 		virtual public void Search(string sQuery, string sSearchIn, string sSplitLast = null)
 		{
 			List<Tuple<int, int>> matches = new List<Tuple<int, int>>();

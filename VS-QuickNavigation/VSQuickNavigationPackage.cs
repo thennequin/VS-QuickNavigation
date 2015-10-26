@@ -74,8 +74,9 @@ namespace VS_QuickNavigation
 			Common.Instance.Settings.LoadSettingsFromStorage();
 			//solution;
 
-			QuickFileToolWindowCommand.Initialize(this);
-			QuickMethodToolWindowCommand.Initialize(this);
+			QuickFileCommand.Initialize(this);
+			QuickHistoryCommand.Initialize(this);
+			QuickMethodCommand.Initialize(this);
 
 			//ShowOptionPage(typeof(Options.OptionsDialogPage));
 		}

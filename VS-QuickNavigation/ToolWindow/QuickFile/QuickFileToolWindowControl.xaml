@@ -23,7 +23,7 @@
                         <!--<SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#9449b0" />
                         <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#9449b0" />-->
                     </Style.Resources>
-                    <Style.Triggers>
+                    <!--<Style.Triggers>
                         <Trigger Property="HasItems" Value="False">
                             <Setter Property="Template">
                                 <Setter.Value>
@@ -33,7 +33,7 @@
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
-                    </Style.Triggers>
+                    </Style.Triggers>-->
                 </Style>
             </ListView.Style>
             <ListView.View>
@@ -43,7 +43,7 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <Viewbox Width="30" Height="16">
-                                        <Label Content="{Binding SearchScore}" Padding="0,0,5,0" 
+                                        <Label Content="{Binding SearchScoreString}" Padding="0,0,5,0" 
                                            HorizontalContentAlignment="Center"
                                            VerticalContentAlignment="Center"
                                            FontWeight="DemiBold"

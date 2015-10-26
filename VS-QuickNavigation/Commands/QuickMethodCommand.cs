@@ -1,9 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="QuickMethodToolWindowCommand.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
+﻿
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
@@ -13,12 +8,12 @@ namespace VS_QuickNavigation
 	/// <summary>
 	/// Command handler
 	/// </summary>
-	internal sealed class QuickMethodToolWindowCommand
+	internal sealed class QuickMethodCommand
 	{
 		/// <summary>
 		/// Command ID.
 		/// </summary>
-		public const int CommandId = 0x0101;
+		public const int CommandId = 0x0102;
 
 		/// <summary>
 		/// Command menu group (command set GUID).
@@ -31,11 +26,11 @@ namespace VS_QuickNavigation
 		private readonly Package package;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickMethodToolWindowCommand"/> class.
+		/// Initializes a new instance of the <see cref="QuickMethodCommand"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
 		/// </summary>
 		/// <param name="package">Owner package, not null.</param>
-		private QuickMethodToolWindowCommand(Package package)
+		private QuickMethodCommand(Package package)
 		{
 			if (package == null)
 			{
@@ -56,7 +51,7 @@ namespace VS_QuickNavigation
 		/// <summary>
 		/// Gets the instance of the command.
 		/// </summary>
-		public static QuickMethodToolWindowCommand Instance
+		public static QuickMethodCommand Instance
 		{
 			get;
 			private set;
@@ -79,7 +74,7 @@ namespace VS_QuickNavigation
 		/// <param name="package">Owner package, not null.</param>
 		public static void Initialize(Package package)
 		{
-			Instance = new QuickMethodToolWindowCommand(package);
+			Instance = new QuickMethodCommand(package);
 		}
 
 		/// <summary>
