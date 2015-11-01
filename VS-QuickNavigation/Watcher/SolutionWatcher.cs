@@ -2,11 +2,13 @@
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VS_QuickNavigation.Data;
+using VS_QuickNavigation.Utils;
 
 namespace VS_QuickNavigation
 {
@@ -40,6 +42,7 @@ namespace VS_QuickNavigation
 			mDocumentEvents = Common.Instance.DTE2.Events.DocumentEvents;
 			mDocumentEvents.DocumentOpening += OnDocumentOpening;
 			mDocumentEvents.DocumentOpened += OnDocumentOpened;
+			mDocumentEvents.DocumentSaved += OnDocumentSaved;
 
 			mSolutionItemsEvents = Common.Instance.DTE2.Events.SolutionItemsEvents;
 			mSolutionItemsEvents.ItemAdded += OnItemAdded;
@@ -47,6 +50,8 @@ namespace VS_QuickNavigation
 			mSolutionItemsEvents.ItemRenamed += OnItemRenamed;
 
 			RefreshOpenHistory();
+
+			OnFilesChanged += RefreshSymbolDatabase;
 		}
 
 		public void Dispose()
@@ -90,22 +95,34 @@ namespace VS_QuickNavigation
 			mFileHistory.Push(oDoc.FullName);
 			RefreshHistoryFileList();
 		}
+
+		void OnDocumentSaved(EnvDTE.Document oDoc)
+		{
+			FileData fileData = GetFileDataByPath(oDoc.FullName);
+			if (null != fileData)
+			{
+				fileData.GenerateSymbols();
+			}
+		}
 		#endregion
 
 		#region Project Items events
 		void OnItemAdded(EnvDTE.ProjectItem oProjectItem)
 		{
-			mNeedRefresh = true;
+			//mNeedRefresh = true;
+			RefreshFileList();
 		}
 
 		void OnItemRemoved(EnvDTE.ProjectItem oProjectItem)
 		{
-			mNeedRefresh = true;
+			//mNeedRefresh = true;
+			RefreshFileList();
 		}
 
 		void OnItemRenamed(EnvDTE.ProjectItem oProjectItem, string sOldName)
 		{
-			mNeedRefresh = true;
+			//mNeedRefresh = true;
+			RefreshFileList();
 		}
 		#endregion
 
@@ -211,7 +228,8 @@ namespace VS_QuickNavigation
 		}
 
 		//public IEnumerable<Data.FileData> Files { get; private set; } = new List<Data.FileData>();
-		public IEnumerable<Data.FileData> Files {
+		public IEnumerable<Data.FileData> Files
+		{
 			get
 			{
 				if (mNeedRefresh)
@@ -220,6 +238,13 @@ namespace VS_QuickNavigation
 				}
 				return mFiles.Values;
 			}
+		}
+
+		public Data.FileData GetFileDataByPath(string path)
+		{
+			FileData fileData;
+			mFiles.TryGetValue(path, out fileData);
+			return fileData;
 		}
 
 		public int FilesCount
@@ -416,6 +441,132 @@ namespace VS_QuickNavigation
 					}
 				}
 			}
+		}
+
+		String SymbolsDatabasePath
+		{
+			get
+			{
+				return Common.Instance.DataFolder + "\\" + Common.Instance.DTE2.Solution.FileName.GetHashCode().ToString() + ".db";
+			}
+		}
+
+		void WriteSymbolDatabase()
+		{
+			using (BinaryWriter writer = new BinaryWriter(File.Open(SymbolsDatabasePath, FileMode.Create)))
+			{
+				writer.Write(mFiles.Count);
+
+				foreach (FileData fileData in mFiles.Values)
+				{
+					writer.Write(fileData.Path);
+					writer.Write(fileData.LastSymbolsGeneration.ToBinary());
+					if (null != fileData.Symbols)
+					{
+						writer.Write(fileData.Symbols.Count());
+						//TODO write symbols
+						foreach (SymbolData symbol in fileData.Symbols)
+						{
+							writer.Write((byte)symbol.Type);
+							writer.Write(symbol.StartLine);
+							writer.Write(symbol.Symbol);
+							writer.Write(symbol.Class != null ? symbol.Class : "");
+							writer.Write(symbol.Parameters != null ? symbol.Parameters : "");
+						}
+					}
+					else
+					{
+						writer.Write((int)0);
+					}
+				}
+			}
+		}
+
+		void ReadSymbolDatabase()
+		{
+			string dbPath = Common.Instance.DataFolder + "\\" + Common.Instance.DTE2.Solution.FileName.GetHashCode().ToString() + ".db";
+			if (System.IO.File.Exists(dbPath))
+			{
+				using (BinaryReader reader = new BinaryReader(File.Open(SymbolsDatabasePath, FileMode.Open)))
+				{
+					int iFileCount = reader.ReadInt32();
+
+					for (int iFileIndex = 0; iFileIndex < iFileCount; ++iFileIndex)
+					{
+						string sFilePath = reader.ReadString();
+						FileData fileData = GetFileDataByPath(sFilePath);
+						DateTime oLastSymbolsGeneration = DateTime.FromBinary(reader.ReadInt64());
+						int iSymbolCount = reader.ReadInt32();
+						List<SymbolData> symbols = new List<SymbolData>();
+						for (int i = 0; i < iSymbolCount; ++i)
+						{
+							SymbolData.ESymbolType eType = (SymbolData.ESymbolType)reader.ReadByte();
+							int iStartLine = reader.ReadInt32();
+							string sSymbol = reader.ReadString();
+							string sClass = reader.ReadString();
+							sClass = string.IsNullOrEmpty(sClass) ? null : sClass;
+							string sParameters = reader.ReadString();
+							sParameters = string.IsNullOrEmpty(sParameters) ? null : sParameters;
+							if (null != fileData) // ignore invalid file
+							{
+								SymbolData newSymbol = new SymbolData(sSymbol, iStartLine, eType);
+								newSymbol.Class = sClass;
+								newSymbol.Parameters = sParameters;
+								symbols.Add(newSymbol);
+							}
+							//newSymbol.AssociatedFile;
+						}
+						if (null != fileData) // ignore invalid file
+						{
+							fileData.SetSymbols(symbols, oLastSymbolsGeneration);
+						}
+					}
+				}
+			}
+		}
+
+		void RefreshSymbolDatabase()
+		{
+			if (null == mFiles || !mFiles.Any())
+			{
+				return;
+			}
+
+			ReadSymbolDatabase();
+
+			List<string> lToGenerate = new List<string>();
+			foreach (FileData fileData in mFiles.Values)
+			{
+				if (	fileData.LastSymbolsGeneration == DateTime.MinValue 
+					||	fileData.LastSymbolsGeneration < System.IO.File.GetLastWriteTime(fileData.Path)
+					)
+				{
+					lToGenerate.Add(fileData.Path);
+				}
+			}
+
+			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			Action<int, int> progressAction = (current, total) =>
+			{
+				if ((current % 5) == 0)
+				{
+					sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + total, current, total);
+				}
+			};
+			IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFiles(lToGenerate, progressAction);
+			
+
+			sbar.Progress(false, "QuickNavigation Analysing solution ...", 0, 0);
+
+			//Associate symbols to DileData
+			symbols
+				.AsParallel()
+				.GroupBy(symbol => symbol.AssociatedFile)
+				.ForAll( pair => pair.Key.SetSymbols(pair) );
+
+			sbar.Progress(false);
+
+			WriteSymbolDatabase();
 		}
 	}
 }
