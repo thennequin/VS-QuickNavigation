@@ -77,6 +77,7 @@ namespace VS_QuickNavigation
 			QuickFileCommand.Initialize(this);
 			QuickHistoryCommand.Initialize(this);
 			QuickMethodCommand.Initialize(this);
+			QuickSymbolCommand.Initialize(this);
 
 			//ShowOptionPage(typeof(Options.OptionsDialogPage));
 		}

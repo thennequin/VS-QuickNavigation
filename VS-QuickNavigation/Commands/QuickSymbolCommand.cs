@@ -8,12 +8,12 @@ namespace VS_QuickNavigation
 	/// <summary>
 	/// Command handler
 	/// </summary>
-	internal sealed class QuickMethodCommand
+	internal sealed class QuickSymbolCommand
 	{
 		/// <summary>
 		/// Command ID.
 		/// </summary>
-		public const int CommandId = 0x0102;
+		public const int CommandId = 0x0103;
 
 		/// <summary>
 		/// Command menu group (command set GUID).
@@ -26,11 +26,11 @@ namespace VS_QuickNavigation
 		private readonly Package package;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickMethodCommand"/> class.
+		/// Initializes a new instance of the <see cref="QuickSymbolCommand"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
 		/// </summary>
 		/// <param name="package">Owner package, not null.</param>
-		private QuickMethodCommand(Package package)
+		private QuickSymbolCommand(Package package)
 		{
 			if (package == null)
 			{
@@ -51,7 +51,7 @@ namespace VS_QuickNavigation
 		/// <summary>
 		/// Gets the instance of the command.
 		/// </summary>
-		public static QuickMethodCommand Instance
+		public static QuickSymbolCommand Instance
 		{
 			get;
 			private set;
@@ -74,7 +74,7 @@ namespace VS_QuickNavigation
 		/// <param name="package">Owner package, not null.</param>
 		public static void Initialize(Package package)
 		{
-			Instance = new QuickMethodCommand(package);
+			Instance = new QuickSymbolCommand(package);
 		}
 
 		/// <summary>
@@ -84,9 +84,17 @@ namespace VS_QuickNavigation
 		/// <param name="e">The event args.</param>
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
-			QuickMethodToolWindow window = new QuickMethodToolWindow(false,
+			QuickMethodToolWindow window = new QuickMethodToolWindow(true,
+					Data.SymbolData.ESymbolType.Namespace |
+					Data.SymbolData.ESymbolType.Class |
+					Data.SymbolData.ESymbolType.Interface |
+					Data.SymbolData.ESymbolType.Macro |
+					Data.SymbolData.ESymbolType.Enumerator |
+					Data.SymbolData.ESymbolType.Enumeration |
 					Data.SymbolData.ESymbolType.Method |
-					Data.SymbolData.ESymbolType.MethodPrototype);
+					Data.SymbolData.ESymbolType.MethodPrototype |
+					Data.SymbolData.ESymbolType.Field |
+					Data.SymbolData.ESymbolType.Property);
 			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
 			window.ShowModal();
 		}

@@ -57,6 +57,7 @@
     <Compile Include="Commands\QuickFileCommand.cs" />
     <Compile Include="Commands\QuickHistoryCommand.cs" />
     <Compile Include="Commands\QuickMethodCommand.cs" />
+    <Compile Include="Commands\QuickSymbolCommand.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Settings.cs">
       <SubType>Component</SubType>
@@ -99,6 +100,7 @@
   <ItemGroup>
     <VSCTCompile Include="VSQuickNavigationPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
     <Content Include="external\ctags.exe">
       <IncludeInVSIX>true</IncludeInVSIX>

@@ -25,34 +25,28 @@ namespace VS_QuickNavigation
 	public partial class QuickMethodToolWindowControl : UserControl
 	{
 		private QuickMethodToolWindow mQuickMethodToolWindow;
+		private bool mSearchInSolution;
+		private SymbolData.ESymbolType mSupportedSymbolTypes;
 		private object mSymbolLocker = new object();
-		private List<SymbolData> mSymbols = null;
+		private IEnumerable<SymbolData> mSymbols = null;
 		private CancellationTokenSource mToken;
+		private DeferredAction mDeferredRefresh;
+		
+		const int c_RefreshDelay = 5;
 
-		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent)
+		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent, bool searchInSolution, SymbolData.ESymbolType supportedSymbolTypes)
 		{
 			this.InitializeComponent();
 
 			mQuickMethodToolWindow = oParent;
 
-			//For test
-			/*System.Threading.Tasks.Task.Run(() =>
-			{
-				System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-				stopwatch.Start();
-				CTagsGenerator.GeneratorFromSolution();
-				stopwatch.Stop();
-				System.Diagnostics.Debug.WriteLine("GeneratorFromSolution " + stopwatch.ElapsedMilliseconds);
-				stopwatch.Restart();
-				CTagsGenerator.GeneratorFromSolution3();
-				stopwatch.Stop();
-				System.Diagnostics.Debug.WriteLine("GeneratorFromSolution3 " + stopwatch.ElapsedMilliseconds);
-			});*/
-			
+			mSearchInSolution = searchInSolution;
+			mSupportedSymbolTypes = supportedSymbolTypes;
+
+			mDeferredRefresh = DeferredAction.Create(RefreshResults);
+			mDeferredRefresh.Defer(0);
 
 			DataContext = this;
-
-			RefreshResults();
 
 			textBox.Focus();
 
@@ -74,74 +68,6 @@ namespace VS_QuickNavigation
 			[Import]
 			public IGlyphService GlyphService { get; set; }
 			*/
-		}
-
-		private void AnalyseCodeElements(EnvDTE.CodeElements codeElements)
-		{
-			if (null != codeElements)
-			{
-				foreach (EnvDTE.CodeElement objCodeElement in codeElements)
-				{
-					if (objCodeElement is EnvDTE.CodeFunction)
-					{
-						EnvDTE.CodeFunction objCodeFunction = objCodeElement as EnvDTE.CodeFunction;
-						string sSymbol = objCodeElement.FullName;
-						sSymbol += "(";
-
-						if (null != objCodeFunction.Parameters && objCodeFunction.Parameters.Count > 0)
-						{
-							sSymbol += " ";
-							bool bFirstMember = true;
-							foreach (EnvDTE.CodeParameter objCodeParameter in objCodeFunction.Parameters)
-							{
-								if (bFirstMember)
-								{
-									bFirstMember = false;
-								}
-								else
-								{
-									sSymbol += ", ";
-								}
-								sSymbol += objCodeParameter.Type.AsString;
-								sSymbol += " ";
-								sSymbol += objCodeParameter.Name;
-							}
-							sSymbol += " ";
-						}
-
-						sSymbol += ")";
-
-						mSymbols.Add(new SymbolData(sSymbol, objCodeElement.StartPoint.Line, SymbolData.ESymbolType.Method));
-					}
-					else
-					{
-						AnalyseCodeElements(GetCodeElementMembers(objCodeElement));
-					}
-				}
-			}
-		}
-
-		private EnvDTE.CodeElements GetCodeElementMembers(EnvDTE.CodeElement objCodeElement)
-		{
-			EnvDTE.CodeElements colCodeElements = null;
-
-			if (objCodeElement is EnvDTE.CodeNamespace)
-			{
-				colCodeElements = ((EnvDTE.CodeNamespace)objCodeElement).Members;
-			}
-			else if (objCodeElement is EnvDTE.CodeType)
-			{
-				colCodeElements = ((EnvDTE.CodeType)objCodeElement).Members;
-			}
-			else if (objCodeElement is EnvDTE.CodeFunction)
-			{
-				colCodeElements = ((EnvDTE.CodeFunction)objCodeElement).Parameters;
-			}
-			else if (objCodeElement is EnvDTE.CodeClass)
-			{
-				colCodeElements = ((EnvDTE.CodeClass)objCodeElement).Members;
-			}
-			return colCodeElements;
 		}
 
 		private void textBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -188,7 +114,7 @@ namespace VS_QuickNavigation
 
 		private void textBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
-			RefreshResults();
+			mDeferredRefresh.Defer(c_RefreshDelay);
 		}
 
 		private void listView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -223,47 +149,82 @@ namespace VS_QuickNavigation
 				{
 					if (!mToken.IsCancellationRequested)
 					{
-						if (mSymbols == null)
+						if (!mSearchInSolution && mSymbols == null)
 						{
-							mSymbols = new List<SymbolData>();
-							/*if (Common.Instance.DTE2.ActiveDocument != null && Common.Instance.DTE2.ActiveDocument.ProjectItem != null)
-							{
-								EnvDTE.CodeElements codeElements = Common.Instance.DTE2.ActiveDocument.ProjectItem.FileCodeModel.CodeElements;
-
-								AnalyseCodeElements(codeElements);
-							}*/
-
-							mSymbols.AddRange(CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument));
+							mSymbols = CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument);
 						}
 
 						try
 						{
-							IEnumerable<SearchResult<SymbolData>> results = mSymbols
-							//#if !DEBUG
-							.AsParallel()
-							.WithCancellation(mToken.Token)
-							//#endif
-							.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters))
-								.Where(fileData => fileData.SearchScore >= 0)
-								.OrderByDescending(fileData => fileData.SearchScore)
-								//.Take(250)
+							//System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+							//sw.Start();
+
+							ParallelQuery<SymbolData> source = null;
+							if (mSearchInSolution)
+							{
+								source = Common.Instance.SolutionWatcher.Files
+									.AsParallel()
+									.WithCancellation(mToken.Token)
+									.Where(file => file != null && file.Symbols != null)
+									.SelectMany(file => file.Symbols)
+									;
+							}
+							else
+							{
+								source = mSymbols
+									.AsParallel()
+									.WithCancellation(mToken.Token)
+									;
+							}
+
+							ParallelQuery<SearchResult<SymbolData>> results = source
+								.Where(symbol => (symbol.Type & mSupportedSymbolTypes) != 0)
+								.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters));
+
+							int total = results.Count();
+
+							if (!string.IsNullOrWhiteSpace(sSearch))
+							{
+								int searchStringLen = sSearch.Length;
+								results = results.Where(resultData => resultData.SearchScore > searchStringLen);
+							}
+
+							results = results
+								.OrderByDescending(resultData => resultData.SearchScore)
 								;
 
+							int count = results.Count();
 
 							//EnvDTE.FontsAndColorsItems fontsAndColor = Common.Instance.DTE2.Properties.Item("FontsAndColorsItems") as EnvDTE.FontsAndColorsItems;
 							//fontsAndColor.Item("Line Number").Foreground
 							//fontsAndColor.Item("Keywords").Foreground
 
+							/*Action<IEnumerable> refreshMethod = (res) =>
+							{
+								results.ForAll(result => result.RefreshSearchFormatted());
+							};
+							Dispatcher.BeginInvoke(refreshMethod, results);*/
 
 							Action<IEnumerable> setMethod = (res) =>
 							{
 								listView.ItemsSource = res;
+
+								string title = mQuickMethodToolWindow.Title;
+								int pos = title.IndexOf(" [");
+								if (pos != -1)
+								{
+									title = title.Substring(0, pos);
+								}
+								mQuickMethodToolWindow.Title = title + " [" + count + "/" + total + "]";
 							};
-							Dispatcher.BeginInvoke(setMethod, results);
+							Dispatcher.BeginInvoke(setMethod, results.ToList());
+
+
+							//sw.Stop();
+							//System.Diagnostics.Debug.WriteLine("PLINQ time " + sw.Elapsed.TotalMilliseconds);
 						}
-						catch (Exception e) { }
+						catch (Exception) { }
 					}
-					
 				}
 			});
 			
@@ -272,8 +233,14 @@ namespace VS_QuickNavigation
 		private void OpenCurrentSelection()
 		{
 			int selectedIndex = listView.SelectedIndex;
-			if (selectedIndex == -1) selectedIndex = 0;
+			if (selectedIndex == -1)
+			{
+				selectedIndex = 0;
+			}
+
 			SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
+
+			Common.Instance.DTE2.ItemOperations.OpenFile(symbolData.Data.AssociatedFile.Path, EnvDTE.Constants.vsViewKindTextView);
 			((EnvDTE.TextSelection)Common.Instance.DTE2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
 		}
 

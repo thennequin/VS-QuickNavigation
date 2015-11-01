@@ -99,6 +99,17 @@
 					<MenuText>Quick Method</MenuText>
 				</Strings>
 			</Button>
+			<Button guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickSymbol" priority="0x0103" type="Button">
+				<!--<Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />-->
+				<Parent guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenuGroup" />
+				<Icon guid="guidImages" id="bmpIcon" />
+				<CommandFlag>TextChanges</CommandFlag>
+				<Strings>
+					<CommandName>cmdidQuickSymbol</CommandName>
+					<ButtonText>QuickNavigation.QuickSymbol</ButtonText>
+					<MenuText>Quick Symbol</MenuText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 		<!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -116,6 +127,7 @@
 		<KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickFile" key1="T" mod1="ALT" editor="guidVSStd97" />
 		<KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickHistory" key1="H" mod1="ALT" editor="guidVSStd97" />
 		<KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickMethod" key1="M" mod1="ALT" editor="guidVSStd97" />
+		<KeyBinding guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickSymbol" key1="S" mod1="ALT" editor="guidVSStd97" />
 	</KeyBindings>
 
 	<Symbols>
@@ -131,6 +143,7 @@
 			<IDSymbol name="cmdidQuickFile" value="0x0100" />
 			<IDSymbol name="cmdidQuickHistory" value="0x0101"/>
 			<IDSymbol name="cmdidQuickMethod" value="0x0102"/>
+			<IDSymbol name="cmdidQuickSymbol" value="0x0103"/>
 		</GuidSymbol>
 
 		<GuidSymbol name="guidImages" value="{2adb76a2-a290-46b7-9870-647ad2293084}">

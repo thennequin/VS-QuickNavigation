@@ -8,11 +8,19 @@ namespace VS_QuickNavigation
 	[Guid("9e2af9f7-c261-4530-bf48-1857826b0cab")]
 	public class QuickMethodToolWindow : DialogWindow//ToolWindowPane
 	{
-		public QuickMethodToolWindow() : base()
+		public QuickMethodToolWindow(bool searchInSolution, Data.SymbolData.ESymbolType types) : base()
 		{
-			this.Title = "Quick Method";
+			if (searchInSolution)
+			{
+				this.Title = "Quick Symbol";
+			}
+			else
+			{
+				this.Title = "Quick Method";
+			}
 
-			this.Content = new QuickMethodToolWindowControl(this);
+			//Methods of current documents
+			this.Content = new QuickMethodToolWindowControl(this, searchInSolution, types);
 
 			this.Width = 1000;
 			this.Height = 400;

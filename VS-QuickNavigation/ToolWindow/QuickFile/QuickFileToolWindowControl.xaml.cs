@@ -147,32 +147,44 @@ namespace VS_QuickNavigation
 				try
 				{
 					//Common.Instance.SolutionWatcher.SetNeedRefresh();
-					IEnumerable<SearchResult<FileData>> results = null;
+					ParallelQuery<FileData> source = null;
 					if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
 					{
-						results = Common.Instance.SolutionWatcher.Files
+						source = Common.Instance.SolutionWatcher.Files
 						.AsParallel()
 						.WithCancellation(mToken.Token)
 						.Where(fileData => fileData.Status == FileStatus.Recent)
-						.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
-						.OrderByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
 						;
+						
 					}
 					else
 					{
-						
 						string[] exts = Common.Instance.Settings.ListedExtensions;
 
-						results = Common.Instance.SolutionWatcher.Files
+						source = Common.Instance.SolutionWatcher.Files
 						.AsParallel()
 						.WithCancellation(mToken.Token)
 						.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
-						.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
-						.Where(fileData => fileData.SearchScore > 0)
-						.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
-						.Take(250)
 						;
 					}
+
+					int total = source.Count();
+
+					IEnumerable<SearchResult<FileData>> results = source
+						.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
+						;
+
+					if (!string.IsNullOrWhiteSpace(sSearch))
+					{
+						int searchStringLen = sSearch.Length;
+						results = results.Where(resultData => resultData.SearchScore > searchStringLen);
+					}
+
+					results = results.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
+						.ThenByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
+						;
+
+					int count = results.Count();
 
 					Action<IEnumerable> setMethod = (res) =>
 					{
@@ -191,8 +203,18 @@ namespace VS_QuickNavigation
 
 							view.GroupDescriptions.Add(groupDescription);
 						}
+
+						string title = mQuickFileToolWindow.Title;
+						int pos = title.IndexOf(" [");
+						if (pos != -1)
+						{
+							title = title.Substring(0, pos);
+						}
+						mQuickFileToolWindow.Title = title + " [" + count + "/" + total + "]";
 					};
-					Dispatcher.BeginInvoke(setMethod, results);
+					
+					Dispatcher.BeginInvoke(setMethod, results.ToList());
+					//Dispatcher.BeginInvoke(setMethod, results.AsEnumerable());
 				}
 				catch (Exception e) { }
 				
@@ -210,7 +232,7 @@ namespace VS_QuickNavigation
 			if (selectedIndex == -1) selectedIndex = 0;
 			SearchResult<FileData> results = listView.Items[selectedIndex] as SearchResult<FileData>;
 			Common.Instance.DTE2.ItemOperations.OpenFile(results.Data.Path);
-			mQuickFileToolWindow.Close();
+            mQuickFileToolWindow.Close();
 		}
 	}
 }
