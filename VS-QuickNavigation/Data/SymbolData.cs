@@ -36,6 +36,8 @@ namespace VS_QuickNavigation.Data
 		public string Parameters { get; set; }
 		public ESymbolType Type { get; set; }
 
+		public FileData AssociatedFile { get; set; }
+
 		public SymbolData(string sSymbol, int iStartLine, ESymbolType eType)
 		{
 			Symbol = sSymbol;
