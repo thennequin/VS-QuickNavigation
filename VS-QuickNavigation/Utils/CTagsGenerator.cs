@@ -98,9 +98,9 @@ namespace VS_QuickNavigation.Utils
 			File.WriteAllText(filePath, fileContent);
 
 			IEnumerable<SymbolData> results = GeneratorFromFile(filePath);
-#if !DEBUG
+
 			System.IO.File.Delete(filePath);
-#endif
+
 			return results;
 		}
 
@@ -177,12 +177,13 @@ namespace VS_QuickNavigation.Utils
 
 				if (process.ExitCode == 0)
 				{
-					results = ParseTagFile(tagsPath, SymbolData.ESymbolType.Method);
+					results = ParseTagFile(tagsPath);
 				}
 			}
-#if !DEBUG
+
+			System.IO.File.Delete(filePath);
 			System.IO.File.Delete(tagsPath);
-#endif
+
 			return results;
 		}
 
@@ -219,7 +220,7 @@ namespace VS_QuickNavigation.Utils
 			v	variable
 		CTags tags for C#
 		*/
-		static IEnumerable<SymbolData> ParseTagFile(string filePath, SymbolData.ESymbolType types)
+		static IEnumerable<SymbolData> ParseTagFile(string filePath)
 		{
 			List<SymbolData> symbols = new List<SymbolData>();
 
@@ -243,41 +244,58 @@ namespace VS_QuickNavigation.Utils
 							if (!ExtractLine(tagInfos, out fileLine))
 								continue;
 
-							if ((types & SymbolData.ESymbolType.Method) != 0)
+							SymbolData oSymbol = null;
+
+							if (tagInfos[3] == "function" || tagInfos[3] == "method")
 							{
-								if (tagInfos[3] == "function" || tagInfos[3] == "prototype" || tagInfos[3] == "method")
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Method);
+							}
+							else if (tagInfos[3] == "prototype")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.MethodPrototype);
+							}
+							else if (tagInfos[3] == "property")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Property);
+							}
+							else if (tagInfos[3] == "class")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Class);
+							}
+							else if (tagInfos[3] == "macro")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Macro);
+							}
+							else if (tagInfos[3] == "enum")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Enumeration);
+							}
+							else if (tagInfos[3] == "enumerator")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Enumerator);
+							}
+							else if (tagInfos[3] == "member")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Field);
+							}
+
+							if (null != oSymbol)
+							{
+								for (int i = 4; i < tagInfos.Length; ++i)
 								{
-									SymbolData.ESymbolType type = SymbolData.ESymbolType.Method;
-									if (tagInfos[3] == "prototype")
+									if (tagInfos[i].StartsWith("signature:"))
 									{
-										type = SymbolData.ESymbolType.MethodPrototype;
-									}
-									else if (tagInfos[3] == "property")
-									{
-										type = SymbolData.ESymbolType.Property;
-									}
-									SymbolData oSymbol = new SymbolData(tagInfos[0], fileLine, type);
-
-									for (int i = 4; i < tagInfos.Length; ++i)
-									{
-										if (tagInfos[i].StartsWith("signature:"))
-										{
-											oSymbol.Parameters = tagInfos[i].Substring("signature:".Length);
-										}
-
-										if (tagInfos[i].StartsWith("class:"))
-										{
-											oSymbol.Class = tagInfos[i].Substring("class:".Length) + "::";
-										}
-
-										if (tagInfos[i].StartsWith("file:"))
-										{
-											//TODO : To implement?
-										}
+										oSymbol.Parameters = tagInfos[i].Substring("signature:".Length);
 									}
 
-									symbols.Add(oSymbol);
+									if (tagInfos[i].StartsWith("class:"))
+									{
+										oSymbol.Class = tagInfos[i].Substring("class:".Length) + "::";
+									}
 								}
+
+								oSymbol.AssociatedFile = Common.Instance.SolutionWatcher.GetFileDataByPath(tagInfos[1]);
+								symbols.Add(oSymbol);
 							}
 						}
 						else
