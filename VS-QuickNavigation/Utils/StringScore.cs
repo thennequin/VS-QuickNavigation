@@ -29,6 +29,7 @@ namespace VS_QuickNavigation
 			int queryIndex = query.Length - 1;
 			int contentIndex = content.Length - 1;
 			int totalScore = 0;
+			int totalChar = 0;
 			int combo = 1;
 			int? currentMatch = null;
 			
@@ -47,7 +48,8 @@ namespace VS_QuickNavigation
 
 					int multScore = contentIndex >= doubleScoreStart ? 2 : 1; // Double score
 					totalScore += charScore * combo * multScore;
-
+					if (contentIndex >= doubleScoreStart)
+						++totalChar;
 
 					//if (charScore == 2) //To test : ignore
 					{
@@ -80,6 +82,9 @@ namespace VS_QuickNavigation
 				Debug.Assert((contentIndex - currentMatch.Value) < 0);
 				matchIndexOut.Insert(0, new Tuple<int, int>(contentIndex+1, currentMatch.Value - contentIndex));
 			}
+
+			float ratio = 1f + (float)totalChar / (float)(content.Length - doubleScoreStart);
+			totalScore = (int)Math.Round((float)totalScore * ratio);
 
 			return totalScore;
 		}
