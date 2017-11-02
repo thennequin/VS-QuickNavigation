@@ -243,7 +243,7 @@ namespace VS_QuickNavigation
 		public Data.FileData GetFileDataByPath(string path)
 		{
 			FileData fileData;
-			mFiles.TryGetValue(path, out fileData);
+			mFiles.TryGetValue(path.ToLower(), out fileData);
 			return fileData;
 		}
 
@@ -364,17 +364,17 @@ namespace VS_QuickNavigation
 				}
 				if (!mFiles.ContainsKey(file.Path))
 				{
-					mFiles[file.Path] = new FileData(file.Path, null);
+					mFiles[file.Path.ToLower()] = new FileData(file.Path, null);
 				}
 
 				foreach (string project in file.Projects)
 				{
-					mFiles[file.Path].Projects.Add(project);
+					mFiles[file.Path.ToLower()].Projects.Add(project);
 				}
-				//FileData data = mFiles[file.Path];
-				//data.Projects.Add(file.Projects.First());
-			}
-		}
+                //FileData data = mFiles[file.Path.ToLower()];
+                //data.Projects.Add(file.Projects.First());
+            }
+        }
 
 		public static IEnumerable<FileData> GetSolutionsFiles(CancellationToken? cancelToken = null)
 		{
