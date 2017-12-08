@@ -25,6 +25,7 @@ namespace VS_QuickNavigation
 		/// </summary>
 		private readonly Package package;
 
+		private QuickFileToolWindow window;
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QuickHistoryCommand"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
@@ -46,6 +47,8 @@ namespace VS_QuickNavigation
 				var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
 				commandService.AddCommand(menuItem);
 			}
+
+			window = new QuickFileToolWindow(true);
 		}
 		
 		/// <summary>
@@ -84,9 +87,7 @@ namespace VS_QuickNavigation
 		/// <param name="e">The event args.</param>
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
-			QuickFileToolWindow window = new QuickFileToolWindow(true);
-			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
-			window.ShowModal();
+			window.ShowDialog();
 		}
 	}
 }

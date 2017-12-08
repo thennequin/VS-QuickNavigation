@@ -25,12 +25,14 @@ namespace VS_QuickNavigation
 		/// </summary>
 		private readonly Package package;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickMethodCommand"/> class.
-		/// Adds our command handlers for menu (commands must exist in the command table file)
-		/// </summary>
-		/// <param name="package">Owner package, not null.</param>
-		private QuickMethodCommand(Package package)
+        private QuickMethodToolWindow window;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QuickMethodCommand"/> class.
+        /// Adds our command handlers for menu (commands must exist in the command table file)
+        /// </summary>
+        /// <param name="package">Owner package, not null.</param>
+        private QuickMethodCommand(Package package)
 		{
 			if (package == null)
 			{
@@ -46,7 +48,11 @@ namespace VS_QuickNavigation
 				var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
 				commandService.AddCommand(menuItem);
 			}
-		}
+
+            window = new QuickMethodToolWindow(false,
+                    Data.SymbolData.ESymbolType.Method |
+                    Data.SymbolData.ESymbolType.MethodPrototype);
+        }
 
 		/// <summary>
 		/// Gets the instance of the command.
@@ -84,11 +90,7 @@ namespace VS_QuickNavigation
 		/// <param name="e">The event args.</param>
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
-			QuickMethodToolWindow window = new QuickMethodToolWindow(false,
-					Data.SymbolData.ESymbolType.Method |
-					Data.SymbolData.ESymbolType.MethodPrototype);
-			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
-			window.ShowModal();
+			window.ShowDialog();
 		}
 	}
 }

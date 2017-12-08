@@ -44,7 +44,6 @@ namespace VS_QuickNavigation
 			mSupportedSymbolTypes = supportedSymbolTypes;
 
 			mDeferredRefresh = DeferredAction.Create(RefreshResults);
-			mDeferredRefresh.Defer(0);
 
 			DataContext = this;
 
@@ -68,6 +67,12 @@ namespace VS_QuickNavigation
 			[Import]
 			public IGlyphService GlyphService { get; set; }
 			*/
+		}
+
+		public void RefreshContent()
+		{
+			mSymbols = null;
+			mDeferredRefresh.Defer(0);
 		}
 
 		private void textBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)

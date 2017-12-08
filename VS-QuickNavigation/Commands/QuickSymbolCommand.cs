@@ -25,12 +25,14 @@ namespace VS_QuickNavigation
 		/// </summary>
 		private readonly Package package;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="QuickSymbolCommand"/> class.
-		/// Adds our command handlers for menu (commands must exist in the command table file)
-		/// </summary>
-		/// <param name="package">Owner package, not null.</param>
-		private QuickSymbolCommand(Package package)
+        private QuickMethodToolWindow window;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="QuickSymbolCommand"/> class.
+        /// Adds our command handlers for menu (commands must exist in the command table file)
+        /// </summary>
+        /// <param name="package">Owner package, not null.</param>
+        private QuickSymbolCommand(Package package)
 		{
 			if (package == null)
 			{
@@ -46,7 +48,19 @@ namespace VS_QuickNavigation
 				var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
 				commandService.AddCommand(menuItem);
 			}
-		}
+
+            window = new QuickMethodToolWindow(true,
+                    Data.SymbolData.ESymbolType.Namespace |
+                    Data.SymbolData.ESymbolType.Class |
+                    Data.SymbolData.ESymbolType.Interface |
+                    Data.SymbolData.ESymbolType.Macro |
+                    Data.SymbolData.ESymbolType.Enumerator |
+                    Data.SymbolData.ESymbolType.Enumeration |
+                    Data.SymbolData.ESymbolType.Method |
+                    Data.SymbolData.ESymbolType.MethodPrototype |
+                    Data.SymbolData.ESymbolType.Field |
+                    Data.SymbolData.ESymbolType.Property);
+        }
 
 		/// <summary>
 		/// Gets the instance of the command.
@@ -84,19 +98,7 @@ namespace VS_QuickNavigation
 		/// <param name="e">The event args.</param>
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
-			QuickMethodToolWindow window = new QuickMethodToolWindow(true,
-					Data.SymbolData.ESymbolType.Namespace |
-					Data.SymbolData.ESymbolType.Class |
-					Data.SymbolData.ESymbolType.Interface |
-					Data.SymbolData.ESymbolType.Macro |
-					Data.SymbolData.ESymbolType.Enumerator |
-					Data.SymbolData.ESymbolType.Enumeration |
-					Data.SymbolData.ESymbolType.Method |
-					Data.SymbolData.ESymbolType.MethodPrototype |
-					Data.SymbolData.ESymbolType.Field |
-					Data.SymbolData.ESymbolType.Property);
-			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
-			window.ShowModal();
+			window.ShowDialog();
 		}
 	}
 }

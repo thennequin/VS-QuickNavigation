@@ -25,5 +25,21 @@ namespace VS_QuickNavigation
 			this.Width = 1000;
 			this.Height = 400;
 		}
+
+		public void ShowDialog()
+		{
+			WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
+			ShowModal();
+			QuickFileToolWindowControl oQuickMethodControl = ((QuickFileToolWindowControl)this.Content);
+			oQuickMethodControl.RefreshContent();
+			oQuickMethodControl.textBox.SelectAll();
+			oQuickMethodControl.textBox.Focus();
+		}
+
+		protected override void OnClosing(System.ComponentModel.CancelEventArgs oArgs)
+		{
+			oArgs.Cancel = true;
+			Hide();
+		}
 	}
 }

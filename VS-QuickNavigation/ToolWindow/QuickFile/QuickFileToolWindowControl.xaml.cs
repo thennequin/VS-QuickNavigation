@@ -1,4 +1,4 @@
-﻿
+
 namespace VS_QuickNavigation
 {
 	//using Microsoft.VisualStudio.Shell;
@@ -60,6 +60,11 @@ namespace VS_QuickNavigation
 
 			listView.SelectedIndex = 0;
 
+			RefreshList();
+		}
+
+		public void RefreshContent()
+		{
 			RefreshList();
 		}
 

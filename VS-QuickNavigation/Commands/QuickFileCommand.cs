@@ -25,6 +25,8 @@ namespace VS_QuickNavigation
 		/// </summary>
 		private readonly Package package;
 
+		private QuickFileToolWindow window;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="QuickFileCommand"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
@@ -46,6 +48,8 @@ namespace VS_QuickNavigation
 				var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
 				commandService.AddCommand(menuItem);
 			}
+
+			window = new QuickFileToolWindow(false);
 		}
 		
 		/// <summary>
@@ -98,9 +102,8 @@ namespace VS_QuickNavigation
 
 			//Common.Instance.SolutionWatcher.TestSpeed();
 
-			QuickFileToolWindow window = new QuickFileToolWindow(false);
-			window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
-			window.ShowModal();
+			
+			window.ShowDialog();
 		}
 	}
 }
