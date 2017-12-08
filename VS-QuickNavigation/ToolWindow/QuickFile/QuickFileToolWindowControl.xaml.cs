@@ -1,4 +1,4 @@
-
+﻿
 namespace VS_QuickNavigation
 {
 	//using Microsoft.VisualStudio.Shell;
@@ -236,8 +236,12 @@ namespace VS_QuickNavigation
 			int selectedIndex = listView.SelectedIndex;
 			if (selectedIndex == -1) selectedIndex = 0;
 			SearchResult<FileData> results = listView.Items[selectedIndex] as SearchResult<FileData>;
-			Common.Instance.DTE2.ItemOperations.OpenFile(results.Data.Path);
-            mQuickFileToolWindow.Close();
+			EnvDTE.Window oWindow = Common.Instance.DTE2.ItemOperations.OpenFile(results.Data.Path);
+			if (null != oWindow)
+			{
+				oWindow.Activate();
+			}
+			mQuickFileToolWindow.Close();
 		}
 	}
 }
