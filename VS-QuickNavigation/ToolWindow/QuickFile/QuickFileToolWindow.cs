@@ -30,10 +30,10 @@ namespace VS_QuickNavigation
 		{
 			WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
 			ShowModal();
-			QuickFileToolWindowControl oQuickMethodControl = ((QuickFileToolWindowControl)this.Content);
-			oQuickMethodControl.RefreshContent();
-			oQuickMethodControl.textBox.SelectAll();
-			oQuickMethodControl.textBox.Focus();
+			QuickFileToolWindowControl oQuickFileControl = ((QuickFileToolWindowControl)this.Content);
+			oQuickFileControl.RefreshContent();
+			oQuickFileControl.textBox.SelectAll();
+			oQuickFileControl.textBox.Focus();
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs oArgs)
