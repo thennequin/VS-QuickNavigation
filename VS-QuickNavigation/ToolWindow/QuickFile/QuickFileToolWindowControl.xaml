@@ -7,9 +7,17 @@
              Foreground="{DynamicResource VsBrush.WindowText}"
              mc:Ignorable="d"
              Name="MyToolWindow" Height="Auto" Width="Auto">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/VS-QuickNavigation;component/ToolWindow/QuickNavigationStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
     <DockPanel Width="Auto" Height="Auto" LastChildFill="True" Margin="10">
         <TextBox x:Name="textBox"
-                 DockPanel.Dock="Top" Width="Auto" Height="23"
+                 DockPanel.Dock="Top" Width="Auto"
                  Margin="0,0,0,3"
                  TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
         <ListView x:Name="listView"
@@ -17,25 +25,6 @@
                   SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown"
                   VirtualizingStackPanel.IsVirtualizing="True" MouseDoubleClick="listView_MouseDoubleClick"
                   >
-            <ListView.Style>
-                <Style TargetType="{x:Type ListView}">
-                    <Style.Resources>
-                        <!--<SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#9449b0" />
-                        <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#9449b0" />-->
-                    </Style.Resources>
-                    <!--<Style.Triggers>
-                        <Trigger Property="HasItems" Value="False">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListView">
-                                        <TextBlock Text="Loading..." HorizontalAlignment="Center" Padding="10,10,10,10" Background="White" FontSize="18" Foreground="Gray"/>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Trigger>
-                    </Style.Triggers>-->
-                </Style>
-            </ListView.Style>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="600" Header="{Binding FileHeader}" >
@@ -43,11 +32,10 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <Viewbox Width="30" Height="16">
-                                        <Label Content="{Binding SearchScoreString}" Padding="0,0,5,0" 
+                                        <Label Content="{Binding SearchScoreString}" Padding="0,0,5,0"
                                            HorizontalContentAlignment="Center"
                                            VerticalContentAlignment="Center"
-                                           FontWeight="DemiBold"
-                                           Foreground="Gray"/>
+                                           FontWeight="Bold" />
                                     </Viewbox>
                                     <Image Source="{Binding Path=Data.Icon}" Width="16" Height="16"/>
                                     <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" />

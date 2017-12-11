@@ -37,6 +37,22 @@ namespace VS_QuickNavigation.Data
 		public ESymbolType Type { get; set; }
 
 		public FileData AssociatedFile { get; set; }
+		public string AssociatedFilePath
+		{
+			get
+			{
+				if( AssociatedFile != null)
+				{
+					string file = AssociatedFile.File;
+					char[] slashChars = { '\\', '/' };
+					int pos = file.LastIndexOfAny(slashChars);
+					if (pos != -1)
+						return file.Substring(pos + 1);
+					return file;
+				}
+				return "";
+			}
+		}
 
 		public SymbolData(string sSymbol, int iStartLine, ESymbolType eType)
 		{

@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Media;
 
 namespace VS_QuickNavigation.Data
 {
-	class SearchResult<T>
+	class SearchResult
 	{
-		public SearchResult(T data, string sQuery, string sSearchIn, string sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
+		public SearchResult(string sQuery, string sSearchIn, string sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
 		{
-			Data = data;
 			mBeforeFormatted = beforeFormatted;
 			mAfterFormatted = afterFormatted;
 			Search(sQuery, sSearchIn, sSplitLast);
 		}
-
-		public T Data { get; set; }
 
 		List<Tuple<string, bool>> mFormatted = new List<Tuple<string, bool>>();
 		List<Tuple<string, bool>> mSubFormatted = new List<Tuple<string, bool>>();
@@ -62,19 +55,17 @@ namespace VS_QuickNavigation.Data
 			get
 			{
 				TextBlock block = new TextBlock();
-				SolidColorBrush matchBrush = new SolidColorBrush(Color.FromRgb(255, 255, 160));
-				SolidColorBrush subBrush = new SolidColorBrush(Color.FromRgb(128, 128, 128));
+
 				if (null != mBeforeFormatted)
 				{
-					block.Inlines.Add(new Run(mBeforeFormatted));
+					Run text = new Run(mBeforeFormatted);
+					text.Tag = "N";
+					block.Inlines.Add(text);
 				}
 				foreach (Tuple<string, bool> formatted in mFormatted)
 				{
 					Run text = new Run(formatted.Item1);
-					if (formatted.Item2)
-					{
-						text.Background = matchBrush;
-					}
+					text.Tag = formatted.Item2 ? "NHL" : "N";
 					block.Inlines.Add(text);
 				}
 				if (mSubFormatted.Count > 0)
@@ -83,21 +74,29 @@ namespace VS_QuickNavigation.Data
 					foreach (Tuple<string, bool> formatted in mSubFormatted)
 					{
 						Run text = new Run(formatted.Item1);
-						if (formatted.Item2)
-						{
-							text.Background = matchBrush;
-						}
-						text.Foreground = subBrush;
-						text.FontSize = 12;
+						text.Tag = formatted.Item2 ? "SHL" : "S";
 						block.Inlines.Add(text);
 					}
 				}
 				if (null != mAfterFormatted)
 				{
-					block.Inlines.Add(new Run(mAfterFormatted));
+					Run text = new Run(mAfterFormatted);
+					text.Tag = "N";
+					block.Inlines.Add(text);
 				}
 				return block;
 			}
 		}
+	}
+
+	class SearchResultData<T> : SearchResult
+	{
+		public SearchResultData(T data, string sQuery, string sSearchIn, string sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
+			: base(sQuery, sSearchIn, sSplitLast, beforeFormatted, afterFormatted)
+		{
+			Data = data;
+		}
+
+		public T Data { get; set; }
 	}
 }

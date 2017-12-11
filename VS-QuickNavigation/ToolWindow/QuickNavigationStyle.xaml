@@ -1,0 +1,331 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.10.0"
+                    xmlns:l="clr-namespace:VS_QuickNavigation.Data"
+					>
+
+    <l:BindingProxy x:Key="TextBrushProxy" Data="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" />
+    <l:BindingProxy x:Key="SelectedTextBrushProxy" Data="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+
+    <!-- ListView Item Control Template -->
+    <ControlTemplate x:Key="ListViewItemTemplate" TargetType="{x:Type ListViewItem}">
+        <!-- Simplified template of the default List*View* Style, removes much of the chrome -->
+        <Border SnapsToDevicePixels="True" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" Margin="{TemplateBinding Margin}">
+            <GridViewRowPresenter Grid.RowSpan="2"   
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"   
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+        </Border>
+        <ControlTemplate.Triggers>
+            <!-- Selected -->
+            <Trigger Property="IsSelected" Value="True">
+                <!-- A subset of TreeViewColors are used for applying styles to the ListView.  A TreeView is
+                     has a superset of the colors required by a ListView (for expanders). -->
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+            </Trigger>
+
+            <!-- Selected but not active (control focused) -->
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsSelected" Value="True" />
+                    <Condition Property="Selector.IsSelectionActive" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+            </MultiTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- List View Item Style -->
+    <Style x:Key="ListViewItemStyle" TargetType="{x:Type ListViewItem}">
+        <Style.Resources>
+            <!-- Style for highlight element-->
+            <Style TargetType="{x:Type Label}">
+                <Setter Property="Background" Value="{Binding (ListViewItem.Background), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}}"/>
+                <Setter Property="Foreground" Value="{Binding (ListViewItem.Foreground), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}}"/>
+                <Style.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Style.Resources>
+                            <Style TargetType="{x:Type Run}">
+                                <Style.Triggers>
+                                    <!--Default-->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="1.0"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="true" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="1.0"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <!--Normal-->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="N" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="0.7"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="N" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="0.7"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <!--Normal Hightlight-->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="NHL" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="1.0"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="NHL" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="1.0"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <!--Sub-->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="S" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="0.5"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="S" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="0.5"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <!--Sub Hightlight-->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="SHL" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="0.75"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="SHL" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Foreground">
+                                            <Setter.Value>
+                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="0.75"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </Style.Resources>
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Template" Value="{StaticResource ListViewItemTemplate}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" />
+    </Style>
+
+    <!-- List View Column Header Gripper Control Temlate -->
+    <ControlTemplate x:Key="GridViewColumnHeaderGripperTemplate" TargetType="{x:Type Thumb}">
+        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+            <Rectangle HorizontalAlignment="Center" Width="1" Fill="{TemplateBinding Background}"/>
+        </Border>
+    </ControlTemplate>
+
+    <!-- ListView Gripper Style -->
+    <Style x:Key="GridViewColumnHeaderGripper" TargetType="Thumb">
+        <Setter Property="Width" Value="8"/>
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBorderKey}}"/>
+        <Setter Property="Template" Value="{StaticResource GridViewColumnHeaderGripperTemplate}" />
+    </Style>
+
+    <!-- Listview Grid header column style -->
+    <ControlTemplate x:Key="GridViewColumnHeaderTemplate" TargetType="GridViewColumnHeader">
+        <Grid>
+            <Border Name="HeaderBorder" Padding="{TemplateBinding Padding}" BorderThickness="0,0,0,1" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" Margin="0">
+                <ContentPresenter Name="HeaderContent" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+            </Border>
+            <!-- Note the negative margin on the thumb, which gives the gripper a bigger hit area than the actual visual appearance -->
+            <Thumb x:Name="PART_HeaderGripper" HorizontalAlignment="Right" Margin="0,0,-4,0" Style="{StaticResource GridViewColumnHeaderGripper}"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <!-- Hover -->
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownBorderKey}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownInactiveGlyphKey}}"/>
+            </Trigger>
+
+            <!-- Clicked (Mouse down) -->
+            <Trigger Property="IsPressed" Value="true">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownBorderKey}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- ListView Grid header glyph style -->
+    <Style TargetType="{x:Type Path}">
+        <Setter Property="Fill" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type GridViewColumnHeader}}}" Value="True">
+                <Setter Property="Fill" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonHoverInactiveKey}}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Path=IsPressed, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type GridViewColumnHeader}}}" Value="True">
+                <Setter Property="Fill" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ListView Style -->
+    <Style TargetType="{x:Type ListView}">
+        <Style.Resources>
+            <!-- Override the template for the scrollviewer to adjust the margins on the header of the list view -->
+            <!-- Default WPF styles give you 2px left and right padding on the header row. -->
+            <Style x:Key="{x:Static GridView.GridViewScrollViewerStyleKey}" TargetType="ScrollViewer">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollViewer">
+                            <Grid Background="{TemplateBinding Background}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <DockPanel Margin="{TemplateBinding Padding}">
+                                    <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="false">
+                                        <GridViewHeaderRowPresenter Margin="0" 
+                                                                        Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}" 
+                                                                        ColumnHeaderContainerStyle="{Binding Path=TemplatedParent.View.ColumnHeaderContainerStyle, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                        ColumnHeaderTemplate="{Binding Path=TemplatedParent.View.ColumnHeaderTemplate, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                        ColumnHeaderTemplateSelector="{Binding Path=TemplatedParent.View.ColumnHeaderTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                        AllowsColumnReorder="{Binding Path=TemplatedParent.View.AllowsColumnReorder, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                        ColumnHeaderContextMenu="{Binding Path=TemplatedParent.View.ColumnHeaderContextMenu, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                        ColumnHeaderToolTip="{Binding Path=TemplatedParent.View.ColumnHeaderToolTip, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </ScrollViewer>
+
+                                    <ScrollContentPresenter Name="PART_ScrollContentPresenter"
+                                                                KeyboardNavigation.DirectionalNavigation="Local"
+                                                                CanContentScroll="True"
+                                                                CanHorizontallyScroll="False"
+                                                                CanVerticallyScroll="False" />
+                                </DockPanel>
+
+                                <ScrollBar Name="PART_HorizontalScrollBar"
+                                               Orientation="Horizontal"
+                                               Grid.Row="1"
+                                               Maximum="{TemplateBinding ScrollableWidth}"
+                                               ViewportSize="{TemplateBinding ViewportWidth}"
+                                               Value="{TemplateBinding HorizontalOffset}"
+                                               Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" />
+
+                                <ScrollBar Name="PART_VerticalScrollBar"
+                                               Grid.Column="1"
+                                               Maximum="{TemplateBinding ScrollableHeight}"
+                                               ViewportSize="{TemplateBinding ViewportHeight}"
+                                               Value="{TemplateBinding VerticalOffset}"
+                                               Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
+
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Style for header columns -->
+            <Style x:Key="{x:Type GridViewColumnHeader}" TargetType="{x:Type GridViewColumnHeader}">
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBorderKey}}"/>
+                <Setter Property="Padding" Value="8,4,4,4" />
+                <Setter Property="Template" Value="{StaticResource GridViewColumnHeaderTemplate}" />
+            </Style>
+        </Style.Resources>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource ListViewItemStyle}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+    </Style>
+
+    <!--Button-->
+    <Style TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBorderKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ButtonTextKey}}"/>
+    </Style>
+
+    <!--Label-->
+    <Style TargetType="{x:Type Label}">
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+    </Style>
+
+    <!--TextBox-->
+    <Style TargetType="{x:Type TextBox}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBorderKey}}"/>
+    </Style>
+
+    <!--UserControl-->
+    <Style TargetType="{x:Type UserControl}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+    </Style>
+</ResourceDictionary>

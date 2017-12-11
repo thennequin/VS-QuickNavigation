@@ -182,9 +182,9 @@ namespace VS_QuickNavigation
 									;
 							}
 
-							ParallelQuery<SearchResult<SymbolData>> results = source
+							ParallelQuery<SearchResultData<SymbolData>> results = source
 								.Where(symbol => (symbol.Type & mSupportedSymbolTypes) != 0)
-								.Select(symbolData => new SearchResult<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters));
+								.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters));
 
 							int total = results.Count();
 
@@ -243,7 +243,7 @@ namespace VS_QuickNavigation
 				selectedIndex = 0;
 			}
 
-			SearchResult<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResult<SymbolData>;
+			SearchResultData<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResultData<SymbolData>;
 
 			Common.Instance.DTE2.ItemOperations.OpenFile(symbolData.Data.AssociatedFile.Path, EnvDTE.Constants.vsViewKindTextView);
 			((EnvDTE.TextSelection)Common.Instance.DTE2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);

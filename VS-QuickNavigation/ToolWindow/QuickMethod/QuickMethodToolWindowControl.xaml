@@ -8,34 +8,33 @@
              mc:Ignorable="d"
              Name="MyToolWindow"
              Height="Auto" Width="Auto">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/VS-QuickNavigation;component/ToolWindow/QuickNavigationStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <DockPanel Width="Auto" Height="Auto" LastChildFill="True" Margin="10">
-            <TextBox x:Name="textBox"
-                 DockPanel.Dock="Top" Width="Auto" Height="23"
+        <TextBox x:Name="textBox"
+                 DockPanel.Dock="Top" Width="Auto"
                  Margin="0,0,0,3"
                  TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
-            <ListView x:Name="listView"
+        <ListView x:Name="listView"
                   VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                   SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown" MouseDoubleClick="listView_MouseDoubleClick">
-                <ListView.Style>
-                    <Style TargetType="{x:Type ListView}">
-                        <Style.Resources>
-                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#9449b0" />
-                            <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#9449b0" />
-                        </Style.Resources>
-                    </Style>
-                </ListView.Style>
-                <ListView.View>
-                    <GridView>
-                    <GridViewColumn Width="800" Header="Symbol">
-                        <GridViewColumn.CellTemplate >
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="650" Header="Symbol">
+                        <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <Viewbox Width="30" Height="16">
-                                        <Label Content="{Binding SearchScoreString}" Padding="0,0,5,0" 
+                                        <Label Content="{Binding SearchScoreString}" Padding="0,0,5,0"
                                            HorizontalContentAlignment="Center"
                                            VerticalContentAlignment="Center"
-                                           FontWeight="DemiBold"
-                                           Foreground="Gray"/>
+                                           FontWeight="DemiBold" />
                                     </Viewbox>
                                     <Image Source="{Binding Path=Data.ImagePath}" Width="16" Height="16"/>
                                     <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" />
@@ -44,8 +43,9 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Width="80" Header="Line" DisplayMemberBinding="{Binding Path=Data.StartLine}" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </DockPanel>
-    </UserControl>
+                    <GridViewColumn Width="250" Header="File" DisplayMemberBinding="{Binding Path=Data.AssociatedFilePath}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+</UserControl>

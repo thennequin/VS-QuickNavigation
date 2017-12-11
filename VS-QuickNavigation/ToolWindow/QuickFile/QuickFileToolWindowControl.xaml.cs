@@ -59,8 +59,6 @@ namespace VS_QuickNavigation
 			textBox.Focus();
 
 			listView.SelectedIndex = 0;
-
-			RefreshList();
 		}
 
 		public void RefreshContent()
@@ -175,8 +173,8 @@ namespace VS_QuickNavigation
 
 					int total = source.Count();
 
-					IEnumerable<SearchResult<FileData>> results = source
-						.Select(fileData => new SearchResult<FileData>(fileData, sSearch, fileData.Path, "\\"))
+					IEnumerable<SearchResultData<FileData>> results = source
+						.Select(fileData => new SearchResultData<FileData>(fileData, sSearch, fileData.Path, "\\"))
 						;
 
 					if (!string.IsNullOrWhiteSpace(sSearch))
@@ -235,11 +233,14 @@ namespace VS_QuickNavigation
 		{
 			int selectedIndex = listView.SelectedIndex;
 			if (selectedIndex == -1) selectedIndex = 0;
-			SearchResult<FileData> results = listView.Items[selectedIndex] as SearchResult<FileData>;
-			EnvDTE.Window oWindow = Common.Instance.DTE2.ItemOperations.OpenFile(results.Data.Path);
-			if (null != oWindow)
+			SearchResultData<FileData> results = listView.Items[selectedIndex] as SearchResultData<FileData>;
+			if( System.IO.File.Exists(results.Data.Path) )
 			{
-				oWindow.Activate();
+				EnvDTE.Window oWindow = Common.Instance.DTE2.ItemOperations.OpenFile(results.Data.Path);
+				if (null != oWindow)
+				{
+					oWindow.Activate();
+				}
 			}
 			mQuickFileToolWindow.Close();
 		}
