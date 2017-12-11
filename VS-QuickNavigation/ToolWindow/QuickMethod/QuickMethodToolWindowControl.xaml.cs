@@ -222,7 +222,7 @@ namespace VS_QuickNavigation
 								}
 								mQuickMethodToolWindow.Title = title + " [" + count + "/" + total + "]";
 							};
-							Dispatcher.BeginInvoke(setMethod, results.ToList());
+							Dispatcher.Invoke(setMethod, results.ToList());
 
 
 							//sw.Stop();

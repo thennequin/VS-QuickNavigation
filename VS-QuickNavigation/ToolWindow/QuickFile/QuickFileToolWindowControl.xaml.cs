@@ -51,7 +51,6 @@ namespace VS_QuickNavigation
 
 			mHistoryOnly = bHistoryOnly;
 
-			//Common.Instance.SolutionWatcher.RefreshFileList();
 			Common.Instance.SolutionWatcher.OnFilesChanged += OnFilesChanged;
 
 			DataContext = this;
@@ -73,8 +72,11 @@ namespace VS_QuickNavigation
 
 		private void OnFilesChanged()
 		{
-			OnPropertyChanged("FileHeader");
-			Dispatcher.BeginInvoke(new Action(RefreshList));
+			if (IsVisible)
+			{
+				OnPropertyChanged("FileHeader");
+				Dispatcher.BeginInvoke(new Action(RefreshList));
+			}
 		}
 
 		private void textBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -216,7 +218,7 @@ namespace VS_QuickNavigation
 						mQuickFileToolWindow.Title = title + " [" + count + "/" + total + "]";
 					};
 					
-					Dispatcher.BeginInvoke(setMethod, results.ToList());
+					Dispatcher.Invoke(setMethod, results.ToList());
 					//Dispatcher.BeginInvoke(setMethod, results.AsEnumerable());
 				}
 				catch (Exception e) { }
