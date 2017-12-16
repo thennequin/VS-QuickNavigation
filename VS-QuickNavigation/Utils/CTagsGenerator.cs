@@ -94,7 +94,7 @@ namespace VS_QuickNavigation.Utils
 
 		static public IEnumerable<SymbolData> GeneratorFromString(string fileContent, string ext)
 		{
-			string filePath = GetTempFile();
+			string filePath = GetTempFile() + "." + ext;
 			File.WriteAllText(filePath, fileContent);
 
 			IEnumerable<SymbolData> results = GeneratorFromFile(filePath);
