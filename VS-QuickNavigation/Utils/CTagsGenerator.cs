@@ -31,6 +31,7 @@ namespace VS_QuickNavigation.Utils
 			try
 			{
 				process.Start();
+				process.PriorityClass = ProcessPriorityClass.BelowNormal;
 			}
 			catch (Exception e)
 			{
