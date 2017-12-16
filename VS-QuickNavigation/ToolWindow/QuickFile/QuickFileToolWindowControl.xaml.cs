@@ -233,6 +233,7 @@ namespace VS_QuickNavigation
 
 		private void OpenCurrentSelection()
 		{
+			mQuickFileToolWindow.Close();
 			int selectedIndex = listView.SelectedIndex;
 			if (selectedIndex == -1) selectedIndex = 0;
 			SearchResultData<FileData> results = listView.Items[selectedIndex] as SearchResultData<FileData>;
@@ -244,7 +245,6 @@ namespace VS_QuickNavigation
 					oWindow.Activate();
 				}
 			}
-			mQuickFileToolWindow.Close();
 		}
 	}
 }

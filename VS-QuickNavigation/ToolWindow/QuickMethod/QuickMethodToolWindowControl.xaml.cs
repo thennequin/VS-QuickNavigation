@@ -107,8 +107,8 @@ namespace VS_QuickNavigation
 			{
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
-					OpenCurrentSelection();
 					mQuickMethodToolWindow.Close();
+					OpenCurrentSelection();
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
@@ -251,8 +251,8 @@ namespace VS_QuickNavigation
 
 		private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
-			OpenCurrentSelection();
 			mQuickMethodToolWindow.Close();
+			OpenCurrentSelection();
 		}
 	}
 }
