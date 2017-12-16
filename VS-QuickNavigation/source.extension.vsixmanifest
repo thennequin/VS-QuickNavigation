@@ -4,8 +4,8 @@
     <Identity Id="VS-QuickNavigation.Thibault HENNEQUIN.3694b9f7-556b-4c70-9ac4-0268e6449115" Version="0.4.2" Language="en-US" Publisher="Thibault HENNEQUIN" />
     <DisplayName>VS-QuickNavigation</DisplayName>
     <Description xml:space="preserve">Navigate quickly between you solution files and your active document methods.</Description>
-    <Icon>VSQuickNavigationPackage.ico</Icon>
-    <PreviewImage>Preview.png</PreviewImage>
+    <Icon>Resources\Icon.png</Icon>
+    <PreviewImage>Resources\Preview.png</PreviewImage>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[11.0,15.0]" />
