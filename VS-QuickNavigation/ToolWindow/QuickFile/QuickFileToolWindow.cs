@@ -36,6 +36,13 @@ namespace VS_QuickNavigation
 			ShowModal();
 		}
 
+		protected override void OnActivated(EventArgs e)
+		{
+			base.OnActivated(e);
+			QuickFileToolWindowControl oQuickFileControl = ((QuickFileToolWindowControl)this.Content);
+			oQuickFileControl.textBox.Focus();
+		}
+
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs oArgs)
 		{
 			oArgs.Cancel = true;
