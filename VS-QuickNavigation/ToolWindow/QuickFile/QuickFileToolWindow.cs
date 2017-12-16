@@ -29,11 +29,11 @@ namespace VS_QuickNavigation
 		public void OpenDialog()
 		{
 			WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
-			ShowModal();
 			QuickFileToolWindowControl oQuickFileControl = ((QuickFileToolWindowControl)this.Content);
 			oQuickFileControl.RefreshContent();
 			oQuickFileControl.textBox.SelectAll();
 			oQuickFileControl.textBox.Focus();
+			ShowModal();
 		}
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs oArgs)
