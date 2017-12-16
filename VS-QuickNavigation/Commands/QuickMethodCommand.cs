@@ -90,7 +90,7 @@ namespace VS_QuickNavigation
 		/// <param name="e">The event args.</param>
 		private void ShowToolWindow(object sender, EventArgs e)
 		{
-			window.ShowDialog();
+			window.OpenDialog();
 		}
 	}
 }

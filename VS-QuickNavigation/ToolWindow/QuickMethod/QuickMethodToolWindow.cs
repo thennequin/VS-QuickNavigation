@@ -26,7 +26,7 @@ namespace VS_QuickNavigation
 			this.Height = 400;
 		}
 
-		public void ShowDialog()
+		public void OpenDialog()
 		{
 			WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
 			ShowModal();

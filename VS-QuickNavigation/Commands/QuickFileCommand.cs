@@ -103,7 +103,7 @@ namespace VS_QuickNavigation
 			//Common.Instance.SolutionWatcher.TestSpeed();
 
 			
-			window.ShowDialog();
+			window.OpenDialog();
 		}
 	}
 }
