@@ -127,9 +127,6 @@ namespace VS_QuickNavigation.Utils
 			args += "-L \"" + filePath + "\" ";		// Input file list
 			args += "-f \"" + tagsPath + "\" ";		// Output tag file
 
-			args += "--extra=";						// Extra
-			args += "+q ";
-
 			args += "−−c++−kinds=";					// C++ kinds
 			args += "+p ";							// Include function prototypes
 
