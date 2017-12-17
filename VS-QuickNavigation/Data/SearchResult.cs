@@ -12,6 +12,7 @@ namespace VS_QuickNavigation.Data
 			mBeforeFormatted = beforeFormatted;
 			mAfterFormatted = afterFormatted;
 			Search(sQuery, sSearchIn, sSplitLast);
+			mSearchFormatted = null;
 		}
 
 		List<Tuple<string, bool>> mFormatted = new List<Tuple<string, bool>>();
@@ -33,7 +34,7 @@ namespace VS_QuickNavigation.Data
 			}
 		}
 
-		virtual public void Search(string sQuery, string sSearchIn, string sSplitLast = null)
+		void Search(string sQuery, string sSearchIn, string sSplitLast = null)
 		{
 			List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
 			int index = sSearchIn.LastIndexOf("\\");
@@ -50,41 +51,46 @@ namespace VS_QuickNavigation.Data
 			}
 		}
 
+		protected TextBlock mSearchFormatted;
 		public TextBlock SearchFormatted
 		{
 			get
 			{
-				TextBlock block = new TextBlock();
+				if(mSearchFormatted == null)
+				{
+					mSearchFormatted = new TextBlock();
 
-				if (null != mBeforeFormatted)
-				{
-					Run text = new Run(mBeforeFormatted);
-					text.Tag = "N";
-					block.Inlines.Add(text);
-				}
-				foreach (Tuple<string, bool> formatted in mFormatted)
-				{
-					Run text = new Run(formatted.Item1);
-					text.Tag = formatted.Item2 ? "NHL" : "N";
-					block.Inlines.Add(text);
-				}
-				if (mSubFormatted.Count > 0)
-				{
-					block.Inlines.Add(new LineBreak());
-					foreach (Tuple<string, bool> formatted in mSubFormatted)
+					if (null != mBeforeFormatted)
+					{
+						Run text = new Run(mBeforeFormatted);
+						text.Tag = "N";
+						mSearchFormatted.Inlines.Add(text);
+					}
+					foreach (Tuple<string, bool> formatted in mFormatted)
 					{
 						Run text = new Run(formatted.Item1);
-						text.Tag = formatted.Item2 ? "SHL" : "S";
-						block.Inlines.Add(text);
+						text.Tag = formatted.Item2 ? "NHL" : "N";
+						mSearchFormatted.Inlines.Add(text);
+					}
+					if (mSubFormatted.Count > 0)
+					{
+						mSearchFormatted.Inlines.Add(new LineBreak());
+						foreach (Tuple<string, bool> formatted in mSubFormatted)
+						{
+							Run text = new Run(formatted.Item1);
+							text.Tag = formatted.Item2 ? "SHL" : "S";
+							mSearchFormatted.Inlines.Add(text);
+						}
+					}
+					if (null != mAfterFormatted)
+					{
+						Run text = new Run(mAfterFormatted);
+						text.Tag = "N";
+						mSearchFormatted.Inlines.Add(text);
 					}
 				}
-				if (null != mAfterFormatted)
-				{
-					Run text = new Run(mAfterFormatted);
-					text.Tag = "N";
-					block.Inlines.Add(text);
-				}
-				return block;
+				
+				return mSearchFormatted;
 			}
 		}
 	}
