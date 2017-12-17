@@ -83,6 +83,7 @@
     <Compile Include="Settings.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Utils\CommonUtils.cs" />
     <Compile Include="VSQuickNavigationPackage.cs" />
     <Compile Include="Data\FileData.cs" />
     <Compile Include="Data\FileIcon.cs" />

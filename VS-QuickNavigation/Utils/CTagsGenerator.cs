@@ -87,12 +87,6 @@ namespace VS_QuickNavigation.Utils
 			return null;
 		}
 
-		
-		static string[] ToArray(params string[] strings)
-		{
-			return strings;
-		}
-
 		static public IEnumerable<SymbolData> GeneratorFromString(string fileContent, string ext)
 		{
 			string filePath = GetTempFile() + "." + ext;
@@ -107,13 +101,13 @@ namespace VS_QuickNavigation.Utils
 
 		static public IEnumerable<SymbolData> GeneratorFromFile(string filePath)
 		{
-			return GeneratorFromFiles(ToArray(filePath));
+			return GeneratorFromFiles(CommonUtils.ToArray<string>(filePath));
 		}
 
 		static public IEnumerable<SymbolData> GeneratorFromFiles(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
 		{
 			string filePath = GetTempFile();
-			
+
 			File.WriteAllLines(filePath, filePaths);
 			int fileCount = filePaths.Count();
 
