@@ -1,19 +1,17 @@
-﻿
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Data;
+using VS_QuickNavigation.Data;
+
 namespace VS_QuickNavigation
 {
-	//using Microsoft.VisualStudio.Shell;
-	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-	using System.Windows.Controls;
-	using System.Windows.Data;
-	using System.Threading;
-	using System.ComponentModel;
-	using System.Linq;
-	using VS_QuickNavigation.Data;
-	using System.Collections;
-
-	public partial class QuickFileToolWindowControl : UserControl, INotifyPropertyChanged
+    public partial class QuickFileToolWindowControl : UserControl, INotifyPropertyChanged
 	{
 		private QuickFileToolWindow mQuickFileToolWindow;
 
@@ -200,11 +198,6 @@ namespace VS_QuickNavigation
 						if (string.IsNullOrWhiteSpace(sSearch))
 						{
 							PropertyGroupDescription groupDescription = new PropertyGroupDescription("Data.StatusString");
-							//groupDescription.GroupNames.Add(FileStatus.Recent.ToString());
-							/*foreach (string status in Enum.GetNames(typeof(FileStatus)))
-							{
-								groupDescription.GroupNames.Add(status);
-							}*/
 
 							view.GroupDescriptions.Add(groupDescription);
 						}
@@ -219,9 +212,8 @@ namespace VS_QuickNavigation
 					};
 					
 					Dispatcher.Invoke(setMethod, results.ToList());
-					//Dispatcher.BeginInvoke(setMethod, results.AsEnumerable());
 				}
-				catch (Exception e) { }
+				catch (Exception) { }
 				
 			});
 		}
