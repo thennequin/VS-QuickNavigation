@@ -299,6 +299,10 @@
                 <Setter Property="Padding" Value="8,4,4,4" />
                 <Setter Property="Template" Value="{StaticResource GridViewColumnHeaderTemplate}" />
             </Style>
+            <Style TargetType="{x:Type GroupItem}">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+            </Style>
         </Style.Resources>
         <Setter Property="ItemContainerStyle" Value="{StaticResource ListViewItemStyle}" />
         <Setter Property="BorderThickness" Value="1" />
