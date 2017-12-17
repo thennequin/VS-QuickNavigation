@@ -115,24 +115,24 @@ namespace VS_QuickNavigation.Utils
 			string args = "";
 			if (null != progressAction)
 			{
-				args += "-V ";						// Verbose for checking current file
+				args += "-V ";                      // Verbose for checking current file
 			}
-			
-			args += "-n ";							// Symbol stored by line number instead of pattern or line number
-			args += "-L \"" + filePath + "\" ";		// Input file list
-			args += "-f \"" + tagsPath + "\" ";		// Output tag file
 
-			args += "−−c++−kinds=";					// C++ kinds
-			args += "+p ";							// Include function prototypes
+			args += "-n ";                          // Symbol stored by line number instead of pattern or line number
+			args += "-L \"" + filePath + "\" ";     // Input file list
+			args += "-f \"" + tagsPath + "\" ";     // Output tag file
 
-			args += "--fields=";					// Fields
-			args += "+S";							// Signature of routine
-			args += "+m";							// Implementation information
-			args += "+i";							// Inheritance information
-			args += "+n";							// Line number of tag definition
-			args += "+K";							// Kind of tag as full name
-			args += "-k";							// Kind of tag as a single letter
-			
+			args += "−−c++−kinds=";                 // C++ kinds
+			args += "+p ";                          // Include function prototypes
+
+			args += "--fields=";                    // Fields
+			args += "+S";                           // Signature of routine
+			args += "+m";                           // Implementation information
+			args += "+i";                           // Inheritance information
+			args += "+n";                           // Line number of tag definition
+			args += "+K";                           // Kind of tag as full name
+			args += "-k";                           // Kind of tag as a single letter
+
 			IEnumerable<SymbolData> results = null;
 			using (Process process = ExecCTags(args))
 			{
@@ -164,7 +164,7 @@ namespace VS_QuickNavigation.Utils
 				{
 					process.WaitForExit();
 				}
-				
+
 				string output = process.StandardOutput.ReadToEnd();
 
 				if (process.ExitCode == 0)
@@ -184,14 +184,14 @@ namespace VS_QuickNavigation.Utils
 			IEnumerable<string> files = Common.Instance.SolutionWatcher.Files.Select(file => file.Path);
 
 			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-			Action<int,int> progressAction = (current, total) =>
-			{
-				if ((current % 5) == 0)
-				{
-					sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + total, current, total);
-				}
-			};
-			sbar.Progress(true, "QuickNavigation Scan solution ...", 0,0);
+			Action<int, int> progressAction = (current, total) =>
+			 {
+				 if ((current % 5) == 0)
+				 {
+					 sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + total, current, total);
+				 }
+			 };
+			sbar.Progress(true, "QuickNavigation Scan solution ...", 0, 0);
 			GeneratorFromFiles(files, progressAction).ToArray();
 			sbar.Progress(false);
 		}
@@ -218,7 +218,7 @@ namespace VS_QuickNavigation.Utils
 
 			using (StreamReader reader = File.OpenText(filePath))
 			{
-				while(!reader.EndOfStream)
+				while (!reader.EndOfStream)
 				{
 					string line = reader.ReadLine();
 					if (!line.StartsWith("!"))
@@ -302,7 +302,7 @@ namespace VS_QuickNavigation.Utils
 					}
 				}
 			}
-			
+
 			return symbols;
 		}
 

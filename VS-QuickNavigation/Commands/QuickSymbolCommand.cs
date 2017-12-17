@@ -25,14 +25,14 @@ namespace VS_QuickNavigation
 		/// </summary>
 		private readonly Package package;
 
-        private QuickMethodToolWindow window;
+		private QuickMethodToolWindow window;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="QuickSymbolCommand"/> class.
-        /// Adds our command handlers for menu (commands must exist in the command table file)
-        /// </summary>
-        /// <param name="package">Owner package, not null.</param>
-        private QuickSymbolCommand(Package package)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="QuickSymbolCommand"/> class.
+		/// Adds our command handlers for menu (commands must exist in the command table file)
+		/// </summary>
+		/// <param name="package">Owner package, not null.</param>
+		private QuickSymbolCommand(Package package)
 		{
 			if (package == null)
 			{
