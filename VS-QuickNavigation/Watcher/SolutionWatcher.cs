@@ -67,7 +67,7 @@ namespace VS_QuickNavigation
 		{
 			if (null != oWindow.Document)
 			{
-				mFileHistory.Push(oWindow.Document.FullName);
+				mFileHistory.Push(oWindow.Document.FullName.ToLower());
 				RefreshHistoryFileList();
 			}
 		}
@@ -76,7 +76,7 @@ namespace VS_QuickNavigation
 		{
 			if (null != oWindow.Document)
 			{
-				mFileHistory.Push(oWindow.Document.FullName);
+				mFileHistory.Push(oWindow.Document.FullName.ToLower());
 				RefreshHistoryFileList();
 			}
 		}
@@ -86,13 +86,13 @@ namespace VS_QuickNavigation
 
 		void OnDocumentOpening(string sPath, bool bReadOnly)
 		{
-			mFileHistory.Push(sPath);
+			mFileHistory.Push(sPath.ToLower());
 			RefreshHistoryFileList();
 		}
 
 		void OnDocumentOpened(EnvDTE.Document oDoc)
 		{
-			mFileHistory.Push(oDoc.FullName);
+			mFileHistory.Push(oDoc.FullName.ToLower());
 			RefreshHistoryFileList();
 		}
 
@@ -308,7 +308,7 @@ namespace VS_QuickNavigation
 		{
 			foreach (EnvDTE.Document doc in Common.Instance.DTE2.Documents)
 			{
-				mFileHistory.Push(doc.FullName);
+				mFileHistory.Push(doc.FullName.ToLower());
 			}
 
 			RefreshHistoryFileList();
