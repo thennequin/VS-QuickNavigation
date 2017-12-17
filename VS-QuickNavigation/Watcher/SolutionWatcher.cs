@@ -451,10 +451,28 @@ namespace VS_QuickNavigation
 			}
 		}
 
+		static byte[] DatabaseHeader
+		{
+			get
+			{
+				return Encoding.ASCII.GetBytes("QNDB");
+			}
+		}
+
+		static ushort DatabaseVersion
+		{
+			get
+			{
+				return 2;
+			}
+		}
+
 		void WriteSymbolDatabase()
 		{
 			using (BinaryWriter writer = new BinaryWriter(File.Open(SymbolsDatabasePath, FileMode.Create)))
 			{
+				writer.Write(DatabaseHeader);
+				writer.Write(DatabaseVersion);
 				writer.Write(mFiles.Count);
 
 				foreach (FileData fileData in mFiles.Values)
@@ -489,6 +507,12 @@ namespace VS_QuickNavigation
 			{
 				using (BinaryReader reader = new BinaryReader(File.Open(SymbolsDatabasePath, FileMode.Open)))
 				{
+					if (reader.ReadBytes(4).SequenceEqual(DatabaseHeader) == false)
+						return;
+
+					if (reader.ReadUInt16() != DatabaseVersion)
+						return;
+
 					int iFileCount = reader.ReadInt32();
 
 					for (int iFileIndex = 0; iFileIndex < iFileCount; ++iFileIndex)
