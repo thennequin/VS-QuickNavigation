@@ -42,8 +42,9 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Width="80" Header="Line" DisplayMemberBinding="{Binding Path=Data.StartLine}" />
-                    <GridViewColumn Width="250" Header="File" DisplayMemberBinding="{Binding Path=Data.AssociatedFilePath}" />
+                    <GridViewColumn Width="45" Header="Line" DisplayMemberBinding="{Binding Path=Data.StartLine}" />
+                    <GridViewColumn Width="90" Header="Type" DisplayMemberBinding="{Binding Path=Data.TypeDesc}" />
+                    <GridViewColumn Width="150" Header="File" DisplayMemberBinding="{Binding Path=Data.AssociatedFilePath}" />
                 </GridView>
             </ListView.View>
         </ListView>

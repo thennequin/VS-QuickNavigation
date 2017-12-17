@@ -21,10 +21,11 @@ namespace VS_QuickNavigation.Data
 			Enumerator			= 1 << 5,
 			Enumeration			= 1 << 6,
 			Method				= 1 << 7,
+			[Utils.Description("Method proto")]
 			MethodPrototype		= 1 << 8,
 
 			Field				= 1 << 9,
-			Property			= 1 << 10,
+			Property			= 1 << 10
 
 			//StructureName		= 1024,
 			//TypeDef				= 2048,
@@ -36,6 +37,13 @@ namespace VS_QuickNavigation.Data
 		public string Class { get; set; }
 		public string Parameters { get; set; }
 		public ESymbolType Type { get; set; }
+		public String TypeDesc
+		{
+			get
+			{
+				return Utils.CommonUtils.GetDescription(Type);
+			}
+		}
 
 		public FileData AssociatedFile { get; set; }
 		public string AssociatedFilePath
