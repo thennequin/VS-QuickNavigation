@@ -14,16 +14,17 @@ namespace VS_QuickNavigation.Data
 		public enum ESymbolType
 		{
 			Namespace			= 1 << 0,
-			Class				= 1 << 1,
-			Interface			= 1 << 2,
-			Macro				= 1 << 3,
-			Enumerator			= 1 << 4,
-			Enumeration			= 1 << 5,
-			Method				= 1 << 6,
-			MethodPrototype		= 1 << 7,
+            Struct              = 1 << 1,
+            Class				= 1 << 2,
+			Interface			= 1 << 3,
+			Macro				= 1 << 4,
+			Enumerator			= 1 << 5,
+			Enumeration			= 1 << 6,
+			Method				= 1 << 7,
+			MethodPrototype		= 1 << 8,
 
-			Field				= 1 << 8,
-			Property			= 1 << 9,
+			Field				= 1 << 9,
+			Property			= 1 << 10,
 
 			//StructureName		= 1024,
 			//TypeDef				= 2048,

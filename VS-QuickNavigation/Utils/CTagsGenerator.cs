@@ -256,6 +256,10 @@ namespace VS_QuickNavigation.Utils
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Property);
 							}
+							else if (tagInfos[3] == "struct")
+							{
+								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Struct);
+							}
 							else if (tagInfos[3] == "class")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Class);
