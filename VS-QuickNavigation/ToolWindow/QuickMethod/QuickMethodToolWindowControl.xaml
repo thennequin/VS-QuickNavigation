@@ -48,7 +48,7 @@
                     </GridViewColumn>
                     <GridViewColumn Width="45" Header="Line" DisplayMemberBinding="{Binding Path=Data.StartLine}" />
                     <GridViewColumn Width="90" Header="Type" DisplayMemberBinding="{Binding Path=Data.TypeDesc}" />
-                    <GridViewColumn Width="150" Header="File" DisplayMemberBinding="{Binding Path=Data.AssociatedFilePath}" />
+                    <GridViewColumn Width="150" Header="File" DisplayMemberBinding="{Binding Path=Data.AssociatedFilename}" />
                 </GridView>
             </ListView.View>
         </ListView>

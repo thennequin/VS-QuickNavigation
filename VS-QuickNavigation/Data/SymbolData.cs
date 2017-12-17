@@ -46,7 +46,7 @@ namespace VS_QuickNavigation.Data
 		}
 
 		public FileData AssociatedFile { get; set; }
-		public string AssociatedFilePath
+		public string AssociatedFilename
 		{
 			get
 			{
