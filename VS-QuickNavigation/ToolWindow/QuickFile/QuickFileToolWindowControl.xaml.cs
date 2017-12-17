@@ -223,6 +223,12 @@ namespace VS_QuickNavigation
 			OpenCurrentSelection();
 		}
 
+		private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (!textBox.IsFocused)
+				textBox.Focus();
+		}
+
 		private void OpenCurrentSelection()
 		{
 			mQuickFileToolWindow.Close();

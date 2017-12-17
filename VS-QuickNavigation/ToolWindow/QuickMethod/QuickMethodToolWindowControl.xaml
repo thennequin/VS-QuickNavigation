@@ -23,7 +23,11 @@
                  TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
         <ListView x:Name="listView"
                   VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                  SelectionMode="Single" KeyDown="listView_KeyDown" KeyUp="listView_KeyDown" MouseDoubleClick="listView_MouseDoubleClick">
+                  SelectionMode="Single"
+                  KeyDown="listView_KeyDown" KeyUp="listView_KeyDown"
+                  MouseDoubleClick="listView_MouseDoubleClick"
+                  SelectionChanged="listView_SelectionChanged" 
+                  >
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="650" Header="Symbol">

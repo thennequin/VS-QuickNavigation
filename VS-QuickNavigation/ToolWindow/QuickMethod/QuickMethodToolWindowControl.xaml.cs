@@ -254,5 +254,11 @@ namespace VS_QuickNavigation
 			mQuickMethodToolWindow.Close();
 			OpenCurrentSelection();
 		}
+
+		private void listView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (!textBox.IsFocused)
+				textBox.Focus();
+		}
 	}
 }
