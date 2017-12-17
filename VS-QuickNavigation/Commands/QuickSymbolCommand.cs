@@ -49,18 +49,19 @@ namespace VS_QuickNavigation
 				commandService.AddCommand(menuItem);
 			}
 
-            window = new QuickMethodToolWindow(true,
-                    Data.SymbolData.ESymbolType.Namespace |
-                    Data.SymbolData.ESymbolType.Class |
-                    Data.SymbolData.ESymbolType.Interface |
-                    Data.SymbolData.ESymbolType.Macro |
-                    Data.SymbolData.ESymbolType.Enumerator |
-                    Data.SymbolData.ESymbolType.Enumeration |
-                    Data.SymbolData.ESymbolType.Method |
-                    Data.SymbolData.ESymbolType.MethodPrototype |
-                    Data.SymbolData.ESymbolType.Field |
-                    Data.SymbolData.ESymbolType.Property);
-        }
+			window = new QuickMethodToolWindow(true,
+					Data.SymbolData.ESymbolType.Namespace |
+					Data.SymbolData.ESymbolType.Struct |
+					Data.SymbolData.ESymbolType.Class |
+					Data.SymbolData.ESymbolType.Interface |
+					Data.SymbolData.ESymbolType.Macro |
+					Data.SymbolData.ESymbolType.Enumerator |
+					Data.SymbolData.ESymbolType.Enumeration |
+					Data.SymbolData.ESymbolType.Method |
+					Data.SymbolData.ESymbolType.MethodPrototype |
+					Data.SymbolData.ESymbolType.Field |
+					Data.SymbolData.ESymbolType.Property);
+		}
 
 		/// <summary>
 		/// Gets the instance of the command.
