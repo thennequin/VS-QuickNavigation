@@ -283,10 +283,13 @@ namespace VS_QuickNavigation.Utils
 									{
 										oSymbol.Parameters = tagInfos[i].Substring("signature:".Length);
 									}
-
-									if (tagInfos[i].StartsWith("class:"))
+									else if (tagInfos[i].StartsWith("class:"))
 									{
 										oSymbol.Class = tagInfos[i].Substring("class:".Length) + "::";
+									}
+									else if (tagInfos[i].StartsWith("struct:"))
+									{
+										oSymbol.Class = tagInfos[i].Substring("struct:".Length) + "::";
 									}
 								}
 
