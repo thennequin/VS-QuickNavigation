@@ -21,6 +21,9 @@ namespace VS_QuickNavigation
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		private DeferredAction mDeferredRefresh;
+		const int c_RefreshDelay = 100;
+
 		public string FileHeader
 		{
 			get
@@ -51,6 +54,8 @@ namespace VS_QuickNavigation
 
 			Common.Instance.SolutionWatcher.OnFilesChanged += OnFilesChanged;
 
+			mDeferredRefresh = DeferredAction.Create(RefreshResults);
+
 			DataContext = this;
 
 			textBox.Focus();
@@ -60,7 +65,7 @@ namespace VS_QuickNavigation
 
 		public void RefreshContent()
 		{
-			RefreshList();
+			mDeferredRefresh.Defer(0);
 		}
 
 		private void OnClosing(object sender, CancelEventArgs e)
@@ -73,7 +78,7 @@ namespace VS_QuickNavigation
 			if (IsVisible)
 			{
 				OnPropertyChanged("FileHeader");
-				Dispatcher.BeginInvoke(new Action(RefreshList));
+				mDeferredRefresh.Defer(0);
 			}
 		}
 
@@ -119,7 +124,7 @@ namespace VS_QuickNavigation
 
 		private void textBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
-			RefreshList();
+			mDeferredRefresh.Defer(c_RefreshDelay);
 		}
 
 		private void listView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -137,7 +142,7 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		private void RefreshList()
+		private void RefreshResults()
 		{
 			if (null != mToken)
 			{
