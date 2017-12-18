@@ -238,10 +238,12 @@ namespace VS_QuickNavigation
 		private void OpenCurrentSelection()
 		{
 			int selectedIndex = listView.SelectedIndex;
+
 			if (selectedIndex == -1)
-			{
 				selectedIndex = 0;
-			}
+
+			if (listView.Items[selectedIndex] == null)
+				return;
 
 			SearchResultData<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResultData<SymbolData>;
 
