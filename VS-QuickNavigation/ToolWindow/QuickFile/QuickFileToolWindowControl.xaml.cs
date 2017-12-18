@@ -238,7 +238,13 @@ namespace VS_QuickNavigation
 		{
 			mQuickFileToolWindow.Close();
 			int selectedIndex = listView.SelectedIndex;
-			if (selectedIndex == -1) selectedIndex = 0;
+
+			if (selectedIndex == -1)
+				selectedIndex = 0;
+
+			if (listView.Items[selectedIndex] == null)
+				return;
+
 			SearchResultData<FileData> results = listView.Items[selectedIndex] as SearchResultData<FileData>;
 			if( System.IO.File.Exists(results.Data.Path) )
 			{
