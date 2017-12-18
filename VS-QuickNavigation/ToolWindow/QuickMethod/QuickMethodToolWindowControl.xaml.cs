@@ -32,7 +32,7 @@ namespace VS_QuickNavigation
 		private CancellationTokenSource mToken;
 		private DeferredAction mDeferredRefresh;
 		
-		const int c_RefreshDelay = 5;
+		const int c_RefreshDelay = 100;
 
 		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent, bool searchInSolution, SymbolData.ESymbolType supportedSymbolTypes)
 		{
