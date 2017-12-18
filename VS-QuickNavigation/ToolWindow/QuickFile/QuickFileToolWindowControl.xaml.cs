@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Data;
 using VS_QuickNavigation.Data;
+using VS_QuickNavigation.Utils;
 
 namespace VS_QuickNavigation
 {
