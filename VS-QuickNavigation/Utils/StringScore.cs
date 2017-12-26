@@ -6,12 +6,14 @@ namespace VS_QuickNavigation
 {
 	internal class StringScore
 	{
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		private static int CharScore(char a, char b)
 		{
 			if ( a == b )
 			{
 				return 2;
-			}else if (char.ToUpperInvariant(a) == char.ToUpperInvariant(b))
+			}
+			else if (char.ToUpperInvariant(a) == char.ToUpperInvariant(b))
 			{
 				return 1;
 			}
