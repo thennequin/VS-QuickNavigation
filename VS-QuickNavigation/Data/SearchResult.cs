@@ -37,7 +37,10 @@ namespace VS_QuickNavigation.Data
 		void Search(string sQuery, string sSearchIn, string sSplitLast = null)
 		{
 			List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
-			int index = sSearchIn.LastIndexOf("\\");
+			int index = 0;
+			if (sSplitLast != null)
+				index = sSearchIn.LastIndexOf(sSplitLast);
+
 			SearchScore = StringScore.Search(sQuery, sSearchIn, matches, index);
 			if (index != -1)
 			{
