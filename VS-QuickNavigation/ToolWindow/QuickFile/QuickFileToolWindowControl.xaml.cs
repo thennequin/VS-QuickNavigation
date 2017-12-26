@@ -160,27 +160,26 @@ namespace VS_QuickNavigation
 					if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
 					{
 						source = Common.Instance.SolutionWatcher.Files
-						.AsParallel()
-						.WithCancellation(mToken.Token)
-						.Where(fileData => fileData.Status == FileStatus.Recent)
-						;
-						
+							.AsParallel()
+							.WithCancellation(mToken.Token)
+							.Where(fileData => fileData.Status == FileStatus.Recent)
+							;
 					}
 					else
 					{
 						string[] exts = Common.Instance.Settings.ListedExtensions;
 
 						source = Common.Instance.SolutionWatcher.Files
-						.AsParallel()
-						.WithCancellation(mToken.Token)
-						.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
-						;
+							.AsParallel()
+							.WithCancellation(mToken.Token)
+							.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
+							;
 					}
 
 					int total = source.Count();
 
 					IEnumerable<SearchResultData<FileData>> results = source
-						.Select(fileData => new SearchResultData<FileData>(fileData, sSearch, fileData.Path, "\\"))
+						.Select(fileData => new SearchResultData<FileData>(fileData, sSearch, fileData.Path, CommonUtils.ToArray<string>("\\","/")))
 						;
 
 					if (!string.IsNullOrWhiteSpace(sSearch))

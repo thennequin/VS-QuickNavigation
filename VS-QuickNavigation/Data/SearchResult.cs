@@ -7,7 +7,7 @@ namespace VS_QuickNavigation.Data
 {
 	class SearchResult
 	{
-		public SearchResult(string sQuery, string sSearchIn, string sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
+		public SearchResult(string sQuery, string sSearchIn, string[] sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
 		{
 			mBeforeFormatted = beforeFormatted;
 			mAfterFormatted = afterFormatted;
@@ -34,12 +34,17 @@ namespace VS_QuickNavigation.Data
 			}
 		}
 
-		void Search(string sQuery, string sSearchIn, string sSplitLast = null)
+		void Search(string sQuery, string sSearchIn, string[] sSplitLast = null)
 		{
 			List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
 			int index = 0;
 			if (sSplitLast != null)
-				index = sSearchIn.LastIndexOf(sSplitLast);
+			{
+				foreach (string sSplit in sSplitLast)
+				{
+					index = Math.Max(index, sSearchIn.LastIndexOf(sSplit));
+				}
+			}
 
 			SearchScore = StringScore.Search(sQuery, sSearchIn, matches, index);
 			if (index != -1)
@@ -100,7 +105,7 @@ namespace VS_QuickNavigation.Data
 
 	class SearchResultData<T> : SearchResult
 	{
-		public SearchResultData(T data, string sQuery, string sSearchIn, string sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
+		public SearchResultData(T data, string sQuery, string sSearchIn, string[] sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
 			: base(sQuery, sSearchIn, sSplitLast, beforeFormatted, afterFormatted)
 		{
 			Data = data;
