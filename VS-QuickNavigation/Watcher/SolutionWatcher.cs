@@ -488,7 +488,8 @@ namespace VS_QuickNavigation
 							writer.Write((byte)symbol.Type);
 							writer.Write(symbol.StartLine);
 							writer.Write(symbol.Symbol);
-							writer.Write(symbol.Class != null ? symbol.Class : "");
+							writer.Write(symbol.Scope != null ? symbol.Scope : "");
+							//TODO 
 							writer.Write(symbol.Parameters != null ? symbol.Parameters : "");
 						}
 					}
@@ -527,14 +528,14 @@ namespace VS_QuickNavigation
 							SymbolData.ESymbolType eType = (SymbolData.ESymbolType)reader.ReadByte();
 							int iStartLine = reader.ReadInt32();
 							string sSymbol = reader.ReadString();
-							string sClass = reader.ReadString();
-							sClass = string.IsNullOrEmpty(sClass) ? null : sClass;
+							string sScope = reader.ReadString();
+							sScope = string.IsNullOrEmpty(sScope) ? null : sScope;
 							string sParameters = reader.ReadString();
 							sParameters = string.IsNullOrEmpty(sParameters) ? null : sParameters;
 							if (null != fileData) // ignore invalid file
 							{
 								SymbolData newSymbol = new SymbolData(sSymbol, iStartLine, eType);
-								newSymbol.Class = sClass;
+								newSymbol.Scope = sScope;
 								newSymbol.Parameters = sParameters;
 								symbols.Add(newSymbol);
 							}
@@ -569,7 +570,7 @@ namespace VS_QuickNavigation
 				}
 			}
 
-			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			/*EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
 			Action<int, int> progressAction = (current, total) =>
 			{
 				if ((current % 5) == 0)
@@ -578,9 +579,13 @@ namespace VS_QuickNavigation
 				}
 			};
 			IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFiles(lToGenerate, progressAction);
-			
 
-			sbar.Progress(false, "QuickNavigation Analysing solution ...", 0, 0);
+			sbar.Progress(false, "QuickNavigation Analysing solution ...", 0, 0);*/
+
+			IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFilesWithProgress(lToGenerate);
+
+			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			sbar.Progress(true, "Sorting symbols", 1,1);
 
 			//Associate symbols to DileData
 			symbols

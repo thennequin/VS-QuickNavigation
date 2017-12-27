@@ -104,6 +104,29 @@ namespace VS_QuickNavigation.Utils
 			return GeneratorFromFiles(CommonUtils.ToArray<string>(filePath));
 		}
 
+		static public IEnumerable<SymbolData> GeneratorFromFilesWithProgress(IEnumerable<string> filePaths)
+		{
+			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			sbar.Progress(true, "QuickNavigation Scan solution ...", 0, 1);
+
+			IEnumerable<SymbolData> symbols = null;
+
+			for (int current = 0, count = filePaths.Count(); current < count;current += 50)
+			{
+				IEnumerable<SymbolData> newSymbols = GeneratorFromFiles(filePaths.Skip(current).Take(50));
+				if (symbols == null)
+					symbols = newSymbols;
+				else
+					symbols = symbols.Concat(newSymbols);
+
+				sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + count, current, count);
+			}
+
+			sbar.Progress(false);
+
+			return symbols;
+		}
+
 		static public IEnumerable<SymbolData> GeneratorFromFiles(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
 		{
 			string filePath = GetTempFile();
@@ -125,15 +148,19 @@ namespace VS_QuickNavigation.Utils
 			args += "−−extra= ";                    // Extras
 
 			args += "−−c++−kinds=";                 // C++ kinds
-			args += "+p ";                          // Include function prototypes
+			args += "+p";                          // Include function prototypes
+			args += "+l ";                          // Include function prototypes
 
-			args += "--fields=";                    // Fields
-			args += "+S";                           // Signature of routine
-			args += "+m";                           // Implementation information
-			args += "+i";                           // Inheritance information
-			args += "+n";                           // Line number of tag definition
-			args += "+K";                           // Kind of tag as full name
-			args += "-k";                           // Kind of tag as a single letter
+			//args += "--fields=";                    // Fields
+			//args += "+S";                           // Signature of routine
+			//args += "+m";                           // Implementation information
+			//args += "+i";                           // Inheritance information
+			//args += "+n";                           // Line number of tag definition
+			//args += "+K";                           // Kind of tag as full name
+			//args += "-k";                           // Kind of tag as a single letter
+
+			args += "--fields=* ";                  // Fields
+			args += "--extras=r ";                  // Extras
 
 			IEnumerable<SymbolData> results = null;
 			using (Process process = ExecCTags(args))
@@ -185,7 +212,7 @@ namespace VS_QuickNavigation.Utils
 		{
 			IEnumerable<string> files = Common.Instance.SolutionWatcher.Files.Select(file => file.Path);
 
-			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			/*EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
 			Action<int, int> progressAction = (current, total) =>
 			 {
 				 if ((current % 5) == 0)
@@ -195,7 +222,8 @@ namespace VS_QuickNavigation.Utils
 			 };
 			sbar.Progress(true, "QuickNavigation Scan solution ...", 0, 0);
 			GeneratorFromFiles(files, progressAction).ToArray();
-			sbar.Progress(false);
+			sbar.Progress(false);*/
+			GeneratorFromFilesWithProgress(files);
 		}
 
 		/*
@@ -240,39 +268,46 @@ namespace VS_QuickNavigation.Utils
 
 							SymbolData oSymbol = null;
 
-							if (tagInfos[3] == "function" || tagInfos[3] == "method")
+							string kind = tagInfos[3];
+
+							if (!kind.StartsWith("kind:"))
+								continue;
+
+							kind = kind.Substring("kind:".Length);
+
+							if (kind == "function" || kind == "method")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Method);
 							}
-							else if (tagInfos[3] == "prototype")
+							else if (kind == "prototype")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.MethodPrototype);
 							}
-							else if (tagInfos[3] == "property")
+							else if (kind == "property")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Property);
 							}
-							else if (tagInfos[3] == "struct")
+							else if (kind == "struct")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Struct);
 							}
-							else if (tagInfos[3] == "class")
+							else if (kind == "class")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Class);
 							}
-							else if (tagInfos[3] == "macro")
+							else if (kind == "macro")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Macro);
 							}
-							else if (tagInfos[3] == "enum")
+							else if (kind == "enum")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Enumeration);
 							}
-							else if (tagInfos[3] == "enumerator")
+							else if (kind == "enumerator")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Enumerator);
 							}
-							else if (tagInfos[3] == "member")
+							else if (kind == "member")
 							{
 								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Field);
 							}
@@ -285,17 +320,23 @@ namespace VS_QuickNavigation.Utils
 									{
 										oSymbol.Parameters = tagInfos[i].Substring("signature:".Length);
 									}
-									else if (tagInfos[i].StartsWith("class:"))
+									else if (tagInfos[i].StartsWith("scope:"))
 									{
-										oSymbol.Class = tagInfos[i].Substring("class:".Length) + "::";
+										oSymbol.Scope = tagInfos[i].Substring("scope:".Length);
 									}
-									else if (tagInfos[i].StartsWith("struct:"))
+									else if (tagInfos[i].StartsWith("typeref:"))
 									{
-										oSymbol.Class = tagInfos[i].Substring("struct:".Length) + "::";
+										oSymbol.TypeRef = tagInfos[i].Substring("typeref:".Length);
+									}
+									else if (tagInfos[i].StartsWith("access:"))
+									{
+										oSymbol.Access = tagInfos[i].Substring("access:".Length);
 									}
 								}
 
-								oSymbol.AssociatedFile = Common.Instance.SolutionWatcher.GetFileDataByPath(tagInfos[1]);
+								string sFileName = tagInfos[1];
+								sFileName = sFileName.Replace("\\\\", "\\");
+								oSymbol.AssociatedFile = Common.Instance.SolutionWatcher.GetFileDataByPath(sFileName);
 								symbols.Add(oSymbol);
 							}
 						}

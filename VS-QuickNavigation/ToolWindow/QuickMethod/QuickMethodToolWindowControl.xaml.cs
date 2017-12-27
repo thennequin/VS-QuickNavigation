@@ -184,7 +184,7 @@ namespace VS_QuickNavigation
 
 							ParallelQuery<SearchResultData<SymbolData>> results = source
 								.Where(symbol => (symbol.Type & mSupportedSymbolTypes) != 0)
-								.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.Class, symbolData.Parameters));
+								.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.PreSymbol, symbolData.Parameters));
 
 							int total = results.Count();
 

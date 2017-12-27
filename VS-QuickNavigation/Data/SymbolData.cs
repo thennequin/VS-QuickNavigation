@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 
 namespace VS_QuickNavigation.Data
 {
@@ -34,7 +28,45 @@ namespace VS_QuickNavigation.Data
 
 		public string Symbol { get; set; }
 		public int StartLine { get; set; }
-		public string Class { get; set; }
+		public string Scope { get; set; }
+		public string ScopePretty
+		{
+			get
+			{
+				string sScope = Scope;
+
+				if (string.IsNullOrWhiteSpace(sScope))
+					return "";
+
+				int index = sScope.IndexOf(':');
+				
+				if (index != -1)
+					sScope = sScope.Substring(index+1);
+
+				if (sScope.Length > 0)
+					sScope += "::";
+
+				return sScope;
+			}
+		}
+
+		public string PreSymbol
+		{
+			get
+			{
+				string sTypeRef = TypeRef;
+				string sScopePretty = ScopePretty;
+				if (sTypeRef != null && sScopePretty != null)
+					return sTypeRef + " " + sScopePretty;
+				else if (sTypeRef != null)
+					return sTypeRef;
+				else if (sScopePretty != null)
+					return sScopePretty;
+				return null;
+			}
+		}
+		public string TypeRef { get; set; }
+		public string Access { get; set; }
 		public string Parameters { get; set; }
 		public ESymbolType Type { get; set; }
 		public String TypeDesc
