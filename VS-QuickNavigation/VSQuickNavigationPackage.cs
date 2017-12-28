@@ -31,7 +31,8 @@ namespace VS_QuickNavigation
 	/// </para>
 	/// </remarks>
 	[PackageRegistration(UseManagedResourcesOnly = true)]
-	[InstalledProductRegistration("#1110", "#1112", "0.4.3", IconResourceID = 1400)] // Info on this package for Help/About
+	
+	[InstalledProductRegistration("#1110", "#1112", Vs_QuickNavigationVersion.Version, IconResourceID = 1400)] // Info on this package for Help/About
 	[Guid(VSQuickNavigationPackage.PackageGuidString)]
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
 	[ProvideAutoLoad(UIContextGuids80.SolutionExists)]
