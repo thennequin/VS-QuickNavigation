@@ -24,5 +24,11 @@ function Vsix-ChangeBuildNumber {
 	$assemblyContent = $assemblyContent -replace "public const string Version = ""(\d.\d)""", "public const string Version = ""$version""";
 	Set-Content $assemblyFilePath $assemblyContent
 
+	if (Get-Command Update-AppveyorBuild -errorAction SilentlyContinue)
+	{
+		"Update AppVeyor version..." | Write-Host
+		Update-AppveyorBuild -Version $version | Out-Null
+	}
+
 	"Version changed" | Write-Host
 }
