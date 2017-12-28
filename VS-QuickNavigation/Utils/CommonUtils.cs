@@ -59,6 +59,39 @@ namespace VS_QuickNavigation.Utils
 			return sLine.Substring(iStart, iEnd - iStart);
 		}
 
+		public static bool ContainsWord(string sString, string sWord)
+		{
+			int iPos = sString.IndexOf(sWord);
+			if(iPos != -1)
+			{
+				if (iPos > 0 && IsWordCharacter(sString[iPos - 1]))
+					return false;
+
+				int iEndPos = iPos + sWord.Length;
+				if (iEndPos < (sString.Length - 1) && IsWordCharacter(sString[iEndPos + 1]))
+					return false;
+
+				return true;
+			}
+			return false;
+		}
+
+		public static bool IsLastWord(string sString, string sWord)
+		{
+			int iPos = sString.IndexOf(sWord);
+			if (iPos != -1)
+			{
+				if (iPos != (sString.Length - sWord.Length))
+					return false;
+
+				if (iPos > 0 && IsWordCharacter(sString[iPos - 1]))
+					return false;
+
+				return true;
+			}
+			return false;
+		}
+
 		public static int GetCurrentLine()
 		{
 			EnvDTE.Document activeDoc = Common.Instance.DTE2.ActiveDocument;
