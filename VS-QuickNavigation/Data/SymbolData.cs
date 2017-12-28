@@ -8,8 +8,8 @@ namespace VS_QuickNavigation.Data
 		public enum ESymbolType
 		{
 			Namespace			= 1 << 0,
-            Struct              = 1 << 1,
-            Class				= 1 << 2,
+			Struct              = 1 << 1,
+			Class				= 1 << 2,
 			Interface			= 1 << 3,
 			Macro				= 1 << 4,
 			Enumerator			= 1 << 5,
