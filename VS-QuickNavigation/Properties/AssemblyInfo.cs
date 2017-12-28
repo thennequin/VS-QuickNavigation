@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 
 internal static class Vs_QuickNavigationVersion
 {
-	public const string Version = "0.4.3.0";
+	public const string Version = "0.5";
 }
