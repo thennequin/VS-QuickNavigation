@@ -1,3 +1,6 @@
+environment:
+  TOOLSET: vs2017
+
 configuration: Release
 
 platform: Any CPU
