@@ -63,7 +63,7 @@ namespace VS_QuickNavigation
 			//Search in local file
 			IEnumerable<Data.SymbolData> documentSymbols = CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument);
 
-			IEnumerable<Data.SymbolData> solutionSymbols= Common.Instance.SolutionWatcher.Files
+			IEnumerable<Data.SymbolData> solutionSymbols = Common.Instance.SolutionWatcher.Files
 									.AsParallel()
 									.Where(file => file != null && file.Symbols != null)
 									.SelectMany(file => file.Symbols)
@@ -71,7 +71,7 @@ namespace VS_QuickNavigation
 
 			if (documentSymbols != null)
 			{
-				originSymbol = documentSymbols.Where(s => s.StartLine == iCurrentLine && s.Symbol.Contains(sCurrentWord)).FirstOrDefault();
+				originSymbol = documentSymbols.Where(s => s.StartLine == iCurrentLine && CommonUtils.IsLastWord(s.Symbol, sCurrentWord)).FirstOrDefault();
 			}
 
 			if( originSymbol != null)
@@ -90,7 +90,7 @@ namespace VS_QuickNavigation
 
 			if (symbol == null && documentSymbols != null)
 			{
-				IEnumerable<Data.SymbolData> filtered = documentSymbols.Where(s => s.StartLine < iCurrentLine && s.Symbol.Contains(sCurrentWord));
+				IEnumerable<Data.SymbolData> filtered = documentSymbols.Where(s => s.StartLine < iCurrentLine && CommonUtils.IsLastWord(s.Symbol, sCurrentWord));
 				int iCount = filtered.Count();
 				if (iCount == 1)
 				{
@@ -106,7 +106,7 @@ namespace VS_QuickNavigation
 			if (symbol == null)
 			{
 				IEnumerable<Data.SymbolData> filtered = solutionSymbols
-					.Where(s => s.Symbol.Contains(sCurrentWord) && ( s.StartLine != iCurrentLine || s.AssociatedFile.Path.ToLower() != sCurrentFile));
+					.Where(s => CommonUtils.ContainsWord(s.Symbol, sCurrentWord) && ( s.StartLine != iCurrentLine || s.AssociatedFile.Path.ToLower() != sCurrentFile));
 				int iCount = filtered.Count();
 				if (iCount == 1)
 				{
