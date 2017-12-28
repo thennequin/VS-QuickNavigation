@@ -47,13 +47,13 @@ namespace VS_QuickNavigation.Utils
 
 		public static string GetWord(string sLine, int iPos)
 		{
-			int iMaxENd = sLine.Length - 1;
+			int iMaxEnd = sLine.Length - 1;
 			int iStart = iPos;
 			int iEnd = iPos;
 
 			while (iStart > 1 && IsWordCharacter(sLine[iStart - 1]))
 				iStart--;
-			while (iEnd < iMaxENd && IsWordCharacter(sLine[iEnd]))
+			while (iEnd <= iMaxEnd && IsWordCharacter(sLine[iEnd]))
 				iEnd++;
 
 			return sLine.Substring(iStart, iEnd - iStart);
