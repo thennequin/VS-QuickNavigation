@@ -12,3 +12,7 @@ before_build:
 build:
   project: VS-QuickNavigation.sln
   verbosity: minimal
+
+artifacts:
+  - path: VS-QuickNavigation\bin\Release\VS-QuickNavigation.vsix
+    name: VS-QuickNavigation
