@@ -108,5 +108,43 @@ namespace VS_QuickNavigation.Utils
 			}
 			return false;
 		}
+
+		[DllImport("user32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
+		[StructLayout(LayoutKind.Sequential)]
+		private struct RECT
+		{
+			public int Left;
+			public int Top;
+			public int Right;
+			public int Bottom;
+		}
+
+		public static bool GetActiveDocumentCursorScreenPos(out System.Windows.Point oPoint, bool bNextLine)
+		{
+			IVsTextManager oTextMgr = (IVsTextManager)((IServiceProvider)Common.Instance.Package).GetService(typeof(SVsTextManager));
+			if(oTextMgr != null)
+			{
+				IVsTextView oTextViewCurrent;
+				oTextMgr.GetActiveView(1, null, out oTextViewCurrent);
+
+				int iLine, iCol;
+				oTextViewCurrent.GetCaretPos(out iLine, out iCol);
+				if (bNextLine)
+					++iLine;
+
+				Microsoft.VisualStudio.OLE.Interop.POINT[] pts = new Microsoft.VisualStudio.OLE.Interop.POINT[1];
+				oTextViewCurrent.GetPointOfLineColumn(iLine, iCol, pts);
+				RECT oViewRect = new RECT();
+				GetWindowRect(oTextViewCurrent.GetWindowHandle(), ref oViewRect);
+				
+				oPoint = new System.Windows.Point(oViewRect.Left + pts[0].x, oViewRect.Top + pts[0].y);
+				return true;
+			}
+
+			oPoint = new System.Windows.Point();
+			return false;
+		}
 	}
 }

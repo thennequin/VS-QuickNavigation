@@ -78,6 +78,7 @@
     <Compile Include="Commands\QuickGotoCommand.cs" />
     <Compile Include="Commands\QuickHistoryCommand.cs" />
     <Compile Include="Commands\QuickMethodCommand.cs" />
+    <Compile Include="Commands\QuickPasteCommand.cs" />
     <Compile Include="Commands\QuickSymbolCommand.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Data\BindingProxy.cs" />
