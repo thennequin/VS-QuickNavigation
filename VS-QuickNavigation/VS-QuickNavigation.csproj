@@ -79,13 +79,19 @@
     <Compile Include="Commands\QuickHistoryCommand.cs" />
     <Compile Include="Commands\QuickMethodCommand.cs" />
     <Compile Include="Commands\QuickPasteCommand.cs" />
+    <Compile Include="Commands\QuickReferencesCommand.cs" />
     <Compile Include="Commands\QuickSymbolCommand.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Data\BindingProxy.cs" />
     <Compile Include="Settings.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ToolWindow\QuickReferences\QuickReferencesToolWindow.cs" />
+    <Compile Include="ToolWindow\QuickReferences\QuickReferencesToolWindowControl.xaml.cs">
+      <DependentUpon>QuickReferencesToolWindowControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\CommonUtils.cs" />
+    <Compile Include="Utils\ThreadSafeObservableCollection.cs" />
     <Compile Include="VSQuickNavigationPackage.cs" />
     <Compile Include="Data\FileData.cs" />
     <Compile Include="Data\FileIcon.cs" />
@@ -189,6 +195,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ToolWindow\QuickMethod\QuickMethodToolWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToolWindow\QuickReferences\QuickReferencesToolWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

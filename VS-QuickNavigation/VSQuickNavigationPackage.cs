@@ -39,6 +39,7 @@ namespace VS_QuickNavigation
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	//[ProvideToolWindow(typeof(QuickFileToolWindow))]
 	//[ProvideToolWindow(typeof(QuickMethodToolWindow))]
+	[ProvideToolWindow(typeof(QuickReferencesToolWindow))]
 	[ProvideOptionPage(typeof(Options.OptionsDialogPage), "QuickNavigation", "Settings", 0, 0, supportsAutomation: true)]
 	public sealed class VSQuickNavigationPackage : Package
 	{
@@ -80,6 +81,7 @@ namespace VS_QuickNavigation
 			QuickMethodCommand.Initialize(this);
 			QuickSymbolCommand.Initialize(this);
 			QuickGotoCommand.Initialize(this);
+			QuickReferencesCommand.Initialize(this);
 			QuickPasteCommand.Initialize(this);
 
 			//ShowOptionPage(typeof(Options.OptionsDialogPage));

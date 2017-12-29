@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
+using System.Windows.Documents;
 
 namespace VS_QuickNavigation.Utils
 {
@@ -16,7 +18,53 @@ namespace VS_QuickNavigation.Utils
 		}
 	}
 
-	class CommonUtils
+	public struct WordRef
+	{
+		public int Line;
+		public int Offset;
+		public int Length;
+		public String LineString;
+
+		TextBlock oLineFormatted;
+		public TextBlock LineFormatted
+		{
+			get
+			{
+				if (oLineFormatted == null)
+				{
+					oLineFormatted = new TextBlock();
+
+					string sTrimLineString = LineString.TrimStart(' ', '\t');
+					int iOffset = LineString.Length - sTrimLineString.Length;
+
+					if (Offset > 0)
+					{
+						Run oRun = new Run(sTrimLineString.Substring(0, Offset - iOffset));
+						oRun.Tag = "N";
+						oLineFormatted.Inlines.Add(oRun);
+					}
+
+					{
+						Run oRun = new Run(sTrimLineString.Substring(Offset - iOffset, Length));
+						oRun.Tag = "NHL";
+						oRun.FontWeight = System.Windows.FontWeights.Bold;
+						oLineFormatted.Inlines.Add(oRun);
+					}
+
+					if ((Offset + Length) < LineString.Length)
+					{
+						Run oRun = new Run(sTrimLineString.Substring(Offset - iOffset + Length));
+						oRun.Tag = "N";
+						oLineFormatted.Inlines.Add(oRun);
+					}
+				}
+
+				return oLineFormatted;
+			}
+		}
+	}
+
+	static class CommonUtils
 	{
 		public static T[] ToArray<T>(params T[] objs)
 		{
@@ -37,12 +85,15 @@ namespace VS_QuickNavigation.Utils
 			}
 
 			return en.ToString();
-
 		}
-
+		public static bool IsFinalCharacter(char c)
+		{
+			char[] c_FinalChars = { ' ', '\t', '(', '*', '&', '=', ';', '<', '>', '-', '+', '/', '*', '~', '[', '^' };
+			return c_FinalChars.Contains(c);
+		}
 		public static bool IsWordCharacter(char c)
 		{
-			return (c == '_') | char.IsLetterOrDigit(c);
+			return (c == '_') || char.IsLetterOrDigit(c) || (c == '_');
 		}
 
 		public static string GetWord(string sLine, int iPos)
@@ -92,13 +143,77 @@ namespace VS_QuickNavigation.Utils
 			return false;
 		}
 
+		public static IEnumerable<WordRef> FindWord(string[] sLines, string sWord)
+		{
+			for (int iLine = 0; iLine < sLines.Length; ++iLine)
+			{
+				int iStartOffset = 0;
+				string sLine = sLines[iLine];
+				//sLine.Replace("\r", "");
+				string sFullLine = sLine;
+
+				int iPos;
+				while ((iPos = sLine.IndexOf(sWord)) != -1)
+				{
+					bool bOk = true;
+					if (iPos > 0 && IsWordCharacter(sLine[iPos - 1]))
+						bOk = false;
+
+					if (iPos > 0 && IsWordCharacter(sLine[iPos - 1]))
+						bOk = false;
+
+					if (bOk)
+					{
+						yield return new WordRef { Line = iLine + 1, Offset = iStartOffset + iPos, Length = sWord.Length, LineString = sFullLine };
+					}
+
+					int iOffset = iPos + sWord.Length;
+					iStartOffset += iOffset;
+					sLine = sLine.Substring(iOffset);
+				}
+			}
+		}
+
+		public static IEnumerable<WordRef> FindLastWord(string[] sLines, string sWord)
+		{
+			for (int iLine = 0; iLine < sLines.Length; ++iLine)
+			{
+				int iStartOffset = 0;
+				string sLine = sLines[iLine];
+				//sLine.Replace("\r", "");
+				string sFullLine = sLine;
+				int iWordLen = sWord.Length;
+
+				int iPos;
+				while ((iPos = sLine.IndexOf(sWord)) != -1)
+				{
+					bool bOk = true;
+					if (iPos > 0 && IsWordCharacter(sLine[iPos - 1]))
+						bOk = false;
+
+					if ((iPos + iWordLen) < sLine.Length && 
+						(IsWordCharacter(sLine[iPos + iWordLen]) || !IsFinalCharacter(sLine[iPos + iWordLen])))
+						bOk = false;
+
+					if (bOk)
+					{
+						yield return new WordRef { Line = iLine + 1, Offset = iStartOffset + iPos, Length = sWord.Length, LineString = sFullLine };
+					}
+
+					int iOffset = iPos + sWord.Length;
+					iStartOffset += iOffset;
+					sLine = sLine.Substring(iOffset);
+				}
+			}
+		}
+
 		public static int GetCurrentLine()
 		{
 			EnvDTE.Document activeDoc = Common.Instance.DTE2.ActiveDocument;
 			if (activeDoc != null)
 			{
 				EnvDTE.TextDocument textDoc = (EnvDTE.TextDocument)Common.Instance.DTE2.ActiveDocument.Object("TextDocument");
-				if (textDoc != null)
+				if (textDoc != null && textDoc.Selection != null && textDoc.Selection.ActivePoint != null)
 				{
 					return textDoc.Selection.ActivePoint.Line;
 				}
@@ -112,9 +227,9 @@ namespace VS_QuickNavigation.Utils
 			if (activeDoc != null)
 			{
 				EnvDTE.TextDocument textDoc = (EnvDTE.TextDocument)Common.Instance.DTE2.ActiveDocument.Object("TextDocument");
-				if (textDoc != null)
+				if (textDoc != null && textDoc.Selection != null && textDoc.Selection.ActivePoint != null)
 				{
-					if (textDoc.Selection.ActivePoint.Line > 0)
+					if (textDoc.Selection.ActivePoint.Line > 0 )
 					{
 						string sLine = textDoc.StartPoint.CreateEditPoint().GetLines(textDoc.Selection.ActivePoint.Line, textDoc.Selection.ActivePoint.Line + 1);
 						return GetWord(sLine, textDoc.Selection.ActivePoint.LineCharOffset - 1);
@@ -124,20 +239,29 @@ namespace VS_QuickNavigation.Utils
 			return null;
 		}
 
-		public static bool GotoSymbol(Data.SymbolData symbol)
+		public static bool GotoLine(string sFilePath, int iLine)
 		{
-			if (symbol != null)
+			if (sFilePath != null)
 			{
-				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(symbol.AssociatedFile.Path, EnvDTE.Constants.vsViewKindTextView);
+				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(sFilePath, EnvDTE.Constants.vsViewKindTextView);
 				if (null != window)
 				{
 					window.Activate();
 					if (window.Document != null)
 					{
-						((EnvDTE.TextSelection)window.Document.Selection).GotoLine(symbol.StartLine);
+						((EnvDTE.TextSelection)window.Document.Selection).GotoLine(iLine);
 						return true;
 					}
 				}
+			}
+			return false;
+		}
+
+		public static bool GotoSymbol(Data.SymbolData symbol)
+		{
+			if (symbol != null)
+			{
+				GotoLine(symbol.AssociatedFile.Path, symbol.StartLine);
 			}
 			return false;
 		}
