@@ -1,0 +1,18 @@
+os: Visual Studio 2017
+
+configuration: Release
+
+platform: Any CPU
+
+before_build: 
+  - nuget restore
+  - ps: . .\vsix.ps1
+  - ps: Vsix-ChangeBuildNumber
+
+build:
+  project: VS-QuickNavigation.sln
+  verbosity: minimal
+
+artifacts:
+  - path: VS-QuickNavigation\bin\Release\VS-QuickNavigation.vsix
+    name: VS-QuickNavigation
