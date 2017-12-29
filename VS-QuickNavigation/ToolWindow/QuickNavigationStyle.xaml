@@ -309,6 +309,12 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
     </Style>
 
+    <!--TreeView-->
+    <Style TargetType="{x:Type TreeView}">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+    </Style>
+
     <!--Button-->
     <Style TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBorderKey}}" />
