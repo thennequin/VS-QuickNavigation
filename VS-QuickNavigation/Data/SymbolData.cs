@@ -19,7 +19,9 @@ namespace VS_QuickNavigation.Data
 			MethodPrototype		= 1 << 8,
 
 			Field				= 1 << 9,
-			Property			= 1 << 10
+			Property			= 1 << 10,
+
+			Local				= 1 << 11
 
 			//StructureName		= 1024,
 			//TypeDef				= 2048,
@@ -28,6 +30,7 @@ namespace VS_QuickNavigation.Data
 
 		public string Symbol { get; set; }
 		public int StartLine { get; set; }
+		public int EndLine { get; set; }
 		public string Scope { get; set; }
 		public string ScopePretty
 		{
@@ -67,6 +70,7 @@ namespace VS_QuickNavigation.Data
 		}
 		public string TypeRef { get; set; }
 		public string Access { get; set; }
+		public string[] Inherits { get; set; }
 		public string Parameters { get; set; }
 		public ESymbolType Type { get; set; }
 		public String TypeDesc
@@ -100,6 +104,7 @@ namespace VS_QuickNavigation.Data
 			Symbol = sSymbol;
 			StartLine = iStartLine;
 			Type = eType;
+			EndLine = -1;
 		}
 
 		public string ImagePath

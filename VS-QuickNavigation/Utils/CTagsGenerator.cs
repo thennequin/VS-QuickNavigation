@@ -145,22 +145,17 @@ namespace VS_QuickNavigation.Utils
 			args += "-L \"" + filePath + "\" ";     // Input file list
 			args += "-f \"" + tagsPath + "\" ";     // Output tag file
 
-			args += "−−extra= ";                    // Extras
-
 			args += "−−c++−kinds=";                 // C++ kinds
-			args += "+p";                          // Include function prototypes
-			args += "+l ";                          // Include function prototypes
-
-			//args += "--fields=";                    // Fields
-			//args += "+S";                           // Signature of routine
-			//args += "+m";                           // Implementation information
-			//args += "+i";                           // Inheritance information
-			//args += "+n";                           // Line number of tag definition
-			//args += "+K";                           // Kind of tag as full name
-			//args += "-k";                           // Kind of tag as a single letter
+			args += "+p";                           // Include function prototypes
+			args += "+l";                           // Include local variables
+			args += " ";
 
 			args += "--fields=* ";                  // Fields
-			args += "--extras=r ";                  // Extras
+
+			args += "−−extras=";                    // Extras
+			args += "+q";                           // Include an extra class-qualified tag entry for each tag
+			args += "+r";                           // Include an extra class-qualified tag entry for each tag
+			args += " ";
 
 			IEnumerable<SymbolData> results = null;
 			using (Process process = ExecCTags(args))
@@ -266,8 +261,6 @@ namespace VS_QuickNavigation.Utils
 							if (!ExtractLine(tagInfos, out fileLine))
 								continue;
 
-							SymbolData oSymbol = null;
-
 							string kind = tagInfos[3];
 
 							if (!kind.StartsWith("kind:"))
@@ -275,45 +268,66 @@ namespace VS_QuickNavigation.Utils
 
 							kind = kind.Substring("kind:".Length);
 
-							if (kind == "function" || kind == "method")
+							SymbolData.ESymbolType eType = SymbolData.ESymbolType.Namespace;
+							bool bTypeFound = false;
+
+							switch (kind)
 							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Method);
-							}
-							else if (kind == "prototype")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.MethodPrototype);
-							}
-							else if (kind == "property")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Property);
-							}
-							else if (kind == "struct")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Struct);
-							}
-							else if (kind == "class")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Class);
-							}
-							else if (kind == "macro")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Macro);
-							}
-							else if (kind == "enum")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Enumeration);
-							}
-							else if (kind == "enumerator")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Enumerator);
-							}
-							else if (kind == "member")
-							{
-								oSymbol = new SymbolData(tagInfos[0], fileLine, SymbolData.ESymbolType.Field);
+								case "function":
+								case "method":
+									eType = SymbolData.ESymbolType.Method;
+									bTypeFound = true;
+									break;
+								case "prototype":
+									eType = SymbolData.ESymbolType.MethodPrototype;
+									bTypeFound = true;
+									break;
+								case "property":
+									eType = SymbolData.ESymbolType.Property;
+									bTypeFound = true;
+									break;
+								case "struct":
+									eType = SymbolData.ESymbolType.Struct;
+									bTypeFound = true;
+									break;
+								case "class":
+									eType = SymbolData.ESymbolType.Class;
+									bTypeFound = true;
+									break;
+								case "macro":
+									eType = SymbolData.ESymbolType.Macro;
+									bTypeFound = true;
+									break;
+								case "enum":
+									eType = SymbolData.ESymbolType.Enumeration;
+									bTypeFound = true;
+									break;
+								case "enumerator":
+									eType = SymbolData.ESymbolType.Enumerator;
+									bTypeFound = true;
+									break;
+								case "member":
+									eType = SymbolData.ESymbolType.Field;
+									bTypeFound = true;
+									break;
+								case "local":
+									eType = SymbolData.ESymbolType.Local;
+									bTypeFound = true;
+									break;
 							}
 
-							if (null != oSymbol)
+							if (bTypeFound)
 							{
+								string cleanCymbol = tagInfos[0];
+								int iPos = cleanCymbol.LastIndexOf(':');
+								iPos = Math.Max(iPos, cleanCymbol.LastIndexOf('.'));
+								if (iPos != -1)
+								{
+									cleanCymbol = cleanCymbol.Substring(iPos + 1);
+								}
+
+								SymbolData oSymbol = new SymbolData(cleanCymbol, fileLine, eType);
+
 								for (int i = 4; i < tagInfos.Length; ++i)
 								{
 									if (tagInfos[i].StartsWith("signature:"))
@@ -331,6 +345,18 @@ namespace VS_QuickNavigation.Utils
 									else if (tagInfos[i].StartsWith("access:"))
 									{
 										oSymbol.Access = tagInfos[i].Substring("access:".Length);
+									}
+									else if (tagInfos[i].StartsWith("inherits:"))
+									{
+										oSymbol.Inherits = tagInfos[i].Substring("inherits:".Length).Split(',');
+									}
+									else if (tagInfos[i].StartsWith("end:"))
+									{
+										string sEndLine = tagInfos[i].Substring("end:".Length);
+										if (int.TryParse(sEndLine, out int iEndLine))
+										{
+											oSymbol.EndLine = iEndLine;
+										}
 									}
 								}
 
