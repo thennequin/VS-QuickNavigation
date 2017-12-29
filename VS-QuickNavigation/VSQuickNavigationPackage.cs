@@ -80,6 +80,7 @@ namespace VS_QuickNavigation
 			QuickMethodCommand.Initialize(this);
 			QuickSymbolCommand.Initialize(this);
 			QuickGotoCommand.Initialize(this);
+			QuickPasteCommand.Initialize(this);
 
 			//ShowOptionPage(typeof(Options.OptionsDialogPage));
 		}
