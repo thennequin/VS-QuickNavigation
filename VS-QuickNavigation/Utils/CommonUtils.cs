@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TextManager.Interop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace VS_QuickNavigation.Utils
 {
