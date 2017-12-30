@@ -41,7 +41,7 @@
                                            FontWeight="Bold" />
                                     </Viewbox>
                                     <Image Source="{Binding Path=Data.Icon}" Width="16" Height="16"/>
-                                    <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" Style="{StaticResource LabelHighlight}"/>55
+                                    <Label Content="{Binding SearchFormatted}" Padding="5,1,1,1" Style="{StaticResource LabelHighlight}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
