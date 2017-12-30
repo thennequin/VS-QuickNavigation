@@ -6,6 +6,9 @@
              xmlns:local="clr-namespace:VS_QuickNavigation"
              xmlns:data="clr-namespace:VS_QuickNavigation.Data"
              xmlns:utils="clr-namespace:VS_QuickNavigation.Utils"
+             xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.10.0"
+             Background="{DynamicResource {x:Static vsfx:VsBrushes.WindowKey}}"
+             Foreground="{DynamicResource {x:Static vsfx:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>

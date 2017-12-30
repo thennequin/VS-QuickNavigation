@@ -3,8 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             Background="{DynamicResource VsBrush.Window}"
-             Foreground="{DynamicResource VsBrush.WindowText}"
+             xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.10.0"
+             Background="{DynamicResource {x:Static vsfx:VsBrushes.WindowKey}}"
+             Foreground="{DynamicResource {x:Static vsfx:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
              Name="MyToolWindow"
              Height="Auto" Width="Auto">
