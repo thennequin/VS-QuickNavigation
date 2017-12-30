@@ -102,7 +102,7 @@ namespace VS_QuickNavigation.Utils
 			int iStart = iPos;
 			int iEnd = iPos;
 
-			while (iStart > 1 && IsWordCharacter(sLine[iStart - 1]))
+			while (iStart > 0 && IsWordCharacter(sLine[iStart - 1]))
 				iStart--;
 			while (iEnd <= iMaxEnd && IsWordCharacter(sLine[iEnd]))
 				iEnd++;
