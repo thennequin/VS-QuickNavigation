@@ -17,7 +17,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <DockPanel Width="Auto" Height="Auto" Margin="10">
+        <DockPanel Width="Auto" Height="Auto" Margin="5">
             <StackPanel HorizontalAlignment="Stretch" DockPanel.Dock="Top" Orientation="Vertical" Margin="0,0,0,5">
                 <Grid HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
