@@ -233,10 +233,34 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
     </Style>
 
+    <Style TargetType="{x:Type TreeViewItem}" x:Key="TreeViewItemStyle">
+        <!--<Setter Property="Template" Value="{StaticResource TreeViewItemTemplate}" />-->
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" />
+        <Style.Triggers>
+            <!-- Selected -->
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+            </Trigger>
+            <!-- Selected but not active (control focused) -->
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsSelected" Value="True" />
+                    <Condition Property="Selector.IsSelectionActive" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+    
     <!--TreeView-->
     <Style TargetType="{x:Type TreeView}">
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBorderKey}}"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource TreeViewItemStyle}"/>
     </Style>
 
     <!--Button-->
@@ -247,7 +271,8 @@
 
     <!--Label-->
     <Style TargetType="{x:Type Label}">
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}"/>
+        <Setter Property="Background" Value="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType=Control}}"/>
+        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=Control}}"/>
     </Style>
 
     <!--TextBox-->
