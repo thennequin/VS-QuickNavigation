@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VS_QuickNavigation"
-             xmlns:data="clr-namespace:VS_QuickNavigation.Data"
-             xmlns:utils="clr-namespace:VS_QuickNavigation.Utils"
              xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.10.0"
              Background="{DynamicResource {x:Static vsfx:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsfx:VsBrushes.WindowTextKey}}"
@@ -32,7 +30,7 @@
                     <Button Name="buttonStop" Content="Stop" Click="ButtonStop_Click" IsEnabled="false" Margin="2" Grid.Column="2" />
                 </Grid>
             </StackPanel>
-            <TreeView x:Name="treeView" DockPanel.Dock="Bottom" MouseDoubleClick="TreeView_MouseDoubleClick" ItemsSource="{Binding Files}" KeyDown="TreeView_KeyDown">
+            <TreeView x:Name="treeView" DockPanel.Dock="Bottom" MouseDoubleClick="TreeView_MouseDoubleClick" KeyDown="TreeView_KeyDown">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:ReferenceList}" ItemsSource="{Binding Refs}">
                         <StackPanel Orientation="Horizontal">
@@ -42,7 +40,8 @@
                     </HierarchicalDataTemplate>
                     <DataTemplate DataType="{x:Type local:Reference}">
                         <StackPanel Orientation="Horizontal">
-                            <Label Content="{Binding Path=Ref.LineFormatted}" Padding="5,1,1,1"/>
+                            <Label Content="{Binding Path=Ref.Line,StringFormat=({0})}" Padding="5,1,1,1" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ControlLinkTextKey}}"/>
+                            <Label Content="{Binding Path=Ref.LineFormatted}" Padding="5,1,1,1" Style="{StaticResource LabelHighlight}"/>
                         </StackPanel>
                     </DataTemplate>
                 </TreeView.Resources>
