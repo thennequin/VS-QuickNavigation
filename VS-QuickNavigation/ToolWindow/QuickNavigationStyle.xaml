@@ -4,8 +4,66 @@
                     xmlns:l="clr-namespace:VS_QuickNavigation.Data"
 					>
 
-    <l:BindingProxy x:Key="TextBrushProxy" Data="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" />
-    <l:BindingProxy x:Key="SelectedTextBrushProxy" Data="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+    <!--<l:BindingProxy x:Key="TextBrushProxy" Data="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" />
+    <l:BindingProxy x:Key="SelectedTextBrushProxy" Data="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />-->
+
+    <l:BindingProxy x:Key="AncestorBackgroundBrush" Data="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType=Control}}" />
+    <l:BindingProxy x:Key="AncestorForegroundBrush" Data="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=Control}}" />
+
+    <Style x:Key="LabelHighlight" TargetType="{x:Type Label}">
+        <Setter Property="Background" Value="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType=Control}}"/>
+        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=Control}}"/>
+        <Style.Resources>
+            <Style TargetType="{x:Type TextBlock}">
+                <!--Default-->
+                <Setter Property="Foreground">
+                    <Setter.Value>
+                        <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource AncestorForegroundBrush}}" Opacity="1.0"/>
+                    </Setter.Value>
+                </Setter>
+                <Style.Resources>
+                    <Style TargetType="{x:Type Run}">
+                        <Style.Triggers>
+                            <!--Normal-->
+                            <DataTrigger Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="N">
+                                <Setter Property="Foreground">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource AncestorForegroundBrush}}" Opacity="0.7"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                            <!--Normal Hightlight-->
+                            <DataTrigger Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="NHL" >
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource AncestorForegroundBrush}}" Opacity="1.0"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                            <!--Sub-->
+                            <DataTrigger Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="S" >
+                                <Setter Property="Foreground">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource AncestorForegroundBrush}}" Opacity="0.5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                            <!--Sub Hightlight-->
+                            <DataTrigger Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="SHL" >
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource AncestorForegroundBrush}}" Opacity="0.75"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </Style.Resources>
+    </Style>
 
     <!-- ListView Item Control Template -->
     <ControlTemplate x:Key="ListViewItemTemplate" TargetType="{x:Type ListViewItem}">
@@ -38,140 +96,6 @@
 
     <!-- List View Item Style -->
     <Style x:Key="ListViewItemStyle" TargetType="{x:Type ListViewItem}">
-        <Style.Resources>
-            <!-- Style for highlight element-->
-            <Style TargetType="{x:Type Label}">
-                <Setter Property="Background" Value="{Binding (ListViewItem.Background), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}}"/>
-                <Setter Property="Foreground" Value="{Binding (ListViewItem.Foreground), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}}"/>
-                <Style.Resources>
-                    <Style TargetType="{x:Type TextBlock}">
-                        <Style.Resources>
-                            <Style TargetType="{x:Type Run}">
-                                <Style.Triggers>
-                                    <!--Default-->
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="1.0"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="true" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="1.0"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <!--Normal-->
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="N" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="0.7"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="N" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="0.7"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <!--Normal Hightlight-->
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="NHL" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="1.0"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="NHL" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="1.0"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <!--Sub-->
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="S" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="0.5"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="S" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="0.5"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <!--Sub Hightlight-->
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="False" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="SHL" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource TextBrushProxy}}" Opacity="0.75"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
-                                            <Condition Binding="{Binding Path=Tag, RelativeSource={RelativeSource Self}}" Value="SHL" />
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground">
-                                            <Setter.Value>
-                                                <SolidColorBrush Color="{Binding Path=Data.Color, Source={StaticResource SelectedTextBrushProxy}}" Opacity="0.75"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Style.Resources>
-                    </Style>
-                </Style.Resources>
-            </Style>
-        </Style.Resources>
         <Setter Property="Padding" Value="2" />
         <Setter Property="Margin" Value="0" />
         <Setter Property="Template" Value="{StaticResource ListViewItemTemplate}" />
