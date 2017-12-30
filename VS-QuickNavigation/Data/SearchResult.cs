@@ -37,7 +37,7 @@ namespace VS_QuickNavigation.Data
 		void Search(string sQuery, string sSearchIn, string[] sSplitLast = null)
 		{
 			List<Tuple<int, int>> matches = new List<Tuple<int, int>>();
-			int index = 0;
+			int index = -1;
 			if (sSplitLast != null)
 			{
 				foreach (string sSplit in sSplitLast)
