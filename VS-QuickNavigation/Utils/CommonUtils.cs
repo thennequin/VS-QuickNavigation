@@ -20,12 +20,12 @@ namespace VS_QuickNavigation.Utils
 
 	public struct WordRef
 	{
-		public int Line;
-		public int Offset;
-		public int Length;
-		public String LineString;
+		public int Line { get; set; }
+		public int Offset { get; set; }
+        public int Length { get; set; }
+        public String LineString { get; set; }
 
-		TextBlock oLineFormatted;
+        TextBlock oLineFormatted;
 		public TextBlock LineFormatted
 		{
 			get
