@@ -1,24 +1,15 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="QuickMethodToolWindowControl.xaml.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Windows.Controls;
+using VS_QuickNavigation.Data;
+using System.Linq;
+using VS_QuickNavigation.Utils;
+using System.Collections;
+using System.Threading.Tasks;
 
 namespace VS_QuickNavigation
 {
-	using Microsoft.VisualStudio.Shell;
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.Threading;
-	using System.Windows.Controls;
-	using System.Windows.Data;
-	using System.Windows.Documents;
-	using Data;
-	using System.Linq;
-	using Utils;
-	using System.Collections;
-
 	/// <summary>
 	/// Interaction logic for QuickMethodToolWindowControl.
 	/// </summary>
@@ -30,6 +21,7 @@ namespace VS_QuickNavigation
 		private object mSymbolLocker = new object();
 		private IEnumerable<SymbolData> mSymbols = null;
 		private CancellationTokenSource mToken;
+		private Task mTask;
 		private DeferredAction mDeferredRefresh;
 		
 		const int c_RefreshDelay = 100;
@@ -48,30 +40,14 @@ namespace VS_QuickNavigation
 			DataContext = this;
 
 			textBox.Focus();
-
-
-			// An aggregate catalog that combines multiple catalogs
-			/*
-			var catalog = new AggregateCatalog();
-
-			// Adds all the parts found in the necessary assemblies
-			catalog.Catalogs.Add(new AssemblyCatalog(typeof(IGlyphService).Assembly));
-			catalog.Catalogs.Add(new AssemblyCatalog(typeof(SmartTagSurface).Assembly));
-
-			// Create the CompositionContainer with the parts in the catalog
-			CompositionContainer mefContainer = new CompositionContainer(catalog);
-
-			// Fill the imports of this object
-			mefContainer.ComposeParts(this);
-
-			[Import]
-			public IGlyphService GlyphService { get; set; }
-			*/
 		}
 
 		public void RefreshContent()
 		{
-			mSymbols = null;
+			lock (mSymbolLocker)
+			{
+				mSymbols = null;
+			}
 			mDeferredRefresh.Defer(0);
 		}
 
@@ -144,95 +120,91 @@ namespace VS_QuickNavigation
 			{
 				mToken.Cancel();
 			}
+
 			mToken = new CancellationTokenSource();
+			CancellationTokenSource localToken = mToken;
+			Task previousTask = mTask;
 
 			string sSearch = textBox.Text;
 
-			System.Threading.Tasks.Task.Run(() =>
+			mTask = Task.Run(() =>
 			{
-				lock(mSymbolLocker)
+				if (previousTask != null && !previousTask.IsCompleted)
 				{
-					if (!mToken.IsCancellationRequested)
+					previousTask.Wait();
+				}
+
+				lock (mSymbolLocker)
+				{
+					if (localToken.IsCancellationRequested)
+						return;
+
+					if (!mSearchInSolution && mSymbols == null)
 					{
-						if (!mSearchInSolution && mSymbols == null)
-						{
-							mSymbols = CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument);
-						}
-
-						try
-						{
-							//System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-							//sw.Start();
-
-							ParallelQuery<SymbolData> source = null;
-							if (mSearchInSolution)
-							{
-								source = Common.Instance.SolutionWatcher.Files
-									.AsParallel()
-									.WithCancellation(mToken.Token)
-									.Where(file => file != null && file.Symbols != null)
-									.SelectMany(file => file.Symbols)
-									;
-							}
-							else
-							{
-								source = mSymbols
-									.AsParallel()
-									.WithCancellation(mToken.Token)
-									;
-							}
-
-							ParallelQuery<SearchResultData<SymbolData>> results = source
-								.Where(symbol => (symbol.Type & mSupportedSymbolTypes) != 0)
-								.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.PreSymbol, symbolData.Parameters));
-
-							int total = results.Count();
-
-							if (!string.IsNullOrWhiteSpace(sSearch))
-							{
-								int searchStringLen = sSearch.Length;
-								results = results.Where(resultData => resultData.SearchScore > searchStringLen);
-							}
-
-							results = results
-								.OrderByDescending(resultData => resultData.SearchScore)
-								;
-
-							int count = results.Count();
-
-							//EnvDTE.FontsAndColorsItems fontsAndColor = Common.Instance.DTE2.Properties.Item("FontsAndColorsItems") as EnvDTE.FontsAndColorsItems;
-							//fontsAndColor.Item("Line Number").Foreground
-							//fontsAndColor.Item("Keywords").Foreground
-
-							/*Action<IEnumerable> refreshMethod = (res) =>
-							{
-								results.ForAll(result => result.RefreshSearchFormatted());
-							};
-							Dispatcher.BeginInvoke(refreshMethod, results);*/
-
-							Action<IEnumerable> setMethod = (res) =>
-							{
-								listView.ItemsSource = res;
-
-								string title = mQuickMethodToolWindow.Title;
-								int pos = title.IndexOf(" [");
-								if (pos != -1)
-								{
-									title = title.Substring(0, pos);
-								}
-								mQuickMethodToolWindow.Title = title + " [" + count + "/" + total + "]";
-							};
-							Dispatcher.Invoke(setMethod, results.ToList());
-
-
-							//sw.Stop();
-							//System.Diagnostics.Debug.WriteLine("PLINQ time " + sw.Elapsed.TotalMilliseconds);
-						}
-						catch (Exception) { }
+						mSymbols = CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument);
 					}
+
+					if (localToken.IsCancellationRequested)
+						return;
+
+					try
+					{
+						//System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+						//sw.Start();
+
+						ParallelQuery<SymbolData> source = null;
+						if (mSearchInSolution)
+						{
+							source = Common.Instance.SolutionWatcher.Files
+								.AsParallel()
+								.WithCancellation(localToken.Token)
+								.Where(file => file != null && file.Symbols != null)
+								.SelectMany(file => file.Symbols)
+								;
+						}
+						else
+						{
+							source = mSymbols
+								.AsParallel()
+								.WithCancellation(localToken.Token)
+								;
+						}
+
+						ParallelQuery<SearchResultData<SymbolData>> results = source
+							.Where(symbol => (symbol.Type & mSupportedSymbolTypes) != 0)
+							.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.PreSymbol, symbolData.Parameters));
+
+						if (localToken.IsCancellationRequested)
+							return;
+
+						int total = results.Count();
+
+						if (!string.IsNullOrWhiteSpace(sSearch))
+						{
+							int searchStringLen = sSearch.Length;
+							results = results.Where(resultData => resultData.SearchScore > searchStringLen);
+						}
+
+						results = results
+							.OrderByDescending(resultData => resultData.SearchScore)
+							;
+
+						if (localToken.IsCancellationRequested)
+							return;
+
+						int count = results.Count();
+
+						Action<IEnumerable> setMethod = (res) =>
+						{
+							listView.ItemsSource = res;
+
+							mQuickMethodToolWindow.Title = string.Format("{0} [{1}/{2}]", mQuickMethodToolWindow.mTitle, count, total);
+						};
+						Dispatcher.Invoke(setMethod, results.ToList());
+					}
+					catch (Exception) { }
 				}
 			});
-			
 		}
 
 		private void OpenCurrentSelection()
