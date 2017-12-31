@@ -36,6 +36,12 @@ namespace VS_QuickNavigation
 			[DllImport("user32.dll", CharSet = CharSet.Auto)]
 			public static extern int SendMessage(IntPtr hwnd, int wMsg, IntPtr wParam, IntPtr lParam);
 
+			[DllImport("user32.dll")]
+			static extern IntPtr GetActiveWindow();
+
+			[DllImport("user32.dll")]
+			public static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
+
 			IntPtr nextClipboardViewer;
 
 			List<string> m_oCopyHistory;
@@ -56,7 +62,15 @@ namespace VS_QuickNavigation
 				{
 					case WM_DRAWCLIPBOARD:
 						//DisplayClipboardData();
-						if (System.Windows.Clipboard.ContainsText())
+						bool bActive = false;
+
+						IntPtr activeWindow = GetActiveWindow();
+						uint activeProcess;
+						GetWindowThreadProcessId(activeWindow, out activeProcess);
+
+						bActive = System.Diagnostics.Process.GetCurrentProcess().Id == (int)activeProcess;
+
+						if (bActive && System.Windows.Clipboard.ContainsText())
 						{
 							string sText = System.Windows.Clipboard.GetText();
 
@@ -152,7 +166,7 @@ namespace VS_QuickNavigation
 					oItem.Tag = sText;
 					string sTrimText = sText.Trim();
 					if (sTrimText.Length > 20)
-						sTrimText = sTrimText.Substring(20) + "...";
+						sTrimText = sTrimText.Substring(0, 20) + "...";
 					TextBlock oTextBlock = new TextBlock();
 					oTextBlock.Inlines.Add(new Run(sTrimText));
 					oItem.Header = oTextBlock;
