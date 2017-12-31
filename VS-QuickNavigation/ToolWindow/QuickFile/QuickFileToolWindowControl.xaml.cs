@@ -171,33 +171,34 @@ namespace VS_QuickNavigation
 					{
 						if (mFiles == null)
 						{
-							if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
-							{
-								mFiles = Common.Instance.SolutionWatcher.Files
-									.Where(fileData => fileData.Status == FileStatus.Recent)
-									.ToList();
-							}
-							else
-							{
-								string[] exts = Common.Instance.Settings.ListedExtensions;
+							mFiles = Common.Instance.SolutionWatcher.Files.ToList();
+						}
 
-								mFiles = Common.Instance.SolutionWatcher.Files
-									.AsParallel()
-									.WithCancellation(localToken.Token)
-									.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
-									.ToList();
-							}
+						ParallelQuery<FileData> files = null;
+						if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
+						{
+							files = mFiles
+								.AsParallel()
+								.WithCancellation(localToken.Token)
+								.Where(fileData => fileData.Status == FileStatus.Recent);
+						}
+						else
+						{
+							string[] exts = Common.Instance.Settings.ListedExtensions;
+
+							files = mFiles
+								.AsParallel()
+								.WithCancellation(localToken.Token)
+								.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)));
 						}
 						//Common.Instance.SolutionWatcher.SetNeedRefresh();
-
-						int total = mFiles.Count();
 
 						if (localToken.IsCancellationRequested)
 							return;
 
-						ParallelQuery<SearchResultData<FileData>> results = mFiles
-							.AsParallel()
-							.WithCancellation(localToken.Token)
+						int total = files.Count();
+
+						ParallelQuery<SearchResultData<FileData>> results = files
 							.Select(fileData => new SearchResultData<FileData>(fileData, sSearch, fileData.Path, CommonUtils.ToArray<string>("\\", "/")))
 							;
 
