@@ -36,6 +36,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Image Source="{Binding File.Icon}" Width="16" Height="16"/>
                             <Label Content="{Binding File.Path}" Padding="5,1,1,1"/>
+                            <Label Content="{Binding Path=RefCount,StringFormat= ({0})}" Padding="5,1,1,1" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ControlLinkTextKey}}"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
                     <DataTemplate DataType="{x:Type local:Reference}">
