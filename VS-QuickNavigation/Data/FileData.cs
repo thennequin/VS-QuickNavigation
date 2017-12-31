@@ -35,20 +35,26 @@ namespace VS_QuickNavigation.Data
 
 		//Projects
 		public HashSet<string> Projects { get; private set; } = new HashSet<string>();
+
+		private string mProjectsString;
 		public string ProjectsString
 		{
 			get
 			{
-				StringBuilder sb = new StringBuilder();
-				foreach (string project in Projects)
+				if (mProjectsString == null)
 				{
-					if (sb.Length > 0)
+					StringBuilder sb = new StringBuilder();
+					foreach (string project in Projects)
 					{
-						sb.Append(" | ");
+						if (sb.Length > 0)
+						{
+							sb.Append(" | ");
+						}
+						sb.Append(project);
 					}
-					sb.Append(project);
+					mProjectsString = sb.ToString();
 				}
-				return sb.ToString();
+				return mProjectsString;
 			}
 		}
 
