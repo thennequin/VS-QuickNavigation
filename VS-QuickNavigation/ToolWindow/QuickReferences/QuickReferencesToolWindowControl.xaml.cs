@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using VS_QuickNavigation.Utils;
 
@@ -31,7 +32,7 @@ namespace VS_QuickNavigation
 	public partial class QuickReferencesToolWindowControl : UserControl
 	{
 		private CancellationTokenSource mToken;
-		private System.Threading.Tasks.Task mTask;
+		private Task mTask;
 		public QuickReferencesToolWindowControl()
 		{
 			InitializeComponent();
@@ -50,17 +51,19 @@ namespace VS_QuickNavigation
 					mToken.Cancel();
 				}
 				mToken = new CancellationTokenSource();
-
-				if (null != mTask && !mTask.IsCompleted)
-				{
-					mTask.Wait();
-				}
+				CancellationToken localToken = mToken.Token;
+				Task previousTask = mTask;
 
 				ThreadSafeObservableCollection<ReferenceList> oRefLists = new ThreadSafeObservableCollection<ReferenceList>();
-
-				mTask = System.Threading.Tasks.Task.Run(() =>
+				
+				mTask = Task.Run(() =>
 				{
-					if (!mToken.IsCancellationRequested)
+					if (null != previousTask && !previousTask.IsCompleted)
+					{
+						previousTask.Wait();
+					}
+
+					if (!localToken.IsCancellationRequested)
 					{
 						Dispatcher.Invoke(delegate () {
 							treeView.ItemsSource = oRefLists;
@@ -72,7 +75,13 @@ namespace VS_QuickNavigation
 						});
 
 						//Search in all files with symbols for avoid binary files
-						var files = Common.Instance.SolutionWatcher.Files.Where(f => f.Symbols != null && f.Symbols.Any()).ToList();
+						var files = Common.Instance.SolutionWatcher.Files
+							.AsParallel()
+							.WithCancellation(localToken)
+							.Where(f => f.Symbols != null && f.Symbols.Any()).ToList();
+
+						if (localToken.IsCancellationRequested)
+							return;
 
 						int iFile = 0;
 						int iFileCount = files.Count();
@@ -89,7 +98,7 @@ namespace VS_QuickNavigation
 
 							++iFile;
 
-							if (mToken.IsCancellationRequested)
+							if (localToken.IsCancellationRequested)
 							{
 								break;
 							}
