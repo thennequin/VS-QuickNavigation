@@ -165,8 +165,8 @@ namespace VS_QuickNavigation
 					MenuItem oItem = new MenuItem();
 					oItem.Tag = sText;
 					string sTrimText = sText.Trim();
-					if (sTrimText.Length > 20)
-						sTrimText = sTrimText.Substring(0, 20) + "...";
+					if (sTrimText.Length > 60)
+						sTrimText = sTrimText.Substring(0, 60) + "...";
 					TextBlock oTextBlock = new TextBlock();
 					oTextBlock.Inlines.Add(new Run(sTrimText));
 					oItem.Header = oTextBlock;
