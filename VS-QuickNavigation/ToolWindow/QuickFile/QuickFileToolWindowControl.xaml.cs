@@ -18,20 +18,15 @@ namespace VS_QuickNavigation
 
 		private bool mHistoryOnly;
 
+		private List<FileData> mFiles;
+		private object mFileLocker = new object();
 		private CancellationTokenSource mToken;
+        private Task mTask;
 
-		public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
 		private DeferredAction mDeferredRefresh;
 		const int c_RefreshDelay = 100;
-
-		public string FileHeader
-		{
-			get
-			{
-				return "Files (" + Common.Instance.SolutionWatcher.FilesCount + ")";
-			}
-		}
 
 		protected virtual void OnPropertyChanged(string propertyName)
 		{
@@ -66,6 +61,10 @@ namespace VS_QuickNavigation
 
 		public void RefreshContent()
 		{
+			lock (mFileLocker)
+			{
+				mFiles = null;
+			}
 			mDeferredRefresh.Defer(0);
 		}
 
@@ -149,77 +148,101 @@ namespace VS_QuickNavigation
 			{
 				mToken.Cancel();
 			}
+
 			mToken = new CancellationTokenSource();
+			CancellationTokenSource localToken = mToken;
+			Task previousTask = mTask;
+
 			string sSearch = textBox.Text;
-			Task.Run(() =>
+			
+			mTask = Task.Run(() =>
 			{
-				try
+				if (previousTask != null && !previousTask.IsCompleted)
 				{
-					//Common.Instance.SolutionWatcher.SetNeedRefresh();
-					ParallelQuery<FileData> source = null;
-					if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
-					{
-						source = Common.Instance.SolutionWatcher.Files
-							.AsParallel()
-							.WithCancellation(mToken.Token)
-							.Where(fileData => fileData.Status == FileStatus.Recent)
-							;
-					}
-					else
-					{
-						string[] exts = Common.Instance.Settings.ListedExtensions;
-
-						source = Common.Instance.SolutionWatcher.Files
-							.AsParallel()
-							.WithCancellation(mToken.Token)
-							.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
-							;
-					}
-
-					int total = source.Count();
-
-					IEnumerable<SearchResultData<FileData>> results = source
-						.Select(fileData => new SearchResultData<FileData>(fileData, sSearch, fileData.Path, CommonUtils.ToArray<string>("\\","/")))
-						;
-
-					if (!string.IsNullOrWhiteSpace(sSearch))
-					{
-						int searchStringLen = sSearch.Length;
-						results = results.Where(resultData => resultData.SearchScore > searchStringLen);
-					}
-
-					results = results.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
-						.ThenByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
-						;
-
-					int count = results.Count();
-
-					Action<IEnumerable> setMethod = (res) =>
-					{
-						listView.ItemsSource = res;
-						CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
-						view.GroupDescriptions.Clear();
-
-						if (string.IsNullOrWhiteSpace(sSearch))
-						{
-							PropertyGroupDescription groupDescription = new PropertyGroupDescription("Data.StatusString");
-
-							view.GroupDescriptions.Add(groupDescription);
-						}
-
-						string title = mQuickFileToolWindow.Title;
-						int pos = title.IndexOf(" [");
-						if (pos != -1)
-						{
-							title = title.Substring(0, pos);
-						}
-						mQuickFileToolWindow.Title = title + " [" + count + "/" + total + "]";
-					};
-					
-					Dispatcher.Invoke(setMethod, results.ToList());
+					previousTask.Wait();
 				}
-				catch (Exception) { }
-				
+
+				if (localToken.IsCancellationRequested)
+					return;
+
+				lock (mFileLocker)
+				{
+					try
+					{
+						if (mFiles == null)
+						{
+							if (mHistoryOnly || string.IsNullOrWhiteSpace(sSearch))
+							{
+								mFiles = Common.Instance.SolutionWatcher.Files
+									.Where(fileData => fileData.Status == FileStatus.Recent)
+									.ToList();
+							}
+							else
+							{
+								string[] exts = Common.Instance.Settings.ListedExtensions;
+
+								mFiles = Common.Instance.SolutionWatcher.Files
+									.AsParallel()
+									.WithCancellation(localToken.Token)
+									.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)))
+									.ToList();
+							}
+						}
+						//Common.Instance.SolutionWatcher.SetNeedRefresh();
+
+						int total = mFiles.Count();
+
+						if (localToken.IsCancellationRequested)
+							return;
+
+						ParallelQuery<SearchResultData<FileData>> results = mFiles
+							.AsParallel()
+							.WithCancellation(localToken.Token)
+							.Select(fileData => new SearchResultData<FileData>(fileData, sSearch, fileData.Path, CommonUtils.ToArray<string>("\\", "/")))
+							;
+
+						if (localToken.IsCancellationRequested)
+							return;
+
+						if (!string.IsNullOrWhiteSpace(sSearch))
+						{
+							int searchStringLen = sSearch.Length;
+							results = results.Where(resultData => resultData.SearchScore > searchStringLen);
+						}
+
+						results = results.OrderByDescending(fileData => fileData.SearchScore) // Sort by score
+							.ThenByDescending(fileData => fileData.Data.RecentIndex) // Sort by last access
+							.Take(100)
+							;
+
+						if (localToken.IsCancellationRequested)
+							return;
+
+						int count = results.Count();
+
+						if (localToken.IsCancellationRequested)
+							return;
+
+						Action<IEnumerable> setMethod = (res) =>
+						{
+							listView.ItemsSource = res;
+							CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listView.ItemsSource);
+							view.GroupDescriptions.Clear();
+
+							if (string.IsNullOrWhiteSpace(sSearch))
+							{
+								PropertyGroupDescription groupDescription = new PropertyGroupDescription("Data.StatusString");
+
+								view.GroupDescriptions.Add(groupDescription);
+							}
+
+							mQuickFileToolWindow.Title = string.Format("{0} [{1}/{2}]", mQuickFileToolWindow.mTitle, count, total);
+						};
+
+						Dispatcher.Invoke(setMethod, results.ToList());
+					}
+					catch (Exception) { }
+				}
 			});
 		}
 

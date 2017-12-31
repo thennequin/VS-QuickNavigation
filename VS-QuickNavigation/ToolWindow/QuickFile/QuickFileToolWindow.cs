@@ -8,17 +8,19 @@ namespace VS_QuickNavigation
 	[Guid("fd82e816-228c-4fbb-991d-4f8e9536b386")]
 	public class QuickFileToolWindow : DialogWindow
 	{
+		public string mTitle;
 		public QuickFileToolWindow(bool bHistoryOnly) : base()
 		{
 			if (bHistoryOnly)
 			{
-				this.Title = "Quick History";
+				mTitle = "Quick History";
 			}
 			else
 			{
-				this.Title = "Quick File";
+				mTitle = "Quick File";
 			}
-			
+
+			this.Title = mTitle;
 
 			this.Content = new QuickFileToolWindowControl(this, bHistoryOnly);
 

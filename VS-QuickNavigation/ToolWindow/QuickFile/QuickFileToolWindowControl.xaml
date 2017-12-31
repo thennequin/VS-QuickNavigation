@@ -31,7 +31,7 @@
                   >
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="600" Header="{Binding FileHeader}" >
+                    <GridViewColumn Width="600" Header="Files" >
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
