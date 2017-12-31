@@ -165,8 +165,22 @@ namespace VS_QuickNavigation
 					MenuItem oItem = new MenuItem();
 					oItem.Tag = sText;
 					string sTrimText = sText.Trim();
+					bool bAddDots = false;
+					int iNewLinePos = sTrimText.IndexOf('\n');
+					if (iNewLinePos != -1)
+					{
+						sTrimText = sTrimText.Substring(0, iNewLinePos);
+						bAddDots = true;
+					}
 					if (sTrimText.Length > 60)
-						sTrimText = sTrimText.Substring(0, 60) + "...";
+					{
+						sTrimText = sTrimText.Substring(0, 60);
+						bAddDots = true;
+					}
+					if (bAddDots)
+					{
+						sTrimText += "...";
+					}
 					TextBlock oTextBlock = new TextBlock();
 					oTextBlock.Inlines.Add(new Run(sTrimText));
 					oItem.Header = oTextBlock;
