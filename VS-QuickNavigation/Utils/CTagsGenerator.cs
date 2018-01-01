@@ -340,7 +340,11 @@ namespace VS_QuickNavigation.Utils
 									}
 									else if (tagInfos[i].StartsWith("typeref:"))
 									{
-										oSymbol.TypeRef = tagInfos[i].Substring("typeref:".Length);
+										string sTypeRef = tagInfos[i].Substring("typeref:".Length);
+										if (sTypeRef.StartsWith("typename:"))
+											sTypeRef = sTypeRef.Substring("typename:".Length);
+
+										oSymbol.TypeRef = sTypeRef;
 									}
 									else if (tagInfos[i].StartsWith("access:"))
 									{
