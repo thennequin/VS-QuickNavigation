@@ -189,7 +189,7 @@ namespace VS_QuickNavigation
 							files = mFiles
 								.AsParallel()
 								.WithCancellation(localToken.Token)
-								.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)));
+								.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase)));
 						}
 						//Common.Instance.SolutionWatcher.SetNeedRefresh();
 
