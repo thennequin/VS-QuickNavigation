@@ -74,11 +74,12 @@ namespace VS_QuickNavigation
 							progressBar.Value = 0;
 						});
 
-						//Search in all files with symbols for avoid binary files
+						string[] exts = Common.Instance.Settings.ListedExtensions;
+
 						var files = Common.Instance.SolutionWatcher.Files
 							.AsParallel()
 							.WithCancellation(localToken)
-							.Where(f => f.Symbols != null && f.Symbols.Any()).ToList();
+							.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase)));
 
 						if (localToken.IsCancellationRequested)
 							return;
