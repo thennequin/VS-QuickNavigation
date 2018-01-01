@@ -154,8 +154,9 @@ namespace VS_QuickNavigation
 			Task previousTask = mTask;
 
 			string sSearch = textBox.Text;
-			
-			mTask = Task.Run(() =>
+
+			var uiContext = TaskScheduler.FromCurrentSynchronizationContext();
+			mTask = Task.Factory.StartNew(() =>
 			{
 				if (previousTask != null && !previousTask.IsCompleted)
 				{
@@ -240,11 +241,11 @@ namespace VS_QuickNavigation
 							mQuickFileToolWindow.Title = string.Format("{0} [{1}/{2}]", mQuickFileToolWindow.mTitle, count, total);
 						};
 
-						Dispatcher.Invoke(setMethod, results.ToList());
+						Dispatcher.BeginInvoke(setMethod, results.ToList());
 					}
 					catch (Exception) { }
 				}
-			});
+			}, localToken.Token, TaskCreationOptions.None, uiContext);
 		}
 
 		private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
