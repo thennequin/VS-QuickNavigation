@@ -88,6 +88,9 @@ namespace VS_QuickNavigation
 
 						foreach (Data.FileData fileData in files)
 						{
+							if (!System.IO.File.Exists(fileData.Path))
+								continue;
+
 							string[] sLines = System.IO.File.ReadAllLines(fileData.Path);
 							IEnumerable<WordRef> oFileRefs = CommonUtils.FindLastWord(sLines, sSymbol);
 							if (oFileRefs.Any())
