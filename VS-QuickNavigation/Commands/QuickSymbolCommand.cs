@@ -35,6 +35,7 @@ namespace VS_QuickNavigation
 					Data.SymbolData.ESymbolType.Struct |
 					Data.SymbolData.ESymbolType.Class |
 					Data.SymbolData.ESymbolType.Interface |
+					Data.SymbolData.ESymbolType.TypeDef |
 					Data.SymbolData.ESymbolType.Macro |
 					Data.SymbolData.ESymbolType.Enumerator |
 					Data.SymbolData.ESymbolType.Enumeration |

@@ -8,24 +8,24 @@ namespace VS_QuickNavigation.Data
 		public enum ESymbolType
 		{
 			Namespace			= 1 << 0,
-			Struct              = 1 << 1,
+			Struct				= 1 << 1,
 			Class				= 1 << 2,
 			Interface			= 1 << 3,
-			Macro				= 1 << 4,
-			Enumerator			= 1 << 5,
-			Enumeration			= 1 << 6,
-			Method				= 1 << 7,
+			TypeDef				= 1 << 4,
+			Macro				= 1 << 5,
+			Enumerator			= 1 << 6,
+			Enumeration			= 1 << 7,
+			Method				= 1 << 8,
 			[Utils.Description("Method proto")]
-			MethodPrototype		= 1 << 8,
+			MethodPrototype		= 1 << 9,
 
-			Field				= 1 << 9,
-			Property			= 1 << 10,
+			Field				= 1 << 10,
+			Property			= 1 << 11,
 
-			Local				= 1 << 11
+			Local				= 1 << 12
 
-			//StructureName		= 1024,
-			//TypeDef				= 2048,
-			//UnionName			= 4096,
+			//StructureName,
+			//UnionName,
 		}
 
 		public string Symbol { get; set; }

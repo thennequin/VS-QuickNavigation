@@ -294,6 +294,14 @@ namespace VS_QuickNavigation.Utils
 									eType = SymbolData.ESymbolType.Class;
 									bTypeFound = true;
 									break;
+								case "interface":
+									eType = SymbolData.ESymbolType.Interface;
+									bTypeFound = true;
+									break;
+								case "typedef":
+									eType = SymbolData.ESymbolType.TypeDef;
+									bTypeFound = true;
+									break;
 								case "macro":
 									eType = SymbolData.ESymbolType.Macro;
 									bTypeFound = true;
