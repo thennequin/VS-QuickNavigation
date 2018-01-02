@@ -53,8 +53,6 @@ namespace VS_QuickNavigation
 			EnvDTE.OutputWindow outputWindow = (EnvDTE.OutputWindow)window.Object;
 			outputWindow.ActivePane.Activate();
 
-
-
 			Data.SymbolData originSymbol = null;
 			//Search in local file
 			IEnumerable<Data.SymbolData> documentSymbols = CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument);

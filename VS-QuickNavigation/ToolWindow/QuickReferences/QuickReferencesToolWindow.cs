@@ -12,7 +12,7 @@ namespace VS_QuickNavigation
 			QuickReferencesToolWindow oWindow = Common.Instance.Package.FindToolWindow(typeof(QuickReferencesToolWindow), 0, true) as QuickReferencesToolWindow;
 
 			IVsWindowFrame windowFrame = (IVsWindowFrame)oWindow.Frame;
-			windowFrame.Show();
+			Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
 
 			return oWindow;
 		}

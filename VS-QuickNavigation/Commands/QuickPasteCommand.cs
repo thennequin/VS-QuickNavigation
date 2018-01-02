@@ -61,7 +61,6 @@ namespace VS_QuickNavigation
 				switch (m.Msg)
 				{
 					case WM_DRAWCLIPBOARD:
-						//DisplayClipboardData();
 						bool bActive = false;
 
 						IntPtr activeWindow = GetActiveWindow();
