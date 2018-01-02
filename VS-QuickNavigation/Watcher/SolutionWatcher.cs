@@ -21,6 +21,8 @@ namespace VS_QuickNavigation
 		private EnvDTE.WindowEvents mWindowEvents;
 		private EnvDTE.DocumentEvents mDocumentEvents;
 		private EnvDTE.ProjectItemsEvents mSolutionItemsEvents;
+		private EnvDTE.ProjectsEvents mProjectEvents;
+		private EnvDTE.ProjectItemsEvents mMiscItemsEvents;
 
 		HistoryList<string> mFileHistory = new HistoryList<string>(50);
 
@@ -48,6 +50,16 @@ namespace VS_QuickNavigation
 			mSolutionItemsEvents.ItemAdded += OnItemAdded;
 			mSolutionItemsEvents.ItemRemoved += OnItemRemoved;
 			mSolutionItemsEvents.ItemRenamed += OnItemRenamed;
+
+			mProjectEvents = (Common.Instance.DTE2.Events as EnvDTE80.Events2).ProjectsEvents;
+			mProjectEvents.ItemAdded += OnProjectAdded;
+			mProjectEvents.ItemRemoved += OnProjectRemoved;
+			mProjectEvents.ItemRenamed += OnProjectRenamed;
+
+			mMiscItemsEvents = Common.Instance.DTE2.Events.MiscFilesEvents;
+			mMiscItemsEvents.ItemAdded += OnItemAdded;
+			mMiscItemsEvents.ItemRemoved += OnItemRemoved;
+			mMiscItemsEvents.ItemRenamed += OnItemRenamed;
 
 			RefreshOpenHistory();
 
@@ -103,6 +115,26 @@ namespace VS_QuickNavigation
 			{
 				fileData.GenerateSymbols();
 			}
+		}
+		#endregion
+
+		#region Project events
+		void OnProjectAdded(EnvDTE.Project oProject)
+		{
+			//mNeedRefresh = true;
+			RefreshFileList();
+		}
+
+		void OnProjectRemoved(EnvDTE.Project oProject)
+		{
+			//mNeedRefresh = true;
+			RefreshFileList();
+		}
+
+		void OnProjectRenamed(EnvDTE.Project oProject, string sOldName)
+		{
+			//mNeedRefresh = true;
+			RefreshFileList();
 		}
 		#endregion
 
