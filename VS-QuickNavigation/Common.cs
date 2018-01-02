@@ -28,13 +28,6 @@ namespace VS_QuickNavigation
 
 		public VSQuickNavigationPackage Package { get; set; }
 
-		/*public EnvDTE80.DTE2 DTE2
-		{
-			get
-			{
-				return ServiceProvider.GlobalProvider.GetService(typeof(SDTE)) as EnvDTE80.DTE2;
-			}
-		}*/
 		public EnvDTE80.DTE2 DTE2 { get; set; }
 		public IVsShell Shell { get; set; }
 		public IVsSolution Solution { get; set; }

@@ -84,7 +84,6 @@ namespace VS_QuickNavigation.Utils
 					_lock.ExitWriteLock();
 				}
 			}, DispatcherPriority.DataBind);
-
 		}
 
 		/// <summary>
