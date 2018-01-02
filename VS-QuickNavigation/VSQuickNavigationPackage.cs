@@ -54,9 +54,9 @@ namespace VS_QuickNavigation
 		public VSQuickNavigationPackage()
 		{
 			Common.Instance.Package = this;
-			Common.Instance.DTE2 = ServiceProvider.GlobalProvider.GetService(typeof(SDTE)) as EnvDTE80.DTE2;
-			Common.Instance.Shell = ServiceProvider.GlobalProvider.GetService(typeof(SVsShell)) as IVsShell;
-			Common.Instance.Solution = ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) as IVsSolution2;
+			Common.Instance.DTE2 = Common.Instance.GetService<SDTE>() as EnvDTE80.DTE2;
+			Common.Instance.Shell = Common.Instance.GetService<SVsShell>() as IVsShell;
+			Common.Instance.Solution = Common.Instance.GetService<SVsSolution>() as IVsSolution2;
 			Common.Instance.Settings = new Settings();
 
 			Common.Instance.SolutionWatcher = new SolutionWatcher();

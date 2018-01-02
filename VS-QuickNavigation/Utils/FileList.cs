@@ -40,7 +40,7 @@ namespace VS_QuickNavigation
 		{
 			get
 			{
-				IVsSolution solution = ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) as IVsSolution;
+				IVsSolution solution = Common.Instance.GetService<SVsSolution>() as IVsSolution;
 				IEnumHierarchies enumerator = null;
 				Guid guid = Guid.Empty;
 				solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref guid, out enumerator);
