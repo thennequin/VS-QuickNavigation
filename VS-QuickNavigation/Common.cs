@@ -39,6 +39,14 @@ namespace VS_QuickNavigation
 		public IVsShell Shell { get; set; }
 		public IVsSolution Solution { get; set; }
 
+		public T GetService<T>()
+		{
+			T service = (T)Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.GetService(typeof(T));
+			if (service == null)
+				service = (T)((System.IServiceProvider)Package).GetService(typeof(T));
+			return service;
+		}
+
 		public SolutionWatcher SolutionWatcher { get; set; }
 		public Settings Settings { get; set; }
 

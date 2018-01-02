@@ -24,7 +24,7 @@ namespace VS_QuickNavigation
 
 			this.package = package;
 
-			OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+			OleMenuCommandService commandService = Common.Instance.GetService<IMenuCommandService>() as OleMenuCommandService;
 			if (commandService != null)
 			{
 				var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -37,14 +37,6 @@ namespace VS_QuickNavigation
 		{
 			get;
 			private set;
-		}
-
-		private IServiceProvider ServiceProvider
-		{
-			get
-			{
-				return this.package;
-			}
 		}
 
 		public static void Initialize(Package package)
