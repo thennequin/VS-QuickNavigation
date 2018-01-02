@@ -602,18 +602,6 @@ namespace VS_QuickNavigation
 				}
 			}
 
-			/*EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-			Action<int, int> progressAction = (current, total) =>
-			{
-				if ((current % 5) == 0)
-				{
-					sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + total, current, total);
-				}
-			};
-			IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFiles(lToGenerate, progressAction);
-
-			sbar.Progress(false, "QuickNavigation Analysing solution ...", 0, 0);*/
-
 			IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFilesWithProgress(lToGenerate);
 
 			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;

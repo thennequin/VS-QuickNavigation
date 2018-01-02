@@ -109,22 +109,35 @@ namespace VS_QuickNavigation.Utils
 			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
 			sbar.Progress(true, "QuickNavigation Scan solution ...", 0, 1);
 
-			IEnumerable<SymbolData> symbols = null;
+			List<SymbolData> lSymbols = new List<SymbolData>();
 
-			for (int current = 0, count = filePaths.Count(); current < count;current += 50)
-			{
-				IEnumerable<SymbolData> newSymbols = GeneratorFromFiles(filePaths.Skip(current).Take(50));
-				if (symbols == null)
-					symbols = newSymbols;
-				else
-					symbols = symbols.Concat(newSymbols);
+			var filePackets = filePaths
+				.Select((s, i) => new { Value = s, Index = i })
+				.GroupBy(i => i.Index / 50, i => i.Value)
+				.Cast<IEnumerable<string>>();
 
-				sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + count, current, count);
-			}
+			int current = 0;
+			int count = filePaths.Count();
+
+			filePackets
+				.AsParallel()
+				.WithDegreeOfParallelism(4)
+				.ForAll(p =>
+					{
+						IEnumerable<SymbolData> newSymbols = GeneratorFromFiles(p);
+						lock(lSymbols)
+						{
+							lSymbols.AddRange(newSymbols);
+
+							current += p.Count();
+
+							sbar.Progress(true, "QuickNavigation Scan solution " + current + "/" + count, current, count);
+						}
+					});
 
 			sbar.Progress(false);
 
-			return symbols;
+			return lSymbols;
 		}
 
 		static public IEnumerable<SymbolData> GeneratorFromFiles(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
