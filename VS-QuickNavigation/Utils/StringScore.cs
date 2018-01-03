@@ -6,6 +6,17 @@ namespace VS_QuickNavigation
 {
 	internal class StringScore
 	{
+		public struct Match
+		{
+			public Match(int index, int length)
+			{
+				Index = index;
+				Length = length;
+			}
+			public int Index;
+			public int Length;
+		}
+
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		private static int CharScore(char a, char b)
 		{
@@ -21,7 +32,7 @@ namespace VS_QuickNavigation
 		}
 
 		
-		public static int Search(string query, string content, List<Tuple<int,int>> matchIndexOut = null, int doubleScoreStart = 0)
+		public static int Search(string query, string content, List<Match> matchIndexOut = null, int doubleScoreStart = 0)
 		{
 			if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(content))
 			{
@@ -71,7 +82,7 @@ namespace VS_QuickNavigation
 					if (null != matchIndexOut && currentMatch.HasValue)
 					{
 						Debug.Assert((contentIndex - currentMatch.Value) < 0);
-						matchIndexOut.Insert(0, new Tuple<int, int>(contentIndex+1, currentMatch.Value - contentIndex));
+						matchIndexOut.Insert(0, new Match(contentIndex+1, currentMatch.Value - contentIndex));
 						currentMatch = null;
 					}
 				}
@@ -82,7 +93,7 @@ namespace VS_QuickNavigation
 			if (null != matchIndexOut && currentMatch.HasValue)
 			{
 				Debug.Assert((contentIndex - currentMatch.Value) < 0);
-				matchIndexOut.Insert(0, new Tuple<int, int>(contentIndex+1, currentMatch.Value - contentIndex));
+				matchIndexOut.Insert(0, new Match(contentIndex+1, currentMatch.Value - contentIndex));
 			}
 
 			float ratio = 1f + (float)totalChar / (float)(content.Length - doubleScoreStart);
@@ -136,7 +147,7 @@ namespace VS_QuickNavigation
 					if (null != matchIndexOut && currentMatch.HasValue)
 					{
 						Debug.Assert((stringIndex - currentMatch.Value) > 0);
-						matchIndexOut.Add(new Tuple<int, int>(currentMatch.Value, stringIndex - currentMatch.Value));
+						matchIndexOut.Add(new Match(currentMatch.Value, stringIndex - currentMatch.Value));
 						currentMatch = null;
 					}
 				}
@@ -145,7 +156,7 @@ namespace VS_QuickNavigation
 			}
 		}*/
 
-		public static void FormatMatches(string sString, List<Tuple<int, int>> matches, List<Tuple<string, bool>> formatted, int start = 0/*, int end = -1*/)
+		public static void FormatMatches(string sString, List<Match> matches, List<Tuple<string, bool>> formatted, int start = 0/*, int end = -1*/)
 		{
 			formatted.Clear();
 			if (matches.Count > 0)
@@ -153,23 +164,23 @@ namespace VS_QuickNavigation
 				int previousIndex = start;
 				foreach (var match in matches)
 				{
-					if (match.Item1 < start && (match.Item1 + match.Item2) < start)
+					if (match.Index < start && (match.Index + match.Length) < start)
 					{
 						continue;
 					}
-					if (match.Item1 > start)
+					if (match.Index > start)
 					{
-						formatted.Add(Tuple.Create(sString.Substring(previousIndex, match.Item1 - previousIndex), false));
+						formatted.Add(Tuple.Create(sString.Substring(previousIndex, match.Index - previousIndex), false));
 					}
-					formatted.Add(Tuple.Create(sString.Substring(match.Item1, match.Item2), true));
+					formatted.Add(Tuple.Create(sString.Substring(match.Index, match.Length), true));
 
-					previousIndex = match.Item1 + match.Item2;
+					previousIndex = match.Index + match.Length;
 				}
 
-				Tuple<int, int> lastMatch = matches[matches.Count - 1];
-				if ((lastMatch.Item1 + lastMatch.Item2) < sString.Length)
+				Match lastMatch = matches[matches.Count - 1];
+				if ((lastMatch.Index + lastMatch.Length) < sString.Length)
 				{
-					formatted.Add(Tuple.Create(sString.Substring(Math.Max(start,lastMatch.Item1 + lastMatch.Item2)), false));
+					formatted.Add(Tuple.Create(sString.Substring(Math.Max(start,lastMatch.Index + lastMatch.Length)), false));
 				}
 			}
 			else
