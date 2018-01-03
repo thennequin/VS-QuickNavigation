@@ -49,10 +49,6 @@ namespace VS_QuickNavigation
 			int iCurrentLine = CommonUtils.GetCurrentLine();
 			string sCurrentFile = Common.Instance.DTE2.ActiveDocument.FullName.ToLower();
 
-			EnvDTE.Window window = Common.Instance.DTE2.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
-			EnvDTE.OutputWindow outputWindow = (EnvDTE.OutputWindow)window.Object;
-			outputWindow.ActivePane.Activate();
-
 			Data.SymbolData originSymbol = null;
 			//Search in local file
 			IEnumerable<Data.SymbolData> documentSymbols = CTagsGenerator.GeneratorFromDocument(Common.Instance.DTE2.ActiveDocument);
