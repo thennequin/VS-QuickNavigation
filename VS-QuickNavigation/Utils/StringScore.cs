@@ -22,16 +22,18 @@ namespace VS_QuickNavigation
 		{
 			if ( a == b )
 			{
-				return 2;
+				return 3;
 			}
 			else if (char.ToUpperInvariant(a) == char.ToUpperInvariant(b))
 			{
-				return 1;
+				if (char.IsUpper(b))
+					return 2;
+				else
+					return 1;
 			}
 			return 0;
 		}
 
-		
 		public static int Search(string query, string content, List<Match> matchIndexOut = null, int doubleScoreStart = 0)
 		{
 			if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(content))
@@ -51,7 +53,7 @@ namespace VS_QuickNavigation
 				//int bestScore = 0;
 				//int bestScoreLastCharPos = 0;
 
-				int charScore = CharScore(content[contentIndex], query[queryIndex]);
+				int charScore = CharScore(query[queryIndex], content[contentIndex]);
 				if (charScore > 0)
 				{
 					if (!currentMatch.HasValue)
