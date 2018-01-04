@@ -280,7 +280,7 @@ namespace VS_QuickNavigation.Utils
 
 		public static bool GetActiveDocumentCursorScreenPos(out System.Windows.Point oPoint, bool bNextLine)
 		{
-			IVsTextManager oTextMgr = Common.Instance.GetService<SVsTextManager>() as IVsTextManager;
+			IVsTextManager oTextMgr = Common.Instance.GetServiceAs<SVsTextManager, IVsTextManager>();
 			if(oTextMgr != null)
 			{
 				IVsTextView oTextViewCurrent;
