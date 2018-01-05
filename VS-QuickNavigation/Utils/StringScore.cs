@@ -22,11 +22,14 @@ namespace VS_QuickNavigation
 		{
 			if ( a == b )
 			{
-				return 3;
+				if (char.IsUpper(b) || !char.IsLetter(b))
+					return 4;
+				else
+					return 3;
 			}
 			else if (char.ToUpperInvariant(a) == char.ToUpperInvariant(b))
 			{
-				if (char.IsUpper(b))
+				if (char.IsUpper(b) || !char.IsLetter(b))
 					return 2;
 				else
 					return 1;
