@@ -53,21 +53,6 @@ namespace VS_QuickNavigation.Data
 			}
 		}
 
-		public string PreSymbol
-		{
-			get
-			{
-				string sTypeRef = TypeRef;
-				string sScopePretty = ScopePretty;
-				if (sTypeRef != null && sScopePretty != null)
-					return sTypeRef + " " + sScopePretty;
-				else if (sTypeRef != null)
-					return sTypeRef;
-				else if (sScopePretty != null)
-					return sScopePretty;
-				return null;
-			}
-		}
 		public string TypeRef { get; set; }
 		public string Access { get; set; }
 		public string[] Inherits { get; set; }

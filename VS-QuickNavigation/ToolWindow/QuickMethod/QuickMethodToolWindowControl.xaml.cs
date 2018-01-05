@@ -172,7 +172,7 @@ namespace VS_QuickNavigation
 
 						ParallelQuery<SearchResultData<SymbolData>> results = source
 							.Where(symbol => (symbol.Type & mSupportedSymbolTypes) != 0)
-							.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.Symbol, null, symbolData.PreSymbol, symbolData.Parameters));
+							.Select(symbolData => new SearchResultData<SymbolData>(symbolData, sSearch, symbolData.ScopePretty + symbolData.Symbol, symbolData.ScopePretty.Length, symbolData.TypeRef + " ", symbolData.Parameters));
 
 						if (localToken.IsCancellationRequested)
 							return;

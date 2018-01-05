@@ -11,7 +11,26 @@ namespace VS_QuickNavigation.Data
 		{
 			mBeforeFormatted = beforeFormatted;
 			mAfterFormatted = afterFormatted;
-			Search(sQuery, sSearchIn, sSplitLast);
+
+			int splitIndex = -1;
+			if (sSplitLast != null)
+			{
+				foreach (string sSplit in sSplitLast)
+				{
+					splitIndex = Math.Max(splitIndex, sSearchIn.LastIndexOf(sSplit));
+				}
+			}
+
+			Search(sQuery, sSearchIn, splitIndex, splitIndex);
+			mSearchFormatted = null;
+		}
+
+		public SearchResult(string sQuery, string sSearchIn, int doubleScoreIndex, string beforeFormatted = null, string afterFormatted = null)
+		{
+			mBeforeFormatted = beforeFormatted;
+			mAfterFormatted = afterFormatted;
+
+			Search(sQuery, sSearchIn, -1, doubleScoreIndex);
 			mSearchFormatted = null;
 		}
 
@@ -34,22 +53,14 @@ namespace VS_QuickNavigation.Data
 			}
 		}
 
-		void Search(string sQuery, string sSearchIn, string[] sSplitLast = null)
+		void Search(string sQuery, string sSearchIn, int splitIndex = -1, int doubleScoreIndex = -1)
 		{
 			List<StringScore.Match> matches = new List<StringScore.Match>();
-			int index = -1;
-			if (sSplitLast != null)
-			{
-				foreach (string sSplit in sSplitLast)
-				{
-					index = Math.Max(index, sSearchIn.LastIndexOf(sSplit));
-				}
-			}
 
-			SearchScore = StringScore.Search(sQuery, sSearchIn, matches, index);
-			if (index != -1)
+			SearchScore = StringScore.Search(sQuery, sSearchIn, matches, doubleScoreIndex);
+			if (splitIndex != -1)
 			{
-				StringScore.FormatMatches(sSearchIn, matches, mFormatted, index + 1);
+				StringScore.FormatMatches(sSearchIn, matches, mFormatted, splitIndex + 1);
 				StringScore.FormatMatches(sSearchIn, matches, mSubFormatted);
 			}
 			else
@@ -107,6 +118,12 @@ namespace VS_QuickNavigation.Data
 	{
 		public SearchResultData(T data, string sQuery, string sSearchIn, string[] sSplitLast = null, string beforeFormatted = null, string afterFormatted = null)
 			: base(sQuery, sSearchIn, sSplitLast, beforeFormatted, afterFormatted)
+		{
+			Data = data;
+		}
+
+		public SearchResultData(T data, string sQuery, string sSearchIn, int splitIndex, string beforeFormatted = null, string afterFormatted = null)
+			: base(sQuery, sSearchIn, splitIndex, beforeFormatted, afterFormatted)
 		{
 			Data = data;
 		}
