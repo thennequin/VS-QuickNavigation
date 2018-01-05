@@ -186,6 +186,7 @@ namespace VS_QuickNavigation
 						}
 
 						results = results
+							.OrderBy(resultData => resultData.Data.Symbol)
 							.OrderByDescending(resultData => resultData.SearchScore)
 							;
 
