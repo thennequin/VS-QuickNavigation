@@ -186,8 +186,8 @@ namespace VS_QuickNavigation
 						}
 
 						results = results
-							.OrderBy(resultData => resultData.Data.Symbol)
 							.OrderByDescending(resultData => resultData.SearchScore)
+							.ThenByDescending(resultData => resultData.Data.Symbol)
 							;
 
 						if (localToken.IsCancellationRequested)
