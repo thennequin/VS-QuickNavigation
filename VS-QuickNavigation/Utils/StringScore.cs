@@ -83,7 +83,9 @@ namespace VS_QuickNavigation
 				}
 				else
 				{
-					combo = 1;
+					if (combo > 1)
+						--combo;
+
 					if (null != matchIndexOut && currentMatch.HasValue)
 					{
 						Debug.Assert((contentIndex - currentMatch.Value) < 0);
