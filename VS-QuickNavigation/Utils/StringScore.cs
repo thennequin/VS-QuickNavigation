@@ -109,9 +109,9 @@ namespace VS_QuickNavigation
 			return totalScore;
 		}
 
-		static int PatternScore(string sPattern, string sContent, int iContentBegin, int iContentEnd, int iDoubleScoreStart, out int iOutStart, out int iOutEnd, List<Match> matchIndexOut)
+		static int PatternScore(string sPattern, string sContent, int iContentBegin, int iContentEnd, int iDoubleScoreStart, out int iOutStart, out int iOutEnd, List<Match> matchIndexOut, int iComboStart, out int iOutComboEnd, out int iOutCharCount)
 		{
-			int iCombo = 1;
+			int iCombo = iComboStart;
 			int iGlobalScore = 0;
 			int iCurrentScore = 0;
 			int iStart = sContent.Length - 1;
@@ -125,7 +125,7 @@ namespace VS_QuickNavigation
 			int iCharCount = 0;
 
 			int j;
-			for (j = iContentBegin; j < iContentEnd && iPatternPos < iPatternLen; ++j)
+			for (j = iContentBegin; j <= iContentEnd && iPatternPos < iPatternLen; ++j)
 			{
 				int iCharScore = CharScore(sPattern[iPatternPos], sContent[j]);
 				if (iCharScore > 0)
@@ -135,11 +135,8 @@ namespace VS_QuickNavigation
 						currentMatch = j;
 					}
 					int iMultiplicator = (j >= iDoubleScoreStart) ? 2 : 1;
-					if (j >= iDoubleScoreStart)
-					{
-						++iCharCount;
-					}
 					iCurrentScore += iCharScore * iCombo * iMultiplicator;
+					++iCharCount;
 					++iCombo;
 					iStart = Math.Min(iStart, j);
 					iEnd = Math.Max(iEnd, j);
@@ -149,7 +146,8 @@ namespace VS_QuickNavigation
 				{
 					iGlobalScore += iCurrentScore;
 					iCurrentScore = 0;
-					iCombo = 1;
+					if (iCombo > 1)
+						--iCombo;
 
 					if (null != matchIndexOut && currentMatch.HasValue)
 					{
@@ -168,18 +166,23 @@ namespace VS_QuickNavigation
 
 			iGlobalScore += iCurrentScore;
 
-			float fLengthMatchMultiplicator = 1f + (float)iCharCount / (float)(iContentEnd - iDoubleScoreStart);
-			iGlobalScore = (int)Math.Round((float)iGlobalScore * fLengthMatchMultiplicator);
+			float fPatternScoreRadio = (float)(iPatternPos) / (float)(iPatternLen - 1);
+			iGlobalScore = (int)Math.Round((float)iGlobalScore * fPatternScoreRadio);
 
 			iOutStart = iStart;
 			iOutEnd = iEnd;
+			iOutComboEnd = iCombo;
+			iOutCharCount = iCharCount;
+
 			return iGlobalScore;
 		}
 
-		static int SearchBestPatternScore(string sPattern, string sContent, int iContentBegin, int iContentEnd, int iDoubleScoreStart, out int iBestStart, out int iBestEnd, List<Match> matchIndexOut)
+		static int SearchBestPatternScore(string sPattern, string sContent, int iContentBegin, int iContentEnd, int iDoubleScoreStart, out int iOutBestStart, out int iOutBestEnd, List<Match> matchIndexOut, int iComboStart, out int iOutComboEnd, out int iOutCharCount)
 		{
-			iBestStart = 0;
-			iBestEnd = 0;
+			iOutBestStart = 0;
+			iOutBestEnd = 0;
+			iOutComboEnd = 1;
+			iOutCharCount = 0;
 
 			int iBestScore = 0;
 			List<Match> bestMatches = null;
@@ -190,20 +193,25 @@ namespace VS_QuickNavigation
 				currentMatches = new List<Match>();
 			}
 
-			while (iContentBegin < iContentEnd)
+			while (iContentBegin <= iContentEnd)
 			{
 				int iStart;
 				int iEnd;
+				int iComboEnd;
+				int iCharCount;
+				
 				if (matchIndexOut != null)
 				{
 					currentMatches.Clear();
 				}
-				int iScore = PatternScore(sPattern, sContent, iContentBegin, iContentEnd, iDoubleScoreStart, out iStart, out iEnd, currentMatches);
+				int iScore = PatternScore(sPattern, sContent, iContentBegin, iContentEnd, iDoubleScoreStart, out iStart, out iEnd, currentMatches, iComboStart, out iComboEnd, out iCharCount);
 				if (iScore > iBestScore)
 				{
 					iBestScore = iScore;
-					iBestStart = iStart;
-					iBestEnd = iEnd;
+					iOutBestStart = iStart;
+					iOutBestEnd = iEnd;
+					iOutComboEnd = iComboEnd;
+					iOutCharCount = iCharCount;
 
 					List<Match> temp = bestMatches;
 					bestMatches = currentMatches;
@@ -233,18 +241,24 @@ namespace VS_QuickNavigation
 			string[] aQueryPatterns = sQuery.Split(' ');
 
 			int iScore = 0;
+			int iLastCombo = 1;
 			int iContentBegin = 0;
-			int iContentEnd = sContent.Length;
+			int iContentEnd = sContent.Length - 1;
+			int iTotalCharCount = 0;
 			for (int i = aQueryPatterns.Length - 1; i >= 0; --i)
 			{
-				int iBestStart, iBestEnd;
-				int iBestScore = SearchBestPatternScore(aQueryPatterns[i], sContent, iContentBegin, iContentEnd, doubleScoreStart, out iBestStart, out iBestEnd, matchIndexOut);
+				int iBestStart, iBestEnd, iCharCount;
+				int iBestScore = SearchBestPatternScore(aQueryPatterns[i], sContent, iContentBegin, iContentEnd, doubleScoreStart, out iBestStart, out iBestEnd, matchIndexOut, iLastCombo, out iLastCombo, out iCharCount);
 				iScore += iBestScore;
+				iTotalCharCount += iCharCount;
 				if (iBestScore > 0)
 				{
-					iContentEnd = iBestStart;
+					iContentEnd = iBestStart - 1;
 				}
 			}
+
+			float fLengthMatchMultiplicator = 1f + (float)iTotalCharCount / (float)(sContent.Length);
+			iScore = (int)Math.Round((float)iScore * fLengthMatchMultiplicator);
 
 			if (matchIndexOut != null)
 			{
