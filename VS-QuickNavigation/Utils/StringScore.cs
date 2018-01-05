@@ -136,7 +136,8 @@ namespace VS_QuickNavigation
 					}
 					int iMultiplicator = (j >= iDoubleScoreStart) ? 2 : 1;
 					iCurrentScore += iCharScore * iCombo * iMultiplicator;
-					++iCharCount;
+					if (j >= iDoubleScoreStart)
+						++iCharCount;
 					++iCombo;
 					iStart = Math.Min(iStart, j);
 					iEnd = Math.Max(iEnd, j);
@@ -257,7 +258,7 @@ namespace VS_QuickNavigation
 				}
 			}
 
-			float fLengthMatchMultiplicator = 1f + (float)iTotalCharCount / (float)(sContent.Length);
+			float fLengthMatchMultiplicator = 1f + (float)iTotalCharCount / (float)(sContent.Length - doubleScoreStart);
 			iScore = (int)Math.Round((float)iScore * fLengthMatchMultiplicator);
 
 			if (matchIndexOut != null)
