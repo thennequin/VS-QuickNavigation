@@ -131,6 +131,7 @@ namespace VS_QuickNavigation
 			ListedExtensions = DefaultListedExtensions;
 			MaxFileHistory = 10;
 			ParserThreads = 4;
+			WatchOnlyVsClipboard = true;
 		}
 
 		static public string[] DefaultListedExtensions
@@ -176,6 +177,8 @@ namespace VS_QuickNavigation
 		public int MaxFileHistory { get; set; }
 
 		public int ParserThreads { get; set; }
+
+		public bool WatchOnlyVsClipboard { get; set; }
 
 		public string SymbolsTheme
 		{

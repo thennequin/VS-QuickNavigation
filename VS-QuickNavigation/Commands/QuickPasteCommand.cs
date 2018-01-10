@@ -63,11 +63,14 @@ namespace VS_QuickNavigation
 					case WM_DRAWCLIPBOARD:
 						try
 						{
-							IntPtr activeWindow = GetActiveWindow();
-							uint activeProcess;
-							GetWindowThreadProcessId(activeWindow, out activeProcess);
-
-							bool bActive = System.Diagnostics.Process.GetCurrentProcess().Id == (int)activeProcess;
+							bool bActive = !Common.Instance.Settings.WatchOnlyVsClipboard;
+							if (bActive == false)
+							{
+								IntPtr activeWindow = GetActiveWindow();
+								uint activeProcess;
+								GetWindowThreadProcessId(activeWindow, out activeProcess);
+								bActive = System.Diagnostics.Process.GetCurrentProcess().Id == (int)activeProcess;
+							}
 
 							if (bActive && System.Windows.Clipboard.ContainsText())
 							{
