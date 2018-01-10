@@ -65,14 +65,15 @@ namespace VS_QuickNavigation
 
 					if (!localToken.IsCancellationRequested)
 					{
-						Dispatcher.Invoke(delegate () {
+						Dispatcher.BeginInvoke(new Action(() =>
+						{
 							treeView.ItemsSource = oRefLists;
 							status.Content = string.Format(s_oTextFormat, sSymbol, 0, 0);
 							buttonStop.IsEnabled = true;
 							progressBar.Minimum = 0;
 							progressBar.Maximum = 1;
 							progressBar.Value = 0;
-						});
+						}));
 
 						string[] exts = Common.Instance.Settings.ListedExtensions;
 
@@ -110,23 +111,24 @@ namespace VS_QuickNavigation
 							if (iFile % 10 == 0)
 							{
 								string sContent = string.Format(s_oTextFormat, sSymbol, oRefLists.Sum(r => r.RefCount), oRefLists.Count);
-								Dispatcher.Invoke(delegate () {
+								Dispatcher.BeginInvoke(new Action(() =>
+								{
 									status.Content = sContent;
 									progressBar.Value = iFile;
 									progressBar.Maximum = iFileCount;
-								});
+								}));
 							}
 						}
 
 						{
 							string sContent = string.Format(s_oTextFormat, sSymbol, oRefLists.Sum(r => r.RefCount), oRefLists.Count);
-							Dispatcher.Invoke(delegate ()
+							Dispatcher.BeginInvoke(new Action(()=>
 							{
 								status.Content = sContent;
 								progressBar.Value = iFile;
 								progressBar.Maximum = iFileCount;
 								buttonStop.IsEnabled = false;
-							});
+							}));
 						}
 					}
 				});
