@@ -23,9 +23,6 @@ namespace VS_QuickNavigation.Utils
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.FileName = GetCTagsPath();
 			process.StartInfo.CreateNoWindow = true;
-			process.StartInfo.RedirectStandardInput = true;
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.RedirectStandardError = true;
 			process.StartInfo.Arguments = args;
 
 			try
@@ -201,8 +198,6 @@ namespace VS_QuickNavigation.Utils
 				{
 					process.WaitForExit();
 				}
-
-				string output = process.StandardOutput.ReadToEnd();
 
 				if (process.ExitCode == 0)
 				{
