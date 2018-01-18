@@ -61,27 +61,33 @@ namespace VS_QuickNavigation
 				switch (m.Msg)
 				{
 					case WM_DRAWCLIPBOARD:
-						bool bActive = false;
-
-						IntPtr activeWindow = GetActiveWindow();
-						uint activeProcess;
-						GetWindowThreadProcessId(activeWindow, out activeProcess);
-
-						bActive = System.Diagnostics.Process.GetCurrentProcess().Id == (int)activeProcess;
-
-						if (bActive && System.Windows.Clipboard.ContainsText())
+						try
 						{
-							string sText = System.Windows.Clipboard.GetText();
-
-							while (m_oCopyHistory.Contains(sText))
-								m_oCopyHistory.Remove(sText);
-
-							m_oCopyHistory.Insert(0, sText);
-							while (m_oCopyHistory.Count > 10)
+							bool bActive = !Common.Instance.Settings.WatchOnlyVsClipboard;
+							if (bActive == false)
 							{
-								m_oCopyHistory.RemoveAt(m_oCopyHistory.Count - 1);
+								IntPtr activeWindow = GetActiveWindow();
+								uint activeProcess;
+								GetWindowThreadProcessId(activeWindow, out activeProcess);
+								bActive = System.Diagnostics.Process.GetCurrentProcess().Id == (int)activeProcess;
+							}
+
+							if (bActive && System.Windows.Clipboard.ContainsText())
+							{
+								string sText = System.Windows.Clipboard.GetText();
+
+								while (m_oCopyHistory.Contains(sText))
+									m_oCopyHistory.Remove(sText);
+
+								m_oCopyHistory.Insert(0, sText);
+								while (m_oCopyHistory.Count > 10)
+								{
+									m_oCopyHistory.RemoveAt(m_oCopyHistory.Count - 1);
+								}
 							}
 						}
+						catch (Exception) { }
+						
 						SendMessage(nextClipboardViewer, m.Msg, m.WParam,
 									m.LParam);
 						break;

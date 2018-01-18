@@ -19,7 +19,7 @@ namespace VS_QuickNavigation
 	{
 		public Settings()
 		{
-			ListedExtensions = DefaultListedExtensions;
+			ResetSettings();
 		}
 
 		public void Refresh()
@@ -129,6 +129,9 @@ namespace VS_QuickNavigation
 		public void ResetSettings()
 		{
 			ListedExtensions = DefaultListedExtensions;
+			MaxFileHistory = 10;
+			ParserThreads = 4;
+			WatchOnlyVsClipboard = true;
 		}
 
 		static public string[] DefaultListedExtensions
@@ -171,7 +174,11 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		public int MaxFileHistory { get; set; } = 10;
+		public int MaxFileHistory { get; set; }
+
+		public int ParserThreads { get; set; }
+
+		public bool WatchOnlyVsClipboard { get; set; }
 
 		public string SymbolsTheme
 		{
