@@ -19,6 +19,45 @@ namespace VS_QuickNavigation
 
 		private readonly Package package;
 
+		class ShortkeyContextMenu : ContextMenu
+		{
+			public ShortkeyContextMenu()
+			{
+			}
+
+			int Modulo(int iValue, int iModulo)
+			{
+				while (iValue < 0)
+					iValue += iModulo;
+
+				return iValue % iModulo;
+			}
+
+			protected override void OnKeyDown(KeyEventArgs e)
+			{
+				if (e.Key >= Key.D0 && e.Key <= Key.D9)
+				{
+					int iIndex = Modulo((e.Key - Key.D0) - 1, 10);
+					if (iIndex < Items.Count && Items[iIndex] != null && Items[iIndex] is MenuItem)
+					{
+						QuickPasteCommand.PasteMenuItem_Click((Items[iIndex] as MenuItem), null);
+						IsOpen = false;
+					}
+				}
+
+				if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
+				{
+					int iIndex = Modulo((e.Key - Key.NumPad0) - 1, 10);
+					if (iIndex < Items.Count && Items[iIndex] != null && Items[iIndex] is MenuItem)
+					{
+						QuickPasteCommand.PasteMenuItem_Click((Items[iIndex] as MenuItem), null);
+						IsOpen = false;
+					}
+				}
+				base.OnKeyDown(e);
+			}
+		};
+
 		private ContextMenu m_oContextMenu;
 
 		List<string> m_oCopyHistory = new List<string>();
@@ -42,6 +81,10 @@ namespace VS_QuickNavigation
 			[DllImport("user32.dll")]
 			public static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
 
+			// defined in winuser.h
+			const int WM_DRAWCLIPBOARD = 0x308;
+			const int WM_CHANGECBCHAIN = 0x030D;
+
 			IntPtr nextClipboardViewer;
 
 			List<string> m_oCopyHistory;
@@ -54,10 +97,6 @@ namespace VS_QuickNavigation
 
 			protected override void WndProc(ref System.Windows.Forms.Message m)
 			{
-				// defined in winuser.h
-				const int WM_DRAWCLIPBOARD = 0x308;
-				const int WM_CHANGECBCHAIN = 0x030D;
-
 				switch (m.Msg)
 				{
 					case WM_DRAWCLIPBOARD:
@@ -75,29 +114,36 @@ namespace VS_QuickNavigation
 							if (bActive && System.Windows.Clipboard.ContainsText())
 							{
 								string sText = System.Windows.Clipboard.GetText();
-
-								while (m_oCopyHistory.Contains(sText))
-									m_oCopyHistory.Remove(sText);
-
-								m_oCopyHistory.Insert(0, sText);
-								while (m_oCopyHistory.Count > 10)
+								if (string.IsNullOrEmpty(sText) == false)
 								{
-									m_oCopyHistory.RemoveAt(m_oCopyHistory.Count - 1);
+									while (m_oCopyHistory.Contains(sText))
+										m_oCopyHistory.Remove(sText);
+
+									m_oCopyHistory.Insert(0, sText);
+									while (m_oCopyHistory.Count > 10)
+									{
+										m_oCopyHistory.RemoveAt(m_oCopyHistory.Count - 1);
+									}
 								}
 							}
 						}
 						catch (Exception) { }
-						
-						SendMessage(nextClipboardViewer, m.Msg, m.WParam,
-									m.LParam);
+
+						if (nextClipboardViewer.ToInt64() != 0)
+						{
+							SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+						}	
 						break;
 
 					case WM_CHANGECBCHAIN:
 						if (m.WParam == nextClipboardViewer)
+						{
 							nextClipboardViewer = m.LParam;
-						else
-							SendMessage(nextClipboardViewer, m.Msg, m.WParam,
-										m.LParam);
+						}
+						else if (nextClipboardViewer.ToInt64() != 0)
+						{
+							SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+						}
 						break;
 
 					default:
@@ -130,7 +176,7 @@ namespace VS_QuickNavigation
 				commandService.AddCommand(menuItem);
 			}
 
-			m_oContextMenu = new ContextMenu();
+			m_oContextMenu = new ShortkeyContextMenu();
 
 			m_oClipboardForm = new ClipboardForm(m_oCopyHistory);
 		}
@@ -182,6 +228,10 @@ namespace VS_QuickNavigation
 					oTextBlock.Inlines.Add(new Run(sTrimText));
 					oItem.Header = oTextBlock;
 					oItem.Click += PasteMenuItem_Click;
+					if (iCurrent < 10)
+					{
+						oItem.InputGestureText = ((iCurrent + 1) % 10).ToString();
+					}
 					m_oContextMenu.Items.Add(oItem);
 					++iCurrent;
 				}
@@ -190,7 +240,7 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		private void PasteMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
+		static void PasteMenuItem_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
 			if (sender is MenuItem)
 			{
@@ -198,8 +248,8 @@ namespace VS_QuickNavigation
 				if(oItem.Tag is string)
 				{
 					string copy = oItem.Tag as string;
-					m_oCopyHistory.Remove(copy);
-					m_oCopyHistory.Insert(0, copy);
+					Instance.m_oCopyHistory.Remove(copy);
+					Instance.m_oCopyHistory.Insert(0, copy);
 					System.Windows.Clipboard.SetText(copy);
 
 					if (Common.Instance.DTE2.ActiveDocument != null)
