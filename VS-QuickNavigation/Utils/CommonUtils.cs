@@ -285,7 +285,12 @@ namespace VS_QuickNavigation.Utils
 			{
 				IVsTextView oTextViewCurrent;
 				oTextMgr.GetActiveView(1, null, out oTextViewCurrent);
-
+				if (oTextViewCurrent == null)
+				{
+					oPoint = new System.Windows.Point();
+					return false;
+				}
+					
 				int iLine, iCol;
 				oTextViewCurrent.GetCaretPos(out iLine, out iCol);
 				if (bNextLine)
