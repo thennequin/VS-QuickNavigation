@@ -220,10 +220,17 @@ namespace VS_QuickNavigation
 
 			SearchResultData<SymbolData> symbolData = listView.Items[selectedIndex] as SearchResultData<SymbolData>;
 
-			EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(symbolData.Data.AssociatedFile.Path, EnvDTE.Constants.vsViewKindTextView);
-			if (null != window)
+			if (symbolData.Data.AssociatedFile != null)
 			{
-				window.Activate();
+				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(symbolData.Data.AssociatedFile.Path, EnvDTE.Constants.vsViewKindTextView);
+				if (null != window)
+				{
+					window.Activate();
+				}
+			}
+			else
+			{
+				Common.Instance.DTE2.ActiveDocument.Activate();
 			}
 			((EnvDTE.TextSelection)Common.Instance.DTE2.ActiveDocument.Selection).GotoLine(symbolData.Data.StartLine);
 		}
