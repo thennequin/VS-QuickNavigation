@@ -44,8 +44,6 @@ namespace VS_QuickNavigation
 		{
 			if (sSymbol != null)
 			{
-				treeView.ItemsSource = null;
-
 				if (null != mToken)
 				{
 					mToken.Cancel();
@@ -62,6 +60,11 @@ namespace VS_QuickNavigation
 					{
 						previousTask.Wait();
 					}
+
+					Dispatcher.BeginInvoke(new Action(() =>
+					{
+						treeView.ItemsSource = null;
+					}));
 
 					if (!localToken.IsCancellationRequested)
 					{
