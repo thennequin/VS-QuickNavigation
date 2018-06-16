@@ -80,7 +80,8 @@ namespace VS_QuickNavigation
 						var files = Common.Instance.SolutionWatcher.Files
 							.AsParallel()
 							.WithCancellation(localToken)
-							.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase)));
+							.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase)))
+							.OrderBy(fileData => fileData.File);
 
 						if (localToken.IsCancellationRequested)
 							return;
