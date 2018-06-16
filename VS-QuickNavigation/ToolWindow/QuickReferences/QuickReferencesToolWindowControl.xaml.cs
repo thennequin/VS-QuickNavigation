@@ -42,7 +42,7 @@ namespace VS_QuickNavigation
 
 		public void SearchReferences(string sSymbol)
 		{
-			if (sSymbol != null)
+			if (sSymbol != null && string.IsNullOrWhiteSpace(sSymbol) == false)
 			{
 				if (null != mToken)
 				{
