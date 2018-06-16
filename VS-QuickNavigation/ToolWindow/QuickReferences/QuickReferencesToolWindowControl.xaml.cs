@@ -81,7 +81,7 @@ namespace VS_QuickNavigation
 							.AsParallel()
 							.WithCancellation(localToken)
 							.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase)))
-							.OrderBy(fileData => fileData.File);
+							.OrderBy(fileData => fileData.Path);
 
 						if (localToken.IsCancellationRequested)
 							return;
