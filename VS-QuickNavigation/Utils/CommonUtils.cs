@@ -88,8 +88,7 @@ namespace VS_QuickNavigation.Utils
 		}
 		public static bool IsFinalCharacter(char c)
 		{
-			char[] c_FinalChars = { ' ', '\t', '(', '*', '&', '=', ';', '<', '>', '-', '+', '/', '*', '~', '[', '^', '.' };
-			return c_FinalChars.Contains(c);
+			return Char.IsLetterOrDigit(c) == false;
 		}
 		public static bool IsWordCharacter(char c)
 		{
