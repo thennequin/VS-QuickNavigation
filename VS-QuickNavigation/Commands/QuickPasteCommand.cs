@@ -250,14 +250,22 @@ namespace VS_QuickNavigation
 					string copy = oItem.Tag as string;
 					Instance.m_oCopyHistory.Remove(copy);
 					Instance.m_oCopyHistory.Insert(0, copy);
-					System.Windows.Clipboard.SetText(copy);
 
-					if (Common.Instance.DTE2.ActiveDocument != null)
+					try
 					{
-						if (Common.Instance.DTE2.ActiveDocument.Selection is EnvDTE.TextSelection)
+						System.Windows.Clipboard.SetDataObject(copy);
+
+						if (Common.Instance.DTE2.ActiveDocument != null)
 						{
-							((EnvDTE.TextSelection)Common.Instance.DTE2.ActiveDocument.Selection).Paste();
+							if (Common.Instance.DTE2.ActiveDocument.Selection is EnvDTE.TextSelection)
+							{
+								((EnvDTE.TextSelection)Common.Instance.DTE2.ActiveDocument.Selection).Paste();
+							}
 						}
+					}
+					catch(Exception ex)
+					{
+						System.Threading.Thread.Sleep(50);
 					}
 				}
 			}
