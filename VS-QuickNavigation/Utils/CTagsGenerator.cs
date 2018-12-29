@@ -3,18 +3,153 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using VS_QuickNavigation.Data;
+using TinyJson;
 
 namespace VS_QuickNavigation.Utils
 {
 	public class CTagsGenerator
 	{
+		static readonly string s_sCTagsReleasesUrl = @"https://api.github.com/repos/universal-ctags/ctags-win32/releases";
+		static readonly string s_sCTagsExeRegex = @".*-x64\.zip";
+
+		public class GithubReleaseAsset
+		{
+			public string name;
+			public string browser_download_url;
+		}
+
+		public class GithubRelease
+		{
+			public string name;
+			public bool draft;
+			public string published_at;
+			public List<GithubReleaseAsset> assets;
+		}
+
 		static string GetCTagsPath()
 		{
 			return Common.Instance.ExtensionFolder + "\\external\\ctags.exe";
+		}
+
+		public static bool CTagsPresent
+		{
+			get
+			{
+				return System.IO.File.Exists(GetCTagsPath());
+			}
+		}
+
+		private static bool ValidateRemoteCertificate(object sender, System.Security.Cryptography.X509Certificates.X509Certificate cert, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors error)
+		{
+			// If the certificate is a valid, signed certificate, return true.
+			if (error == System.Net.Security.SslPolicyErrors.None)
+			{
+				return true;
+			}
+
+			Console.WriteLine("X509Certificate [{0}] Policy Error: '{1}'",
+				cert.Subject,
+				error.ToString());
+
+			return false;
+		}
+
+		public static List<GithubRelease> RetieveGithubCTagsReleases()
+		{
+			List<GithubRelease> lCTagsReleases = null;
+			try
+			{
+				string sJson = null;
+
+				System.Net.ServicePointManager.ServerCertificateValidationCallback += ValidateRemoteCertificate;
+				System.Net.ServicePointManager.SecurityProtocol =
+						System.Net.SecurityProtocolType.Ssl3
+						| System.Net.SecurityProtocolType.Tls
+						| System.Net.SecurityProtocolType.Tls11
+						| System.Net.SecurityProtocolType.Tls12;
+
+				using (System.Net.WebClient oWebClient = new System.Net.WebClient())
+				{
+					oWebClient.Headers.Add("user-agent", "VisualStudio");
+					sJson = oWebClient.DownloadString(s_sCTagsReleasesUrl);
+				}
+
+				if (sJson != null)
+				{
+					lCTagsReleases = sJson.FromJson<List<GithubRelease>>();
+				}
+			}
+			catch(Exception) {};
+
+			return lCTagsReleases;
+		}
+
+		public static IEnumerable<string> RetrieveCTagsVersion()
+		{
+			List<GithubRelease> lCTagsReleases = RetieveGithubCTagsReleases();
+
+			if (lCTagsReleases != null)
+			{
+				System.Text.RegularExpressions.Regex oRegex = new System.Text.RegularExpressions.Regex(s_sCTagsExeRegex);
+				foreach (GithubRelease oRelease in lCTagsReleases)
+				{
+					if (oRelease != null 
+						&& oRelease.name != null
+						&& oRelease.draft == false
+						&& oRelease.assets != null
+						&& oRelease.assets.Any(asset => asset != null && oRegex.IsMatch(asset.name)))
+					{
+						yield return oRelease.name;
+					}
+				}
+			}
+		}
+
+		public static bool DownloadCTags(string sVersion)
+		{
+			List<GithubRelease> lCTagsReleases = RetieveGithubCTagsReleases();
+			if (lCTagsReleases != null)
+			{
+				System.Text.RegularExpressions.Regex oRegex = new System.Text.RegularExpressions.Regex(s_sCTagsExeRegex);
+				GithubRelease oRelease = lCTagsReleases.FirstOrDefault(r => r != null && (string.IsNullOrEmpty(sVersion) || r.name.Equals(sVersion)));
+				if (oRelease != null)
+				{
+					GithubReleaseAsset oAsset = oRelease.assets.FirstOrDefault(asset => asset != null && oRegex.IsMatch(asset.name));
+					if (oAsset != null)
+					{
+						try
+						{
+							System.Net.WebClient oWebClient = new System.Net.WebClient();
+							oWebClient.Headers.Add("user-agent", "VisualStudio");
+							string sZipPath = System.IO.Path.GetTempFileName();
+							oWebClient.DownloadFile(oAsset.browser_download_url, sZipPath);
+
+							bool bFound = false;
+							using (System.IO.FileStream oFileStream = new FileStream(sZipPath, FileMode.Open))
+							using (System.IO.Compression.ZipArchive oZipArchive = new System.IO.Compression.ZipArchive(oFileStream, System.IO.Compression.ZipArchiveMode.Read))
+							{
+								System.IO.Compression.ZipArchiveEntry oEntry = oZipArchive.GetEntry("ctags.exe");
+								if (oEntry != null)
+								{
+									using (Stream oEntryStream = oEntry.Open())
+									using (System.IO.FileStream oCTagsFileStream = new FileStream(GetCTagsPath(), FileMode.Create))
+									{
+										oEntryStream.CopyTo(oCTagsFileStream);
+									}
+										
+									bFound = true;
+								}
+							}
+
+							System.IO.File.Delete(sZipPath);
+							return bFound;
+						}
+						catch { }
+					}
+				}
+			}
+			return false;
 		}
 
 		static Process ExecCTags(string args)
