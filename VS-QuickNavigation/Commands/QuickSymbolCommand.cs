@@ -31,18 +31,18 @@ namespace VS_QuickNavigation
 			}
 
 			window = new QuickMethodToolWindow(true,
-					Data.SymbolData.ESymbolType.Namespace |
-					Data.SymbolData.ESymbolType.Struct |
-					Data.SymbolData.ESymbolType.Class |
-					Data.SymbolData.ESymbolType.Interface |
-					Data.SymbolData.ESymbolType.TypeDef |
-					Data.SymbolData.ESymbolType.Macro |
-					Data.SymbolData.ESymbolType.Enumerator |
-					Data.SymbolData.ESymbolType.Enumeration |
-					Data.SymbolData.ESymbolType.Method |
-					Data.SymbolData.ESymbolType.MethodPrototype |
-					Data.SymbolData.ESymbolType.Field |
-					Data.SymbolData.ESymbolType.Property);
+					Data.ESymbolType.Namespace |
+					Data.ESymbolType.Struct |
+					Data.ESymbolType.Class |
+					Data.ESymbolType.Interface |
+					Data.ESymbolType.TypeDef |
+					Data.ESymbolType.Macro |
+					Data.ESymbolType.Enumerator |
+					Data.ESymbolType.Enumeration |
+					Data.ESymbolType.Method |
+					Data.ESymbolType.MethodPrototype |
+					Data.ESymbolType.Field |
+					Data.ESymbolType.Property);
 		}
 
 		public static QuickSymbolCommand Instance

@@ -411,58 +411,58 @@ namespace VS_QuickNavigation.Utils
 
 							kind = kind.Substring("kind:".Length);
 
-							SymbolData.ESymbolType eType = SymbolData.ESymbolType.Namespace;
+							ESymbolType eType = ESymbolType.Namespace;
 							bool bTypeFound = false;
 
 							switch (kind)
 							{
 								case "function":
 								case "method":
-									eType = SymbolData.ESymbolType.Method;
+									eType = ESymbolType.Method;
 									bTypeFound = true;
 									break;
 								case "prototype":
-									eType = SymbolData.ESymbolType.MethodPrototype;
+									eType = ESymbolType.MethodPrototype;
 									bTypeFound = true;
 									break;
 								case "property":
-									eType = SymbolData.ESymbolType.Property;
+									eType = ESymbolType.Property;
 									bTypeFound = true;
 									break;
 								case "struct":
-									eType = SymbolData.ESymbolType.Struct;
+									eType = ESymbolType.Struct;
 									bTypeFound = true;
 									break;
 								case "class":
-									eType = SymbolData.ESymbolType.Class;
+									eType = ESymbolType.Class;
 									bTypeFound = true;
 									break;
 								case "interface":
-									eType = SymbolData.ESymbolType.Interface;
+									eType = ESymbolType.Interface;
 									bTypeFound = true;
 									break;
 								case "typedef":
-									eType = SymbolData.ESymbolType.TypeDef;
+									eType = ESymbolType.TypeDef;
 									bTypeFound = true;
 									break;
 								case "macro":
-									eType = SymbolData.ESymbolType.Macro;
+									eType = ESymbolType.Macro;
 									bTypeFound = true;
 									break;
 								case "enum":
-									eType = SymbolData.ESymbolType.Enumeration;
+									eType = ESymbolType.Enumeration;
 									bTypeFound = true;
 									break;
 								case "enumerator":
-									eType = SymbolData.ESymbolType.Enumerator;
+									eType = ESymbolType.Enumerator;
 									bTypeFound = true;
 									break;
 								case "member":
-									eType = SymbolData.ESymbolType.Field;
+									eType = ESymbolType.Field;
 									bTypeFound = true;
 									break;
 								case "local":
-									eType = SymbolData.ESymbolType.Local;
+									eType = ESymbolType.Local;
 									bTypeFound = true;
 									break;
 							}

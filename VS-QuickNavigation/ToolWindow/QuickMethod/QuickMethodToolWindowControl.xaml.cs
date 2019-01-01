@@ -17,7 +17,7 @@ namespace VS_QuickNavigation
 	{
 		private QuickMethodToolWindow mQuickMethodToolWindow;
 		private bool mSearchInSolution;
-		private SymbolData.ESymbolType mSupportedSymbolTypes;
+		private ESymbolType mSupportedSymbolTypes;
 		private object mSymbolLocker = new object();
 		private IEnumerable<SymbolData> mSymbols = null;
 		private CancellationTokenSource mToken;
@@ -26,7 +26,7 @@ namespace VS_QuickNavigation
 		
 		const int c_RefreshDelay = 100;
 
-		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent, bool searchInSolution, SymbolData.ESymbolType supportedSymbolTypes)
+		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent, bool searchInSolution, ESymbolType supportedSymbolTypes)
 		{
 			this.InitializeComponent();
 

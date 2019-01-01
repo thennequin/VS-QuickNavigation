@@ -9,7 +9,7 @@ namespace VS_QuickNavigation
 	public class QuickMethodToolWindow : DialogWindow//ToolWindowPane
 	{
 		public string mTitle;
-		public QuickMethodToolWindow(bool searchInSolution, Data.SymbolData.ESymbolType types) : base()
+		public QuickMethodToolWindow(bool searchInSolution, Data.ESymbolType types) : base()
 		{
 			if (searchInSolution)
 			{

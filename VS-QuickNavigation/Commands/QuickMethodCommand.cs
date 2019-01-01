@@ -31,9 +31,9 @@ namespace VS_QuickNavigation
 			}
 
             window = new QuickMethodToolWindow(false,
-                    Data.SymbolData.ESymbolType.Method |
-                    Data.SymbolData.ESymbolType.MethodPrototype |
-					Data.SymbolData.ESymbolType.Property);
+                    Data.ESymbolType.Method |
+                    Data.ESymbolType.MethodPrototype |
+					Data.ESymbolType.Property);
         }
 
 		public static QuickMethodCommand Instance

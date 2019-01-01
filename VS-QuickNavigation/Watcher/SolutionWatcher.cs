@@ -557,7 +557,7 @@ namespace VS_QuickNavigation
 						List<SymbolData> symbols = new List<SymbolData>();
 						for (int i = 0; i < iSymbolCount; ++i)
 						{
-							SymbolData.ESymbolType eType = (SymbolData.ESymbolType)reader.ReadByte();
+							ESymbolType eType = (ESymbolType)reader.ReadByte();
 							int iStartLine = reader.ReadInt32();
 							string sSymbol = reader.ReadString();
 							string sScope = reader.ReadString();

@@ -68,15 +68,15 @@ namespace VS_QuickNavigation
 
 			if( originSymbol != null)
 			{
-				if (originSymbol.Type == Data.SymbolData.ESymbolType.Method)
+				if (originSymbol.Type == Data.ESymbolType.Method)
 				{
 					//Search prototype 
-					symbol = solutionSymbols.Where(s => s.Type == Data.SymbolData.ESymbolType.MethodPrototype && s.ScopePretty == originSymbol.ScopePretty && s.Symbol == originSymbol.Symbol).FirstOrDefault();
+					symbol = solutionSymbols.Where(s => s.Type == Data.ESymbolType.MethodPrototype && s.ScopePretty == originSymbol.ScopePretty && s.Symbol == originSymbol.Symbol).FirstOrDefault();
 				}
-				else if (originSymbol.Type == Data.SymbolData.ESymbolType.MethodPrototype)
+				else if (originSymbol.Type == Data.ESymbolType.MethodPrototype)
 				{
 					//Search method
-					symbol = solutionSymbols.Where(s => s.Type == Data.SymbolData.ESymbolType.Method && s.ScopePretty == originSymbol.ScopePretty && s.Symbol == originSymbol.Symbol).FirstOrDefault();
+					symbol = solutionSymbols.Where(s => s.Type == Data.ESymbolType.Method && s.ScopePretty == originSymbol.ScopePretty && s.Symbol == originSymbol.Symbol).FirstOrDefault();
 				}
 			}
 
