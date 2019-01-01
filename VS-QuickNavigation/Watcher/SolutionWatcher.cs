@@ -582,23 +582,38 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		void RefreshSymbolDatabase()
+		public void RefreshSymbolDatabase()
+		{
+			RefreshSymbolDatabase(false);
+		}
+
+		public void RefreshSymbolDatabase(bool bForce)
 		{
 			if (null == mFiles || !mFiles.Any())
 			{
 				return;
 			}
 
-			ReadSymbolDatabase();
+			if (bForce == false)
+			{
+				ReadSymbolDatabase();
+			}
 
 			List<string> lToGenerate = new List<string>();
-			foreach (FileData fileData in mFiles.Values)
+			if (bForce)
 			{
-				if (	fileData.LastSymbolsGeneration == DateTime.MinValue 
-					||	fileData.LastSymbolsGeneration < System.IO.File.GetLastWriteTime(fileData.Path)
-					)
+				lToGenerate.AddRange(mFiles.Values.Select(f => f.Path));
+			}
+			else
+			{
+				foreach (FileData fileData in mFiles.Values)
 				{
-					lToGenerate.Add(fileData.Path);
+					if (	fileData.LastSymbolsGeneration == DateTime.MinValue
+						||	fileData.LastSymbolsGeneration < System.IO.File.GetLastWriteTime(fileData.Path)
+						)
+					{
+						lToGenerate.Add(fileData.Path);
+					}
 				}
 			}
 

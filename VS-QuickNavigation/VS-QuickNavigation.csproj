@@ -74,6 +74,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commands\QuickCleanCommand.cs" />
     <Compile Include="Commands\QuickFileCommand.cs" />
     <Compile Include="Commands\QuickGotoCommand.cs" />
     <Compile Include="Commands\QuickHistoryCommand.cs" />

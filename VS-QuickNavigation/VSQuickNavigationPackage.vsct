@@ -143,6 +143,17 @@
 					<MenuText>Quick Paste</MenuText>
 				</Strings>
 			</Button>
+			<Button guid="guidVSQuickNavigationPackageCmdSet" id="cmdidQuickClean" priority="0x0107" type="Button">
+				<!--<Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />-->
+				<Parent guid="guidVSQuickNavigationPackageCmdSet" id="QuickNavigationSubMenuGroup" />
+				<Icon guid="guidImages" id="bmpIcon" />
+				<CommandFlag>TextChanges</CommandFlag>
+				<Strings>
+					<CommandName>cmdidQuickClean</CommandName>
+					<ButtonText>QuickNavigation.QuickClean</ButtonText>
+					<MenuText>Quick Clean</MenuText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 		<!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -183,6 +194,7 @@
 			<IDSymbol name="cmdidQuickGoto" value="0x0104"/>
 			<IDSymbol name="cmdidQuickReferences" value="0x0105"/>
 			<IDSymbol name="cmdidQuickPaste" value="0x0106"/>
+			<IDSymbol name="cmdidQuickClean" value="0x0107"/>
 		</GuidSymbol>
 
 		<GuidSymbol name="guidImages" value="{2adb76a2-a290-46b7-9870-647ad2293084}">
