@@ -42,7 +42,8 @@ namespace VS_QuickNavigation
 					Data.ESymbolType.Method |
 					Data.ESymbolType.MethodPrototype |
 					Data.ESymbolType.Field |
-					Data.ESymbolType.Property);
+					Data.ESymbolType.Property |
+					Data.ESymbolType.Variable);
 		}
 
 		public static QuickSymbolCommand Instance
