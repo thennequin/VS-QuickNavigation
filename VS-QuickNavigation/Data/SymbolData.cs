@@ -26,6 +26,19 @@ namespace VS_QuickNavigation.Data
 		//UnionName,
 	}
 
+	static public class ESymbolTypeExtension
+	{
+		public static string GetImagePath(this ESymbolType eType)
+		{
+			return Common.Instance.ExtensionFolder + "/Resources/Symbols/" + Common.Instance.Settings.SymbolsTheme + "/" + eType.ToString() + ".png";
+		}
+
+		public static string GetDescription(this ESymbolType eType)
+		{
+			return Utils.CommonUtils.GetDescription(eType);
+		}
+	}
+
 	public class SymbolData
 	{
 		public string Symbol { get; set; }
@@ -96,7 +109,7 @@ namespace VS_QuickNavigation.Data
 		{
 			get
 			{
-				return Common.Instance.ExtensionFolder + "/Resources/Symbols/" + Common.Instance.Settings.SymbolsTheme + "/" + Type.ToString() + ".png";
+				return Type.GetImagePath();
 			}
 		}
 	}
