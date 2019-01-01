@@ -18,10 +18,51 @@
     </UserControl.Resources>
 
     <DockPanel Width="Auto" Height="Auto" LastChildFill="True" Margin="10">
-        <TextBox x:Name="textBox"
-                 DockPanel.Dock="Top" Width="Auto"
-                 Margin="0,0,0,3"
-                 TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition MaxWidth="10"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBox x:Name="textBox"
+                Width="Auto"
+                TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
+
+            <Button 
+                Name="buttonSymbolPopup" 
+                Grid.Column="1" 
+                Click="buttonSymbolPopup_Click">
+                <Path Fill="{Binding Foreground}" Data="M 0 0 L 3 3 L 6 0 Z"/>
+            </Button>
+            <Popup 
+                Name="SymbolPopup"
+                PlacementTarget="{Binding ElementName=buttonSymbolPopup}"
+                PopupAnimation="Slide"
+                ClipToBounds="True" StaysOpen="False"
+                Placement="Left"
+                VerticalOffset="{Binding ElementName=buttonSymbolPopup, Path=ActualHeight}" 
+                HorizontalOffset="{Binding ElementName=buttonSymbolPopup, Path=ActualWidth}">
+                <Border Name="DropDownBorder" BorderThickness="1" BorderBrush="{DynamicResource {x:Static vsfx:VsBrushes.DropDownBorderKey}}" Background="{DynamicResource {x:Static vsfx:VsBrushes.DropDownBackgroundKey}}">
+                    <ItemsControl ItemsSource="{Binding SuportedSymbolTypes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox 
+                                    VerticalAlignment="Center"
+                                    IsChecked="{Binding Path=IsSelected, Mode=TwoWay}"
+                                    Tag="{RelativeSource FindAncestor, AncestorType={x:Type ComboBox}}"
+                                    Margin="2,4,4,2"
+                                    >
+                                    <StackPanel Orientation="Horizontal" Margin="0" VerticalAlignment="Center">
+                                        <Image VerticalAlignment="Top" Margin="0" Source="{Binding ImagePath}" Width="16" Height="16" />
+                                        <Label VerticalAlignment="Top" Margin="4,0,0,0" Padding="0" Content="{Binding Description}" Background="Transparent" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.DropDownGlyphKey}}"/>
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </Popup>
+        </Grid>
         <ListView x:Name="listView"
                   VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                   SelectionMode="Single"

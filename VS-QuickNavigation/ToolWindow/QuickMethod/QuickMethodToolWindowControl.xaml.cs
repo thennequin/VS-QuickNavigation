@@ -15,6 +15,56 @@ namespace VS_QuickNavigation
 	/// </summary>
 	public partial class QuickMethodToolWindowControl : UserControl
 	{
+		public class SymbolTypeWrapper
+		{
+			public SymbolTypeWrapper(ESymbolType eType, QuickMethodToolWindowControl control)
+			{
+				Type = eType;
+				mControl = control;
+			}
+
+			QuickMethodToolWindowControl mControl;
+
+			ESymbolType Type { get; set; }
+			
+			public bool IsSelected
+			{
+				get
+				{
+					return (((int)mControl.mSupportedSymbolTypes) & (int)Type) != 0;
+				}
+
+				set
+				{
+					if (value)
+					{
+						mControl.mSupportedSymbolTypes |= Type;
+					}
+					else
+					{
+						mControl.mSupportedSymbolTypes &= ~Type;
+					}
+					mControl.RefreshResults();
+				}
+			}
+
+			public string ImagePath
+			{
+				get
+				{
+					return Type.GetImagePath();
+				}
+			}
+
+			public string Description
+			{
+				get
+				{
+					return Type.GetDescription();
+				}
+			}
+		}
+
 		private QuickMethodToolWindow mQuickMethodToolWindow;
 		private bool mSearchInSolution;
 		private ESymbolType mSupportedSymbolTypes;
@@ -25,6 +75,17 @@ namespace VS_QuickNavigation
 		private DeferredAction mDeferredRefresh;
 		
 		const int c_RefreshDelay = 100;
+
+		public IEnumerable<SymbolTypeWrapper> SuportedSymbolTypes
+		{
+			get
+			{
+				foreach (ESymbolType eType in Enum.GetValues(typeof(ESymbolType)))
+				{
+					yield return new SymbolTypeWrapper(eType, this);
+				}
+			}
+		}
 
 		public QuickMethodToolWindowControl(QuickMethodToolWindow oParent, bool searchInSolution, ESymbolType supportedSymbolTypes)
 		{
@@ -245,6 +306,11 @@ namespace VS_QuickNavigation
 		{
 			if (!textBox.IsFocused)
 				textBox.Focus();
+		}
+
+		private void buttonSymbolPopup_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			SymbolPopup.IsOpen = true;
 		}
 	}
 }
