@@ -92,6 +92,7 @@
       <DependentUpon>QuickReferencesToolWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utils\CommonUtils.cs" />
+    <Compile Include="Utils\Future.cs" />
     <Compile Include="Utils\JsonParser.cs" />
     <Compile Include="Utils\JsonWriter.cs" />
     <Compile Include="Utils\ThreadSafeObservableCollection.cs" />
