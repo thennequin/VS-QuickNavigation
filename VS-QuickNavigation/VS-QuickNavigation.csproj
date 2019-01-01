@@ -93,6 +93,7 @@
     </Compile>
     <Compile Include="Utils\CommonUtils.cs" />
     <Compile Include="Utils\JsonParser.cs" />
+    <Compile Include="Utils\JsonWriter.cs" />
     <Compile Include="Utils\ThreadSafeObservableCollection.cs" />
     <Compile Include="VSQuickNavigationPackage.cs" />
     <Compile Include="Data\FileData.cs" />
