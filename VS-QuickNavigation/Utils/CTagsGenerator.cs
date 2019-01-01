@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using VS_QuickNavigation.Data;
 using TinyJson;
 
@@ -158,6 +159,9 @@ namespace VS_QuickNavigation.Utils
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.FileName = GetCTagsPath();
 			process.StartInfo.CreateNoWindow = true;
+			process.StartInfo.RedirectStandardInput = true;
+			process.StartInfo.RedirectStandardOutput = true;
+			process.StartInfo.RedirectStandardError = true;
 			process.StartInfo.Arguments = args;
 
 			try
@@ -241,6 +245,46 @@ namespace VS_QuickNavigation.Utils
 			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
 			sbar.Progress(true, "QuickNavigation Scan solution ...", 0, 1);
 
+			IEnumerable<SymbolData> lSymbols = GeneratorFromFiles(filePaths, (iCurrent, iCount) =>
+			{
+				if ((iCurrent % 50) == 0 || iCurrent == iCount)
+				{
+					sbar.Progress(true, "QuickNavigation Scan solution " + iCurrent + "/" + iCount, iCurrent, iCount);
+				}
+			});
+
+			sbar.Progress(false);
+
+			return lSymbols;
+		}
+
+		static public IEnumerable<SymbolData> GeneratorFromFiles(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
+		{
+			FutureList<System.Collections.Generic.IEnumerable<Data.SymbolData>> oFutures = CTagsTask.GetInstance().AddFiles(filePaths);
+			if (progressAction != null)
+			{
+				int iCompletedCount = 0;
+				int iFileCount = oFutures.Count();
+				while (oFutures.IsCompleted == false)
+				{
+					oFutures.WaitAny();
+
+					++iCompletedCount;
+					progressAction(iCompletedCount, iFileCount);
+				}
+			}
+			else
+			{
+				oFutures.WaitAll();
+			}
+			return oFutures.SelectMany(f => f.Result);
+		}
+
+		static public IEnumerable<SymbolData> GeneratorFromFilesWithProgressOld(IEnumerable<string> filePaths)
+		{
+			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			sbar.Progress(true, "QuickNavigation Scan solution ...", 0, 1);
+
 			List<SymbolData> lSymbols = new List<SymbolData>();
 
 			var filePackets = filePaths
@@ -256,7 +300,7 @@ namespace VS_QuickNavigation.Utils
 				.WithDegreeOfParallelism(4)
 				.ForAll(p =>
 					{
-						IEnumerable<SymbolData> newSymbols = GeneratorFromFiles(p);
+						IEnumerable<SymbolData> newSymbols = GeneratorFromFilesOld(p);
 						lock(lSymbols)
 						{
 							lSymbols.AddRange(newSymbols);
@@ -272,7 +316,7 @@ namespace VS_QuickNavigation.Utils
 			return lSymbols;
 		}
 
-		static public IEnumerable<SymbolData> GeneratorFromFiles(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
+		static public IEnumerable<SymbolData> GeneratorFromFilesOld(IEnumerable<string> filePaths, Action<int, int> progressAction = null)
 		{
 			string filePath = GetTempFile();
 
@@ -545,6 +589,382 @@ namespace VS_QuickNavigation.Utils
 				tagLineNumberStr = tagLineNumberStr.Substring(0, tagLineNumberStr.Length - 2); // remove ;"
 			}
 			return int.TryParse(tagLineNumberStr, out line);
+		}
+
+		public class CTagsTask : IDisposable
+		{
+			class CTagCommand
+			{
+				public string	command;
+			}
+
+			class CTagCommandGenerateTagsFile : CTagCommand
+			{
+				public CTagCommandGenerateTagsFile(string sFile)
+				{
+					command = "generate-tags";
+					filename = sFile;
+				}
+
+				public string	filename;
+			}
+
+			class CTagResult
+			{
+				public string	_type;
+			}
+
+			class CTagResultProgram : CTagResult
+			{
+				public string	name;
+				public string	version;
+			}
+
+			class CTagResultTag : CTagResult
+			{
+				public string	name;
+				public string	path;
+				public string	pattern;
+				public string	language;
+				public int		line;
+				public string	signature;
+				public string	typeref;
+				public string	inherits;
+				public string	kind;
+				public string	roles;
+				public string	scope;
+				public string	scopeKind;
+				public int		end;
+				public string	access;
+				public string	extras;
+			}
+
+			struct File
+			{
+				public string sFile;
+				public Future<IEnumerable<SymbolData>> oResults;
+			}
+
+			static CTagsTask s_oInstance = null;
+
+			List<File> m_sFilesToParse = new List<File>();
+			CancellationTokenSource m_oCancellationToken;
+			Semaphore m_oSemaphore;
+			List<Thread> m_lThreads;
+
+			int m_iThreadCount = Environment.ProcessorCount;
+			public int ThreadCount
+			{
+				get
+				{
+					return m_iThreadCount;
+				}
+				set
+				{
+					if (value > 0)
+					{
+						m_iThreadCount = value;
+					}
+				}
+			}
+
+			static public void CreateInstance()
+			{
+				s_oInstance = new CTagsTask();
+			}
+
+			static public CTagsTask GetInstance()
+			{
+				return s_oInstance;
+			}
+
+			CTagsTask()
+			{
+				m_oSemaphore = new Semaphore(0, int.MaxValue);
+
+				m_lThreads = new List<Thread>();
+				StartThreads();
+			}
+
+			void StartThreads()
+			{
+				StopThreads();
+				m_oCancellationToken = new CancellationTokenSource();
+				for (int i = 0; i < ThreadCount; ++i)
+				{
+					System.Threading.Thread oThread = new System.Threading.Thread(new ThreadStart(TaskCTagsInteractive));
+					oThread.Start();
+					m_lThreads.Add(oThread);
+				}
+			}
+
+			void StopThreads()
+			{
+				if (m_oCancellationToken != null)
+				{
+					m_oCancellationToken.Cancel();
+					m_oSemaphore.Release(m_lThreads.Count);
+					foreach (Thread oThread in m_lThreads)
+					{
+						oThread.Join();
+					}
+					m_lThreads.Clear();
+					m_oCancellationToken = null;
+				}
+			}
+
+			public void Dispose()
+			{
+				StopThreads();
+				s_oInstance = null;
+			}
+
+			public Future<IEnumerable<SymbolData>> AddFile(string sFile)
+			{
+				if (string.IsNullOrWhiteSpace(sFile))
+					return null;
+
+				Future<IEnumerable<SymbolData>> oResults = null;
+				Monitor.Enter(m_sFilesToParse);
+				if (m_sFilesToParse.Any(f => sFile.Equals(f.sFile, StringComparison.InvariantCultureIgnoreCase)) == false)
+				{
+					File oFile = new File { sFile = sFile, oResults = new Future<IEnumerable<SymbolData>>() };
+					m_sFilesToParse.Add(oFile);
+					oResults = oFile.oResults;
+					m_oSemaphore.Release();
+				}
+				Monitor.Exit(m_sFilesToParse);
+				return oResults;
+			}
+
+			public FutureList<IEnumerable<SymbolData>> AddFiles(IEnumerable<string> sFiles)
+			{
+				FutureList<IEnumerable<SymbolData>> oResults = new FutureList<IEnumerable<SymbolData>>();
+				foreach (string sFile in sFiles)
+				{
+					oResults.Add(AddFile(sFile));
+				}
+				return oResults;
+			}
+
+			void TaskCTagsInteractive()
+			{
+				string args = "";
+
+				args += "-n ";                          // Symbol stored by line number instead of pattern or line number
+				
+				args += "−−c++−kinds=";                 // C++ kinds
+				args += "+p";                           // Include function prototypes
+				args += "+l";                           // Include local variables
+				args += " ";
+
+				args += "--fields=* ";                  // Fields
+				
+				args += "−−extras=";                    // Extras
+				args += "+r";                           // References
+				args += "+F";                           // File scope
+				args += "+p";                           // Pseudo tag
+				args += " ";
+
+				args += "--_interactive ";
+
+				Process process = new Process();
+				process.StartInfo.UseShellExecute = false;
+				process.StartInfo.FileName = GetCTagsPath();
+				process.StartInfo.CreateNoWindow = true;
+				process.StartInfo.RedirectStandardInput = true;
+				process.StartInfo.RedirectStandardOutput = true;
+				process.StartInfo.RedirectStandardError = true;
+				process.StartInfo.Arguments = args;
+
+				try
+				{
+					process.Start();
+					process.PriorityClass = ProcessPriorityClass.BelowNormal;
+				}
+				catch (Exception e)
+				{
+					throw new Exception(
+						"Cannot execute " + process.StartInfo.FileName + ".\n\"" +
+						e.Message + "\".\nPlease make sure it is on the PATH.");
+				}
+
+				string sJson = process.StandardOutput.ReadLine();
+
+				if (sJson != null)
+				{
+					CTagResultProgram oProgramResult = sJson.FromJson<CTagResultProgram>();
+				}
+				else
+				{
+					sJson = process.StandardError.ReadLine();
+				}
+
+				while (process.HasExited == false)
+				{
+					m_oSemaphore.WaitOne();
+					if (m_oCancellationToken.IsCancellationRequested)
+					{
+						Monitor.Exit(m_sFilesToParse);
+						process.Kill();
+					}
+					else
+					{
+						Monitor.Enter(m_sFilesToParse);
+						if (m_sFilesToParse.Count > 0)
+						{
+							File oFile = m_sFilesToParse[0];
+							m_sFilesToParse.RemoveAt(0);
+
+							Monitor.Exit(m_sFilesToParse);
+
+							CTagCommandGenerateTagsFile oCommand = new CTagCommandGenerateTagsFile(oFile.sFile);
+
+							List<SymbolData> symbols = new List<SymbolData>();
+
+							process.StandardInput.WriteLine(oCommand.ToJson());
+							while (true)
+							{
+								sJson = process.StandardOutput.ReadLine();
+
+								CTagResultTag oResult = sJson.FromJson<CTagResultTag>();
+								if (oResult != null)
+								{
+									if (oResult._type == "completed")
+									{
+										break;
+									}
+									else if (oResult._type == "tag")
+									{
+										ESymbolType eType = ESymbolType.Namespace;
+										bool bTypeFound = false;
+
+										switch (oResult.kind)
+										{
+											case "function":
+											case "method":
+												eType = ESymbolType.Method;
+												bTypeFound = true;
+												break;
+											case "prototype":
+												eType = ESymbolType.MethodPrototype;
+												bTypeFound = true;
+												break;
+											case "property":
+												eType = ESymbolType.Property;
+												bTypeFound = true;
+												break;
+											case "namespace":
+												eType = ESymbolType.Namespace;
+												bTypeFound = true;
+												break;
+											case "struct":
+												eType = ESymbolType.Struct;
+												bTypeFound = true;
+												break;
+											case "class":
+												eType = ESymbolType.Class;
+												bTypeFound = true;
+												break;
+											case "interface":
+												eType = ESymbolType.Interface;
+												bTypeFound = true;
+												break;
+											case "typedef":
+												eType = ESymbolType.TypeDef;
+												bTypeFound = true;
+												break;
+											case "macro":
+												eType = ESymbolType.Macro;
+												bTypeFound = true;
+												break;
+											case "enum":
+												eType = ESymbolType.Enumeration;
+												bTypeFound = true;
+												break;
+											case "enumerator":
+												eType = ESymbolType.Enumerator;
+												bTypeFound = true;
+												break;
+											case "member":
+												eType = ESymbolType.Field;
+												bTypeFound = true;
+												break;
+											case "variable":
+												eType = ESymbolType.Variable;
+												bTypeFound = true;
+												break;
+											case "local":
+												eType = ESymbolType.Local;
+												bTypeFound = true;
+												break;
+										}
+										if (bTypeFound)
+										{
+											string cleanCymbol = oResult.name;
+											int iPos = cleanCymbol.LastIndexOf(':');
+											iPos = Math.Max(iPos, cleanCymbol.LastIndexOf('.'));
+											if (iPos != -1)
+											{
+												cleanCymbol = cleanCymbol.Substring(iPos + 1);
+											}
+
+											SymbolData oSymbol = new SymbolData(cleanCymbol, oResult.line, eType);
+
+											if (oResult.signature != null)
+											{
+												oSymbol.Parameters = oResult.signature;
+											}
+
+											if (oResult.scope != null)
+											{
+												if (oResult.scopeKind != null)
+													oSymbol.Scope = oResult.scopeKind + ":" + oResult.scope;
+												else
+													oSymbol.Scope = "unknown:" + oResult.scope;
+											}
+
+											if (oResult.typeref != null)
+											{
+												string sTypeRef = oResult.typeref;
+												if (sTypeRef.StartsWith("typename:"))
+													sTypeRef = sTypeRef.Substring("typename:".Length);
+												oSymbol.TypeRef = sTypeRef;
+											}
+
+											if (oResult.access != null)
+											{
+												oSymbol.Access = oResult.access;
+											}
+
+											if (oResult.inherits != null)
+											{
+												oSymbol.Inherits = oResult.inherits.Split(',');
+											}
+
+											if (oResult.end != -1)
+											{
+												oSymbol.EndLine = oResult.end;
+											}
+
+											string sFileName = oResult.path;
+											oSymbol.AssociatedFile = Common.Instance.SolutionWatcher.GetFileDataByPath(sFileName);
+											symbols.Add(oSymbol);
+										}
+									}
+								}
+							};
+
+							oFile.oResults.SetResults(symbols);
+						}
+						else
+						{
+							Monitor.Exit(m_sFilesToParse);
+							Thread.Sleep(150); //Should not happen
+						}
+					}
+				}
+			}
 		}
 	}
 }
