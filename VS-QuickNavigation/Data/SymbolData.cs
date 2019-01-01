@@ -20,7 +20,8 @@ namespace VS_QuickNavigation.Data
 		Field = 1 << 10,
 		Property = 1 << 11,
 
-		Local = 1 << 12
+		Variable = 1 << 12,
+		Local = 1 << 13,
 
 		//StructureName,
 		//UnionName,
