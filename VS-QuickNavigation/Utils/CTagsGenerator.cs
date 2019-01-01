@@ -429,6 +429,10 @@ namespace VS_QuickNavigation.Utils
 									eType = ESymbolType.Property;
 									bTypeFound = true;
 									break;
+								case "namespace":
+									eType = ESymbolType.Namespace;
+									bTypeFound = true;
+									break;
 								case "struct":
 									eType = ESymbolType.Struct;
 									bTypeFound = true;
