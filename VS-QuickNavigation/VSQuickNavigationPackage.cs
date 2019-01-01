@@ -59,6 +59,7 @@ namespace VS_QuickNavigation
 			Common.Instance.Solution = Common.Instance.GetService<SVsSolution>() as IVsSolution2;
 			Common.Instance.Settings = new Settings();
 
+			Utils.CTagsGenerator.CTagsTask.CreateInstance();
 			Common.Instance.SolutionWatcher = new SolutionWatcher();
 		}
 
@@ -93,6 +94,7 @@ namespace VS_QuickNavigation
 			base.Dispose(disposing);
 
 			Common.Instance.SolutionWatcher.Dispose();
+			Utils.CTagsGenerator.CTagsTask.GetInstance().Dispose(); ;
 		}
 
 		#endregion Package Members
