@@ -85,14 +85,14 @@ namespace VS_QuickNavigation
 			const int WM_DRAWCLIPBOARD = 0x308;
 			const int WM_CHANGECBCHAIN = 0x030D;
 
-			IntPtr nextClipboardViewer;
+			IntPtr m_hNextClipboardViewer;
 
 			List<string> m_oCopyHistory;
 
 			public ClipboardForm(List<string> oCopyHistory)
 			{
 				m_oCopyHistory = oCopyHistory;
-				nextClipboardViewer = (IntPtr)SetClipboardViewer((int)this.Handle);
+				m_hNextClipboardViewer = (IntPtr)SetClipboardViewer((int)this.Handle);
 			}
 
 			protected override void WndProc(ref System.Windows.Forms.Message m)
@@ -129,20 +129,20 @@ namespace VS_QuickNavigation
 						}
 						catch (Exception) { }
 
-						if (nextClipboardViewer.ToInt64() != 0)
+						if (m_hNextClipboardViewer.ToInt64() != 0)
 						{
-							SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+							SendMessage(m_hNextClipboardViewer, m.Msg, m.WParam, m.LParam);
 						}	
 						break;
 
 					case WM_CHANGECBCHAIN:
-						if (m.WParam == nextClipboardViewer)
+						if (m.WParam == m_hNextClipboardViewer)
 						{
-							nextClipboardViewer = m.LParam;
+							m_hNextClipboardViewer = m.LParam;
 						}
-						else if (nextClipboardViewer.ToInt64() != 0)
+						else if (m_hNextClipboardViewer.ToInt64() != 0)
 						{
-							SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+							SendMessage(m_hNextClipboardViewer, m.Msg, m.WParam, m.LParam);
 						}
 						break;
 
@@ -152,9 +152,9 @@ namespace VS_QuickNavigation
 				}
 			}
 
-			protected override void Dispose(bool disposing)
+			public void PreDispose()
 			{
-				ChangeClipboardChain(this.Handle, nextClipboardViewer);
+				ChangeClipboardChain(this.Handle, m_hNextClipboardViewer);
 			}
 		}
 
@@ -190,6 +190,12 @@ namespace VS_QuickNavigation
 		public static void Initialize(Package package)
 		{
 			Instance = new QuickPasteCommand(package);
+		}
+
+		public static void Dispose(Package package)
+		{
+			Instance.m_oClipboardForm.PreDispose();
+			Instance.m_oClipboardForm.Dispose();
 		}
 
 		private void OpenPasteMenu(object sender, EventArgs e)

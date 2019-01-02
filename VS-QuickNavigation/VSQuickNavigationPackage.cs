@@ -93,6 +93,8 @@ namespace VS_QuickNavigation
 		{
 			base.Dispose(disposing);
 
+			QuickPasteCommand.Dispose(this);
+
 			Common.Instance.SolutionWatcher.Dispose();
 			Utils.CTagsGenerator.CTagsTask.GetInstance().Dispose(); ;
 		}
