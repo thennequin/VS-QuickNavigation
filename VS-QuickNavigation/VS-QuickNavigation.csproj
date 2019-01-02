@@ -166,6 +166,9 @@
     <Content Include="Resources\Symbols\VS2012\Interface.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Resources\Symbols\VS2012\Local.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Symbols\VS2012\Macro.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
