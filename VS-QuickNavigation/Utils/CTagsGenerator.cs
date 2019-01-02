@@ -805,7 +805,6 @@ namespace VS_QuickNavigation.Utils
 					m_oSemaphore.WaitOne();
 					if (m_oCancellationToken.IsCancellationRequested)
 					{
-						Monitor.Exit(m_sFilesToParse);
 						process.Kill();
 					}
 					else
