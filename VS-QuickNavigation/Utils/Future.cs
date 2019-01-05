@@ -56,12 +56,12 @@ namespace VS_QuickNavigation.Utils
 	public class FutureList<T> : IEnumerable<Future<T>>
 	{
 		List<Future<T>> m_lFutures;
-		ManualResetEvent m_oMre;
+		Semaphore m_oSemaphore;
 
 		public FutureList()
 		{
 			m_lFutures = new List<Future<T>>();
-			m_oMre = new ManualResetEvent(false);
+			m_oSemaphore = new Semaphore(0, int.MaxValue);
 		}
 
 		public void Add(Future<T> oResult)
@@ -70,13 +70,12 @@ namespace VS_QuickNavigation.Utils
 			{
 				oResult.Callback = OnFutureCallback;
 				m_lFutures.Add(oResult);
-				//oResult.MRE = m_oMre;
 			}
 		}
 
 		void OnFutureCallback(Future<T> oResult)
 		{
-			m_oMre.Set();
+			m_oSemaphore.Release();
 		}
 
 		public List<Future<T>> GetList()
@@ -86,8 +85,7 @@ namespace VS_QuickNavigation.Utils
 
 		public void WaitAny()
 		{
-			m_oMre.WaitOne();
-			m_oMre.Reset();
+			m_oSemaphore.WaitOne();
 		}
 
 		public void WaitAll()
