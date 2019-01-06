@@ -16,7 +16,9 @@ namespace VS_QuickNavigation
 	public class SolutionWatcher : IVsSolutionEvents, IVsSolutionLoadEvents, IDisposable
 	{
 		uint mSolutionCookie;
-		CancellationTokenSource mToken;
+		CancellationTokenSource mTokenFileList;
+		CancellationTokenSource mTokenSymbolList;
+		Task mTaskSymbolList;
 
 		private EnvDTE.WindowEvents mWindowEvents;
 		private EnvDTE.DocumentEvents mDocumentEvents;
@@ -28,12 +30,21 @@ namespace VS_QuickNavigation
 
 		Dictionary<string, FileData> mFiles = new Dictionary<string, FileData>();
 
+		SynchronizationContext mSyncContext;
+		System.Timers.Timer mTimer;
+		bool mSolutionLoaded;
+
 		public SolutionWatcher()
 		{
 			if (Common.Instance.Solution != null)
 			{
 				Common.Instance.Solution.AdviseSolutionEvents(this, out mSolutionCookie);
 			}
+
+			mSyncContext = SynchronizationContext.Current;
+			mTimer = new System.Timers.Timer(1500f);
+			mTimer.AutoReset = false;
+			mTimer.Elapsed += OnRefreshFileListTimer;
 
 			mFileHistory.MaxHistory = Common.Instance.Settings.MaxFileHistory;
 
@@ -64,6 +75,21 @@ namespace VS_QuickNavigation
 			RefreshOpenHistory();
 
 			OnFilesChanged += RefreshSymbolDatabase;
+		}
+
+		public void TriggeringRefreshFileList()
+		{
+			mTimer.Stop();
+			mTimer.Start();
+		}
+
+		private void OnRefreshFileListTimer(Object source, System.Timers.ElapsedEventArgs e)
+		{
+			mSyncContext.Send(state =>
+			{
+				RefreshFileList();
+			}, null);
+
 		}
 
 		public void Dispose()
@@ -121,40 +147,58 @@ namespace VS_QuickNavigation
 		#region Project events
 		void OnProjectAdded(EnvDTE.Project oProject)
 		{
-			//mNeedRefresh = true;
-			RefreshFileList();
+			if (mSolutionLoaded)
+			{
+				//mNeedRefresh = true;
+				TriggeringRefreshFileList();
+			}
 		}
 
 		void OnProjectRemoved(EnvDTE.Project oProject)
 		{
-			//mNeedRefresh = true;
-			RefreshFileList();
+			if (mSolutionLoaded)
+			{
+				//mNeedRefresh = true;
+				TriggeringRefreshFileList();
+			}
 		}
 
 		void OnProjectRenamed(EnvDTE.Project oProject, string sOldName)
 		{
-			//mNeedRefresh = true;
-			RefreshFileList();
+			if (mSolutionLoaded)
+			{
+				//mNeedRefresh = true;
+				TriggeringRefreshFileList();
+			}
 		}
 		#endregion
 
 		#region Project Items events
 		void OnItemAdded(EnvDTE.ProjectItem oProjectItem)
 		{
-			//mNeedRefresh = true;
-			RefreshFileList();
+			if (mSolutionLoaded)
+			{
+				mNeedRefresh = true;
+				TriggeringRefreshFileList();
+			}
 		}
 
 		void OnItemRemoved(EnvDTE.ProjectItem oProjectItem)
 		{
-			//mNeedRefresh = true;
-			RefreshFileList();
+			if (mSolutionLoaded)
+			{
+				mNeedRefresh = true;
+				TriggeringRefreshFileList();
+			}
 		}
 
 		void OnItemRenamed(EnvDTE.ProjectItem oProjectItem, string sOldName)
 		{
-			//mNeedRefresh = true;
-			RefreshFileList();
+			if (mSolutionLoaded)
+			{
+				mNeedRefresh = true;
+				TriggeringRefreshFileList();
+			}
 		}
 		#endregion
 
@@ -213,6 +257,7 @@ namespace VS_QuickNavigation
 		#region IVsSolutionLoadEvents
 		public int OnBeforeOpenSolution(string pszSolutionFilename)
 		{
+			mSolutionLoaded = false;
 			return VSConstants.S_OK;
 		}
 
@@ -239,9 +284,10 @@ namespace VS_QuickNavigation
 
 		public int OnAfterBackgroundSolutionLoadComplete()
 		{
+			mSolutionLoaded = true;
 			System.Diagnostics.Debug.WriteLine("OnAfterBackgroundSolutionLoadComplete");
 			RefreshOpenHistory();
-			RefreshFileList();
+			TriggeringRefreshFileList();
 			//TestSpeed();
 			return VSConstants.S_OK;
 		}
@@ -287,36 +333,38 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		public void RefreshFileList()
+		void RefreshFileList()
 		{
-			if (null != mToken)
+			if (Common.Instance.DTE2.Solution.IsOpen == false)
 			{
-				mToken.Cancel();
+				return;
 			}
-			mToken = new CancellationTokenSource();
 
-			RefreshSolutionFiles(mToken.Token);
+			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+			sbar.Progress(true, "QuickNavigation Discovering solution files list ...", 0, 1);
+			sbar.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationGeneral);
 
-			//IEnumerable<Data.FileData> newFiles = FileList.files;
-			if (!mToken.Token.IsCancellationRequested)
+			if (null != mTokenFileList)
 			{
-				//System.Diagnostics.Debug.WriteLine("file count " + newFiles.Count());
-				//string[] exts = Common.Instance.Settings.ListedExtensions;
+				mTokenFileList.Cancel();
+			}
+			mTokenFileList = new CancellationTokenSource();
 
+			RefreshSolutionFiles(mTokenFileList.Token);
+
+			if (!mTokenFileList.Token.IsCancellationRequested)
+			{
 				RefreshHistoryFileList();
 
-				//mFiles = mFiles.Select( pair => pair.Value );
-				//Files = GetSolutionsFiles(mToken.Token).Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)));
-				/*lock (Files)
-				{
-					Files = FileList.files.Where(fileData => exts.Any(ext => fileData.File.EndsWith(ext)));
-				}*/
 				mNeedRefresh = false;
 				if (null != OnFilesChanged)
 				{
 					OnFilesChanged();
 				}
 			}
+
+			sbar.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationGeneral);
+			sbar.Progress(false);
 		}
 
 		public void RefreshHistoryFileList()
@@ -377,7 +425,6 @@ namespace VS_QuickNavigation
 			{
 				return;
 			}
-
 			IEnumerable<FileData> solutionFiles = GetSolutionsFiles(cancelToken);
 
 			if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
@@ -410,66 +457,139 @@ namespace VS_QuickNavigation
 
 		public static IEnumerable<FileData> GetSolutionsFiles(CancellationToken? cancelToken = null)
 		{
-			System.Diagnostics.Debug.WriteLine("GetSolutionsFiles " + Common.Instance.DTE2.Solution.FileName);
-            EnvDTE.Projects projects = Common.Instance.DTE2.Solution.Projects;
+			//System.Diagnostics.Debug.WriteLine("GetSolutionsFiles " + Common.Instance.DTE2.Solution.FileName);
+
+			IEnumerable<EnvDTE.Project> projects = GetProjects(Common.Instance.DTE2.Solution, cancelToken).ToArray();
 			if (null != projects)
 			{
 				List<FileData> newFiles = new List<FileData>();
 
-				var projectsIte = projects.GetEnumerator();
-				while (projectsIte.MoveNext())
-				//foreach (EnvDTE.Project project in projects)
+				IEnumerable<EnvDTE.ProjectItem> files = GetProjectsFiles(projects, cancelToken).ToArray();
+
+				foreach (EnvDTE.ProjectItem file in files)
 				{
-					var project = (EnvDTE.Project)projectsIte.Current;
-					System.Diagnostics.Debug.WriteLine("Project " + project.FileName);
 					if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
 					{
-						return null;
+						break;
 					}
-					if (null != project.ProjectItems)
-					{
-						FillProjectItems(newFiles, project.ProjectItems, cancelToken);
-					}
+
+					newFiles.Add(new FileData(file.FileNames[0], file.ContainingProject.Name));
 				}
 				return newFiles;
 			}
-
-			return null;
+			return new FileData[0];
 		}
 
-		static void FillProjectItems(List<FileData> list, EnvDTE.ProjectItems projectItems, CancellationToken? cancelToken = null)
-		{
-			if (null != projectItems)
-			{
-				var projectItemsIte = projectItems.GetEnumerator();
-				while (projectItemsIte.MoveNext())
-				//foreach (EnvDTE.ProjectItem projectItem in projectItems)
-				{
-					var projectItem = (EnvDTE.ProjectItem)projectItemsIte.Current;
 
+		static IEnumerable<EnvDTE.Project> GetProjects(EnvDTE.Solution solution, CancellationToken? cancelToken = null)
+		{
+			foreach (EnvDTE.Project project in solution.Projects)
+			{
+				if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+				{
+					break;
+				}
+
+				foreach (EnvDTE.Project subProject in GetSubProjects(project, cancelToken))
+				{
 					if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
 					{
-						return;
+						break;
 					}
+
+					//System.Diagnostics.Debug.WriteLine("Project : " + subProject.Name);
+					yield return subProject;
+				}
+			}
+		}
+
+		static IEnumerable<EnvDTE.Project> GetSubProjects(EnvDTE.Project project, CancellationToken? cancelToken = null)
+		{
+			if (project != null)
+			{
+				if (project.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder)
+				{
+					yield return project;
+				}
+
+				if (project.ProjectItems != null)
+				{
+					foreach (EnvDTE.ProjectItem subProjectItem in project.ProjectItems)
+					{
+						if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+						{
+							break;
+						}
+
+						var subProject = subProjectItem.SubProject;
+						foreach (EnvDTE.Project subSubProject in GetSubProjects(subProject, cancelToken))
+						{
+							if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+							{
+								break;
+							}
+
+							yield return subSubProject;
+						}
+					}
+				}
+			}
+		}
+
+		static IEnumerable<EnvDTE.ProjectItem> GetProjectsFiles(IEnumerable<EnvDTE.Project> projects, CancellationToken? cancelToken = null)
+		{
+			foreach (EnvDTE.Project project in projects)
+			{
+				foreach (EnvDTE.ProjectItem projectItem in GetProjectItemsFiles(project.ProjectItems, cancelToken))
+				{
+					if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+					{
+						break;
+					}
+
+					//System.Diagnostics.Debug.WriteLine("File : " + projectItem.Name);
+					yield return projectItem;
+				}
+			}
+		}
+
+		static IEnumerable<EnvDTE.ProjectItem> GetProjectItemsFiles(EnvDTE.ProjectItems projectItems, CancellationToken? cancelToken = null)
+		{
+			if (projectItems != null)
+			{
+				foreach (EnvDTE.ProjectItem projectItem in projectItems)
+				{
+					if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+					{
+						break;
+					}
+
 					if (Guid.Parse(projectItem.Kind) == VSConstants.GUID_ItemType_PhysicalFile)
 					{
-						/*string fullPath;
-						if (Utils.DteHelper.GetPropertyString(projectItem.Properties, "FullPath", out fullPath))
-						{
-
-							list.Add(new FileData(fullPath, projectItem.ContainingProject.Name));
-						}
-						else
-						{
-							System.Diagnostics.Debug.WriteLine(projectItem.Name);
-						}*/
-						list.Add(new FileData(projectItem.FileNames[0], projectItem.ContainingProject.Name));
+						yield return projectItem;
 					}
-					FillProjectItems(list, projectItem.ProjectItems, cancelToken);
 
-					if (null != projectItem.SubProject)
+					foreach (EnvDTE.ProjectItem subProjectItem in GetProjectItemsFiles(projectItem.ProjectItems, cancelToken))
 					{
-						FillProjectItems(list, projectItem.SubProject.ProjectItems, cancelToken);
+						if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+						{
+							break;
+						}
+
+						yield return subProjectItem;
+					}
+
+					if (projectItem.SubProject != null)
+					{
+						foreach (EnvDTE.ProjectItem subProjectItem in GetProjectItemsFiles(projectItem.SubProject.ProjectItems, cancelToken))
+						{
+							if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+							{
+								break;
+							}
+
+							yield return subProjectItem;
+						}
 					}
 				}
 			}
@@ -521,7 +641,7 @@ namespace VS_QuickNavigation
 							writer.Write(symbol.StartLine);
 							writer.Write(symbol.Symbol);
 							writer.Write(symbol.Scope != null ? symbol.Scope : "");
-							//TODO 
+							//TODO
 							writer.Write(symbol.Parameters != null ? symbol.Parameters : "");
 						}
 					}
@@ -582,55 +702,80 @@ namespace VS_QuickNavigation
 			}
 		}
 
-		public void RefreshSymbolDatabase()
+		public void ClearSymbolDatabase()
 		{
-			RefreshSymbolDatabase(false);
+			//Remove database
+			string dbPath = Common.Instance.DataFolder + "\\" + Common.Instance.DTE2.Solution.FileName.GetHashCode().ToString() + ".db";
+			System.IO.File.Delete(dbPath);
+
+			//Remove symbols
+			foreach (FileData fileData in mFiles.Values)
+			{
+				fileData.SetSymbols(null, DateTime.MinValue);
+			}
 		}
 
-		public void RefreshSymbolDatabase(bool bForce)
+		public void RefreshSymbolDatabase()
 		{
 			if (null == mFiles || !mFiles.Any())
 			{
 				return;
 			}
 
-			if (bForce == false)
+			if (null != mTokenSymbolList)
 			{
-				ReadSymbolDatabase();
+				mTokenSymbolList.Cancel();
 			}
+			mTokenSymbolList = new CancellationTokenSource();
 
-			List<string> lToGenerate = new List<string>();
-			if (bForce)
+			CancellationTokenSource oToken = mTokenSymbolList;
+			Task oPreviousTask = mTaskSymbolList;
+
+			mTaskSymbolList = Task.Factory.StartNew(() =>
 			{
-				lToGenerate.AddRange(mFiles.Values.Select(f => f.Path));
-			}
-			else
-			{
+				if (oPreviousTask != null && oPreviousTask.IsCompleted == false)
+				{
+					oPreviousTask.Wait();
+				}
+
+				List<string> lToGenerate = new List<string>();
+
 				foreach (FileData fileData in mFiles.Values)
 				{
-					if (	fileData.LastSymbolsGeneration == DateTime.MinValue
-						||	fileData.LastSymbolsGeneration < System.IO.File.GetLastWriteTime(fileData.Path)
+					if (oToken.IsCancellationRequested)
+					{
+						return;
+					}
+
+					if (fileData.LastSymbolsGeneration == DateTime.MinValue
+						|| fileData.LastSymbolsGeneration < System.IO.File.GetLastWriteTime(fileData.Path)
 						)
 					{
 						lToGenerate.Add(fileData.Path);
 					}
 				}
-			}
 
-			IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFilesWithProgress(lToGenerate);
+				IEnumerable<SymbolData> symbols = CTagsGenerator.GeneratorFromFilesWithProgress(lToGenerate, oToken);
 
-			EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
-			sbar.Progress(true, "Sorting symbols", 1,1);
+				EnvDTE.StatusBar sbar = Common.Instance.DTE2.StatusBar;
+				sbar.Progress(true, "Sorting symbols", 0, 1);
+				sbar.Animate(true, EnvDTE.vsStatusAnimation.vsStatusAnimationGeneral);
 
-			//Associate symbols to DileData
-			symbols
-				.AsParallel()
-				.GroupBy(symbol => symbol.AssociatedFile)
-				.ForAll( pair => pair.Key.SetSymbols(pair) );
+				if (oToken == null || oToken.IsCancellationRequested == false)
+				{
+					//Associate symbols to FileData
+					symbols
+						.AsParallel()
+						.GroupBy(symbol => symbol.AssociatedFile)
+						.ForAll(pair => pair.Key.SetSymbols(pair));
 
-			sbar.Progress(false);
+					WriteSymbolDatabase();
+				}
 
-			WriteSymbolDatabase();
+				sbar.Animate(false, EnvDTE.vsStatusAnimation.vsStatusAnimationGeneral);
+				sbar.Progress(false);
+
+			}, oToken.Token, TaskCreationOptions.None, TaskScheduler.Default);
 		}
 	}
 }

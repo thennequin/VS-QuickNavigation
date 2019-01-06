@@ -43,8 +43,8 @@ namespace VS_QuickNavigation
 
 		void CleanDatabase(object sender, EventArgs e)
 		{
-			Common.Instance.SolutionWatcher.RefreshFileList();
-			Common.Instance.SolutionWatcher.RefreshSymbolDatabase(true);
+			Common.Instance.SolutionWatcher.ClearSymbolDatabase();
+			Common.Instance.SolutionWatcher.TriggeringRefreshFileList();
 		}
 	}
 }
