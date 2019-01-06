@@ -56,7 +56,7 @@ namespace VS_QuickNavigation.Data
 					return "";
 
 				int index = sScope.IndexOf(':');
-				
+
 				if (index != -1)
 					sScope = sScope.Substring(index+1);
 

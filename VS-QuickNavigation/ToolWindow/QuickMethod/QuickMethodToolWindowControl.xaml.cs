@@ -26,7 +26,7 @@ namespace VS_QuickNavigation
 			QuickMethodToolWindowControl mControl;
 
 			ESymbolType Type { get; set; }
-			
+
 			public bool IsSelected
 			{
 				get
@@ -73,7 +73,7 @@ namespace VS_QuickNavigation
 		private CancellationTokenSource mToken;
 		private Task mTask;
 		private DeferredAction mDeferredRefresh;
-		
+
 		const int c_RefreshDelay = 100;
 
 		public IEnumerable<SymbolTypeWrapper> SuportedSymbolTypes

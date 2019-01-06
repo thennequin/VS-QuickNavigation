@@ -132,7 +132,7 @@ namespace VS_QuickNavigation
 						if (m_hNextClipboardViewer.ToInt64() != 0)
 						{
 							SendMessage(m_hNextClipboardViewer, m.Msg, m.WParam, m.LParam);
-						}	
+						}
 						break;
 
 					case WM_CHANGECBCHAIN:
