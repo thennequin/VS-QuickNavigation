@@ -11,20 +11,63 @@ namespace VS_QuickNavigation
 {
 	class Reference
 	{
-		public Data.FileData File { get; set; }
+		public ReferenceScope Scope { get; set; }
 		public WordRef Ref { get; set; }
+
+		public Data.FileData File
+		{
+			get
+			{
+				return Scope.File;
+			}
+		}
 	}
 
-	class ReferenceList
+	class ReferenceScope
 	{
+		public bool IsExpanded { get; set; } = true;
+
 		public Data.FileData File { get; set; }
+		public Data.SymbolData Symbol { get; set; }
 		public IEnumerable<Reference> Refs { get; set; }
+
+		public string Name
+		{
+			get
+			{
+				return Symbol.ScopePretty + Symbol.Symbol;
+			}
+		}
 
 		public int RefCount
 		{
 			get
 			{
 				return Refs.Count();
+			}
+		}
+	}
+
+	class ReferenceList
+	{
+		public bool IsExpanded { get; set; } = true;
+
+		public Data.FileData File { get; set; }
+		public IEnumerable<ReferenceScope> Scopes { get; set; }
+
+		public int ScopeCount
+		{
+			get
+			{
+				return Scopes.Count();
+			}
+		}
+
+		public int RefCount
+		{
+			get
+			{
+				return Scopes.Sum(s => s.RefCount);
 			}
 		}
 	}
@@ -53,7 +96,7 @@ namespace VS_QuickNavigation
 				Task previousTask = mTask;
 
 				ThreadSafeObservableCollection<ReferenceList> oRefLists = new ThreadSafeObservableCollection<ReferenceList>();
-				
+
 				mTask = Task.Run(() =>
 				{
 					if (null != previousTask && !previousTask.IsCompleted)
@@ -101,7 +144,16 @@ namespace VS_QuickNavigation
 							IEnumerable<WordRef> oFileRefs = CommonUtils.FindLastWord(sLines, sSymbol);
 							if (oFileRefs.Any())
 							{
-								ReferenceList oRefList = new ReferenceList { File = fileData, Refs = oFileRefs.Select(r => new Reference { File = fileData, Ref = r }) };
+								ReferenceList oRefList = new ReferenceList {
+									File = fileData,
+									Scopes = oFileRefs.GroupBy(
+										r => fileData.Symbols.Where(s => s.StartLine <= r.Line && s.EndLine >= r.Line).OrderByDescending(s => s.StartLine).FirstOrDefault()
+										, (key, g) => {
+											ReferenceScope oScope = new ReferenceScope { Symbol = key, File = fileData };
+											oScope.Refs = g.Select(r => new Reference { Scope = oScope, Ref = r });
+											return oScope;
+										})
+								};
 								oRefLists.Add(oRefList);
 							}
 

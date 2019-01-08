@@ -31,11 +31,23 @@
                 </Grid>
             </StackPanel>
             <TreeView x:Name="treeView" DockPanel.Dock="Bottom" MouseDoubleClick="TreeView_MouseDoubleClick" KeyDown="TreeView_KeyDown">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local:ReferenceList}" ItemsSource="{Binding Refs}">
+                    <HierarchicalDataTemplate DataType="{x:Type local:ReferenceList}" ItemsSource="{Binding Scopes}">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="{Binding File.Icon}" Width="16" Height="16"/>
                             <Label Content="{Binding File.Path}" Padding="5,1,1,1"/>
+                            <Label Content="{Binding Path=RefCount,StringFormat= ({0})}" Padding="5,1,1,1" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ControlLinkTextKey}}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type local:ReferenceScope}" ItemsSource="{Binding Refs}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Symbol.ImagePath}" Width="16" Height="16"/>
+                            <Label Content="{Binding Name}" Padding="5,1,1,1"/>
                             <Label Content="{Binding Path=RefCount,StringFormat= ({0})}" Padding="5,1,1,1" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ControlLinkTextKey}}"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
