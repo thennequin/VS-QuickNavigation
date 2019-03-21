@@ -109,6 +109,7 @@ namespace VS_QuickNavigation
 				{
 					mQuickMethodToolWindow.Close();
 					OpenCurrentSelection();
+					e.Handled = true;
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
@@ -130,6 +131,7 @@ namespace VS_QuickNavigation
 				{
 					OpenCurrentSelection();
 					mQuickMethodToolWindow.Close();
+					e.Handled = true;
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{

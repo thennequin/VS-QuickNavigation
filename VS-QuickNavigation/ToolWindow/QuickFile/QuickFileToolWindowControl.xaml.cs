@@ -115,6 +115,7 @@ namespace VS_QuickNavigation
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
 					OpenCurrentSelection();
+					e.Handled = true;
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
@@ -135,6 +136,7 @@ namespace VS_QuickNavigation
 				if (e.Key == System.Windows.Input.Key.Return)
 				{
 					OpenCurrentSelection();
+					e.Handled = true;
 				}
 				else if (e.Key == System.Windows.Input.Key.Escape)
 				{
