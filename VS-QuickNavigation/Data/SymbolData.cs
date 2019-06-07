@@ -38,6 +38,12 @@ namespace VS_QuickNavigation.Data
 		{
 			return Utils.CommonUtils.GetDescription(eType);
 		}
+
+		public static bool IsContainer(this ESymbolType eType)
+		{
+			return eType == ESymbolType.Struct
+				|| eType == ESymbolType.Class;
+		}
 	}
 
 	public class SymbolData

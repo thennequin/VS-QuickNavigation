@@ -5,6 +5,7 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Windows.Controls;
 using VS_QuickNavigation.Utils;
+using VS_QuickNavigation.Data;
 
 namespace VS_QuickNavigation
 {
@@ -105,7 +106,7 @@ namespace VS_QuickNavigation
 
 			if (symbols != null && symbols.Any())
 			{
-				Data.SymbolData oClassSymbol = (originSymbol != null && originSymbol.Type == Data.ESymbolType.Class) ? originSymbol : symbols.FirstOrDefault(s => s.Type == Data.ESymbolType.Class);
+				Data.SymbolData oClassSymbol = (originSymbol != null && originSymbol.Type.IsContainer()) ? originSymbol : symbols.FirstOrDefault(s => s.Type == Data.ESymbolType.Class);
 				List<Data.SymbolData> lBaseClasses = new List<Data.SymbolData>();
 				List<Data.SymbolData> lInheritedClasses = new List<Data.SymbolData>();
 
@@ -116,7 +117,7 @@ namespace VS_QuickNavigation
 					{
 						foreach (string sBase in oClassSymbol.Inherits)
 						{
-							Data.SymbolData oBaseSymbol = solutionSymbols.FirstOrDefault(s => s.Type == Data.ESymbolType.Class && s.Symbol == sBase);
+							Data.SymbolData oBaseSymbol = solutionSymbols.FirstOrDefault(s => s.Type.IsContainer() && s.Symbol == sBase);
 							if (oBaseSymbol != null)
 							{
 								lBaseClasses.Add(oBaseSymbol);
@@ -125,7 +126,7 @@ namespace VS_QuickNavigation
 					}
 
 					//Inherited
-					IEnumerable<Data.SymbolData> inheritsClass = solutionSymbols.Where(s => s.Type == Data.ESymbolType.Class && s.Inherits != null && s.Inherits.Any(i => CommonUtils.IsLastWord(i, oClassSymbol.Symbol)));
+					IEnumerable<Data.SymbolData> inheritsClass = solutionSymbols.Where(s => s.Type.IsContainer() && s.Inherits != null && s.Inherits.Any(i => CommonUtils.IsLastWord(i, oClassSymbol.Symbol)));
 					lInheritedClasses.AddRange(inheritsClass);
 				}
 
