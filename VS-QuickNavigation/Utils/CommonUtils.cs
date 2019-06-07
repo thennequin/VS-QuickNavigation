@@ -118,7 +118,7 @@ namespace VS_QuickNavigation.Utils
 					return false;
 
 				int iEndPos = iPos + sWord.Length;
-				if (iEndPos < (sString.Length - 1) && IsWordCharacter(sString[iEndPos + 1]))
+				if (iEndPos < (sString.Length) && IsWordCharacter(sString[iEndPos]))
 					return false;
 
 				return true;
