@@ -33,5 +33,5 @@ using System.Runtime.InteropServices;
 
 internal static class Vs_QuickNavigationVersion
 {
-	public const string Version = "0.6";
+	public const string Version = "0.7";
 }
