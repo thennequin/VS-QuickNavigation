@@ -615,7 +615,7 @@ namespace VS_QuickNavigation
 		{
 			get
 			{
-				return 4;
+				return 5;
 			}
 		}
 

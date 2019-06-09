@@ -190,6 +190,9 @@
     <Content Include="Resources\Symbols\VS2012\TypeDef.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Resources\Symbols\VS2012\Union.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\Symbols\VS2012\Variable.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

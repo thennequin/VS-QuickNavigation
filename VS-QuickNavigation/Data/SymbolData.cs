@@ -7,24 +7,22 @@ namespace VS_QuickNavigation.Data
 	{
 		Namespace = 1 << 0,
 		Struct = 1 << 1,
-		Class = 1 << 2,
-		Interface = 1 << 3,
-		TypeDef = 1 << 4,
-		Macro = 1 << 5,
-		Enumerator = 1 << 6,
-		Enumeration = 1 << 7,
-		Method = 1 << 8,
+		Union = 1 << 2,
+		Class = 1 << 3,
+		Interface = 1 << 4,
+		TypeDef = 1 << 5,
+		Macro = 1 << 6,
+		Enumerator = 1 << 7,
+		Enumeration = 1 << 8,
+		Method = 1 << 9,
 		[Utils.Description("Method proto")]
-		MethodPrototype = 1 << 9,
+		MethodPrototype = 1 << 10,
 
-		Field = 1 << 10,
-		Property = 1 << 11,
+		Field = 1 << 11,
+		Property = 1 << 12,
 
-		Variable = 1 << 12,
-		Local = 1 << 13,
-
-		//StructureName,
-		//UnionName,
+		Variable = 1 << 13,
+		Local = 1 << 14
 	}
 
 	static public class ESymbolTypeExtension
@@ -42,7 +40,9 @@ namespace VS_QuickNavigation.Data
 		public static bool IsContainer(this ESymbolType eType)
 		{
 			return eType == ESymbolType.Struct
-				|| eType == ESymbolType.Class;
+				|| eType == ESymbolType.Union
+				|| eType == ESymbolType.Class
+				|| eType == ESymbolType.Interface;
 		}
 	}
 

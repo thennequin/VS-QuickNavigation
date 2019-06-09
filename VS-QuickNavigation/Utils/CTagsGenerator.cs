@@ -542,6 +542,10 @@ namespace VS_QuickNavigation.Utils
 												eType = ESymbolType.Struct;
 												bTypeFound = true;
 												break;
+											case "union":
+												eType = ESymbolType.Union;
+												bTypeFound = true;
+												break;
 											case "class":
 												eType = ESymbolType.Class;
 												bTypeFound = true;

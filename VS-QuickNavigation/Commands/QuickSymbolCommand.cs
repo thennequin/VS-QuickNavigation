@@ -33,6 +33,7 @@ namespace VS_QuickNavigation
 			window = new QuickMethodToolWindow(true,
 					Data.ESymbolType.Namespace |
 					Data.ESymbolType.Struct |
+					Data.ESymbolType.Union |
 					Data.ESymbolType.Class |
 					Data.ESymbolType.Interface |
 					Data.ESymbolType.TypeDef |
