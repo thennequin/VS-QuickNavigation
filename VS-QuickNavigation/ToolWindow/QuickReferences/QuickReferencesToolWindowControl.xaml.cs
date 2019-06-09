@@ -210,7 +210,7 @@ namespace VS_QuickNavigation
 							Dispatcher.BeginInvoke(new Action(()=>
 							{
 								status.Content = sContent;
-								progressBar.Value = iFile;
+								progressBar.Value = iFileCount;
 								progressBar.Maximum = iFileCount;
 								buttonStop.IsEnabled = false;
 							}));
