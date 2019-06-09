@@ -190,7 +190,7 @@ namespace VS_QuickNavigation.Utils
 					if (iPos > 0 && IsWordCharacter(sLine[iPos - 1]))
 						bOk = false;
 
-					if ((iPos + iWordLen) < sLine.Length && 
+					if ((iPos + iWordLen) < sLine.Length &&
 						(IsWordCharacter(sLine[iPos + iWordLen]) || !IsFinalCharacter(sLine[iPos + iWordLen])))
 						bOk = false;
 
@@ -289,7 +289,7 @@ namespace VS_QuickNavigation.Utils
 					oPoint = new System.Windows.Point();
 					return false;
 				}
-					
+
 				int iLine, iCol;
 				oTextViewCurrent.GetCaretPos(out iLine, out iCol);
 				if (bNextLine)
@@ -299,7 +299,7 @@ namespace VS_QuickNavigation.Utils
 				oTextViewCurrent.GetPointOfLineColumn(iLine, iCol, pts);
 				RECT oViewRect = new RECT();
 				GetWindowRect(oTextViewCurrent.GetWindowHandle(), ref oViewRect);
-				
+
 				oPoint = new System.Windows.Point(oViewRect.Left + pts[0].x, oViewRect.Top + pts[0].y);
 				return true;
 			}
