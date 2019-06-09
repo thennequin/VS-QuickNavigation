@@ -1,13 +1,13 @@
 ﻿<UserControl x:Class="VS_QuickNavigation.QuickReferencesToolWindowControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:VS_QuickNavigation"
              xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.10.0"
              Background="{DynamicResource {x:Static vsfx:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsfx:VsBrushes.WindowTextKey}}"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -37,16 +37,16 @@
                     </Style>
                 </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local:ReferenceList}" ItemsSource="{Binding Scopes}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding File.Icon}" Width="16" Height="16"/>
-                            <Label Content="{Binding File.Path}" Padding="5,1,1,1"/>
-                            <Label Content="{Binding Path=RefCount,StringFormat= ({0})}" Padding="5,1,1,1" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ControlLinkTextKey}}"/>
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                    <HierarchicalDataTemplate DataType="{x:Type local:ReferenceScope}" ItemsSource="{Binding Refs}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding Symbol.ImagePath}" Width="16" Height="16"/>
+                    <ContextMenu x:Key="ParentContextMenu">
+                        <MenuItem Header="Collapse all subtree" Click="MenuItemCollapseAllSubTree_Click"/>
+                        <MenuItem Header="Expand all subtree" Click="MenuItemExpandAllSubTree_Click"/>
+                        <Separator />
+                        <MenuItem Header="Collapse all" Click="MenuItemCollapseAll_Click"/>
+                        <MenuItem Header="Expand all" Click="MenuItemExpandAll_Click"/>
+                    </ContextMenu>
+                    <HierarchicalDataTemplate DataType="{x:Type local:ReferenceScope}" ItemsSource="{Binding Items}">
+                        <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource ParentContextMenu}">
+                            <Image Source="{Binding Icon}" Width="16" Height="16"/>
                             <Label Content="{Binding Name}" Padding="5,1,1,1"/>
                             <Label Content="{Binding Path=RefCount,StringFormat= ({0})}" Padding="5,1,1,1" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ControlLinkTextKey}}"/>
                         </StackPanel>

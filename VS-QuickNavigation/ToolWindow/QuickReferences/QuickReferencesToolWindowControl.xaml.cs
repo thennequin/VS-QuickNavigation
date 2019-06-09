@@ -29,13 +29,36 @@ namespace VS_QuickNavigation
 
 		public Data.FileData File { get; set; }
 		public Data.SymbolData Symbol { get; set; }
-		public IEnumerable<Reference> Refs { get; set; }
+		public IEnumerable<Reference> References { get; set; }
+		public IEnumerable<ReferenceScope> Scopes { get; set; }
 
 		public string Name
 		{
 			get
 			{
-				return Symbol.ScopePretty + Symbol.Symbol;
+				if (Symbol != null)
+				{
+					return Symbol.ScopePretty + Symbol.Symbol;
+				}
+				else
+				{
+					return File.Path;
+				}
+			}
+		}
+
+		public object Icon
+		{
+			get
+			{
+				if (Symbol != null)
+				{
+					return Symbol.ImagePath;
+				}
+				else
+				{
+					return File.Icon;
+				}
 			}
 		}
 
@@ -43,31 +66,32 @@ namespace VS_QuickNavigation
 		{
 			get
 			{
-				return Refs.Count();
-			}
-		}
-	}
-
-	class ReferenceList
-	{
-		public bool IsExpanded { get; set; } = true;
-
-		public Data.FileData File { get; set; }
-		public IEnumerable<ReferenceScope> Scopes { get; set; }
-
-		public int ScopeCount
-		{
-			get
-			{
-				return Scopes.Count();
+				return ((References != null) ? References.Count() : 0 )
+					+ ((Scopes != null) ? Scopes.Sum(s => s.RefCount) : 0);
 			}
 		}
 
-		public int RefCount
+		public IEnumerable<object> Items
 		{
 			get
 			{
-				return Scopes.Sum(s => s.RefCount);
+				IEnumerable<Reference> references = References;
+				if (references != null)
+				{
+					foreach (Reference reference in references)
+					{
+						yield return reference;
+					}
+				}
+
+				IEnumerable<ReferenceScope> scopes = Scopes;
+				if (scopes != null)
+				{
+					foreach (ReferenceScope scope in scopes)
+					{
+						yield return scope;
+					}
+				}
 			}
 		}
 	}
@@ -95,7 +119,7 @@ namespace VS_QuickNavigation
 				CancellationToken localToken = mToken.Token;
 				Task previousTask = mTask;
 
-				ThreadSafeObservableCollection<ReferenceList> oRefLists = new ThreadSafeObservableCollection<ReferenceList>();
+				ThreadSafeObservableCollection<ReferenceScope> oRefLists = new ThreadSafeObservableCollection<ReferenceScope>();
 
 				mTask = Task.Run(() =>
 				{
@@ -144,15 +168,20 @@ namespace VS_QuickNavigation
 							IEnumerable<WordRef> oFileRefs = CommonUtils.FindLastWord(sLines, sSymbol);
 							if (oFileRefs.Any())
 							{
-								ReferenceList oRefList = new ReferenceList {
-									File = fileData,
-									Scopes = oFileRefs.GroupBy(
-										r => fileData.Symbols.Where(s => s.StartLine <= r.Line && s.EndLine >= r.Line).OrderByDescending(s => s.StartLine).FirstOrDefault()
+								ReferenceScope[] oScopes = oFileRefs.GroupBy(
+										r => (fileData.Symbols != null) ? fileData.Symbols.Where(s => s.StartLine <= r.Line && s.EndLine >= r.Line).OrderByDescending(s => s.StartLine).FirstOrDefault() : null
 										, (key, g) => {
 											ReferenceScope oScope = new ReferenceScope { Symbol = key, File = fileData };
-											oScope.Refs = g.Select(r => new Reference { Scope = oScope, Ref = r });
+											oScope.References = g.Select(r => new Reference { Scope = oScope, Ref = r });
 											return oScope;
-										})
+										}).ToArray();
+
+								ReferenceScope oFileScope = oScopes.Where(s => s.Symbol == null).FirstOrDefault();
+								ReferenceScope oRefList = new ReferenceScope
+								{
+									File = fileData,
+									Scopes = oScopes.Where(s => s.Symbol != null).OrderBy(s=>s.Symbol.StartLine).ToArray(),
+									References = (oFileScope != null) ? oFileScope.References.ToArray() : null
 								};
 								oRefLists.Add(oRefList);
 							}
@@ -217,6 +246,65 @@ namespace VS_QuickNavigation
 			if (null != mToken)
 			{
 				mToken.Cancel();
+			}
+		}
+
+		void ExpandTreeviewItems(TreeViewItem oItem, bool bExpand)
+		{
+			oItem.IsExpanded = bExpand;
+
+			foreach (object oSubItem in oItem.Items)
+			{
+				TreeViewItem oSubTreeViewItem = oItem.ItemContainerGenerator.ContainerFromItem(oSubItem) as TreeViewItem;
+				if (oSubTreeViewItem != null)
+				{
+					oSubTreeViewItem.IsExpanded = bExpand;
+					if (oSubTreeViewItem.HasItems)
+						ExpandTreeviewItems(oSubTreeViewItem, bExpand);
+				}
+			}
+		}
+
+		private void MenuItemCollapseAllSubTree_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			TreeViewItem oTreeViewItem = treeView.ItemContainerGenerator.ContainerFromItem((e.OriginalSource as MenuItem).DataContext) as TreeViewItem;
+			if (oTreeViewItem != null)
+			{
+				ExpandTreeviewItems(oTreeViewItem, false);
+			}
+		}
+
+		private void MenuItemExpandAllSubTree_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			TreeViewItem oTreeViewItem = treeView.ItemContainerGenerator.ContainerFromItem((e.OriginalSource as MenuItem).DataContext) as TreeViewItem;
+			if (oTreeViewItem != null)
+			{
+				ExpandTreeviewItems(oTreeViewItem, true);
+			}
+		}
+
+		private void MenuItemCollapseAll_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			foreach (object oItem in treeView.Items)
+			{
+				TreeViewItem oTreeViewItem = treeView.ItemContainerGenerator.ContainerFromItem(oItem) as TreeViewItem;
+				if (oTreeViewItem != null)
+				{
+					ExpandTreeviewItems(oTreeViewItem, false);
+				}
+			}
+
+		}
+
+		private void MenuItemExpandAll_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			foreach (object oItem in treeView.Items)
+			{
+				TreeViewItem oTreeViewItem = treeView.ItemContainerGenerator.ContainerFromItem(oItem) as TreeViewItem;
+				if (oTreeViewItem != null)
+				{
+					ExpandTreeviewItems(oTreeViewItem, true);
+				}
 			}
 		}
 	}
