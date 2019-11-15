@@ -16,3 +16,5 @@ build:
 artifacts:
   - path: VS-QuickNavigation\bin\Release\VS-QuickNavigation.vsix
     name: VS-QuickNavigation
+  - path: VS-QuickNavigation\obj\Release\VS-QuickNavigation.pdb
+    name: VS-QuickNavigation.pdb
