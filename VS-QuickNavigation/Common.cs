@@ -32,19 +32,28 @@ namespace VS_QuickNavigation
 		public IVsShell Shell { get; set; }
 		public IVsSolution Solution { get; set; }
 
-		public T GetService<T>()
+        public async System.Threading.Tasks.Task<T> GetServiceAsync<T>()
+        {
+            object result = await Microsoft.VisualStudio.Shell.AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(T));
+            T service = (T) result;
+            if (service == null)
+            {
+                result = await Package.GetServiceAsync(typeof(T));
+                service = (T) result;
+            }
+            return service;
+        }
+
+        public T GetService<T>()
 		{
-			T service = (T)Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.GetService(typeof(T));
-			if (service == null)
-				service = (T)((System.IServiceProvider)Package).GetService(typeof(T));
+            T service = (T) GetServiceAsync<T>().Result;
 			return service;
 		}
 
 		public R GetServiceAs<T, R>()
 		{
-			R service = (R)Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.GetService(typeof(T));
-			if (service == null)
-				service = (R)((System.IServiceProvider)Package).GetService(typeof(T));
+            object serviceT = GetServiceAsync<T>().Result;
+            R service = (R)serviceT;
 			return service;
 		}
 

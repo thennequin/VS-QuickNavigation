@@ -22,13 +22,14 @@ namespace VS_QuickNavigation
 			ResetSettings();
 		}
 
-		public void Refresh()
+		public async void Refresh()
 		{
 			
 			//EnvDTE.Properties props = Common.Instance.DTE.get_Properties(@"VSQuickNavigationPackage", "Settings");
 			try
 			{
-				EnvDTE.Properties props = Common.Instance.DTE2.Properties["QuickNavigation", "Settings"];
+                EnvDTE.DTE dte = await Common.Instance.Package.GetServiceAsync(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+                EnvDTE.Properties props = dte.Properties["QuickNavigation", "Settings"];
 
 				string exts;
 				//EnvDTE.Property prop = Utils.DteHelper.GetProperty(props, "ListedExtensions");
