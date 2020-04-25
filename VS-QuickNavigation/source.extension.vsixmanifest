@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="VS-QuickNavigation.Thibault HENNEQUIN.3694b9f7-556b-4c70-9ac4-0268e6449115" Version="0.7" Language="en-US" Publisher="Thibault HENNEQUIN" />
+    <Identity Id="VS-QuickNavigation.Thibault HENNEQUIN.3694b9f7-556b-4c70-9ac4-0268e6449115" Version="0.8" Language="en-US" Publisher="Thibault HENNEQUIN" />
     <DisplayName>VS-QuickNavigation</DisplayName>
     <Description xml:space="preserve">Navigate quickly between you solution files and your active document methods.</Description>
     <Icon>Resources\Icon.png</Icon>
