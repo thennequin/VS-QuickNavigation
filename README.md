@@ -17,3 +17,5 @@ https://visualstudiogallery.msdn.microsoft.com/229dde61-7402-4c6c-b440-bfc95102f
   ![QuickMethod](https://raw.githubusercontent.com/wiki/thennequin/VS-QuickNavigation/images/QuickMethod.png)
   
   ![QuickSymbol](https://raw.githubusercontent.com/wiki/thennequin/VS-QuickNavigation/images/QuickSymbol.png)
+
+  ![QuickGoto](https://raw.githubusercontent.com/wiki/thennequin/VS-QuickNavigation/images/QuickGoto.png)
