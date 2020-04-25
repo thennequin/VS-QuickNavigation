@@ -44,6 +44,19 @@ namespace VS_QuickNavigation.Data
 				|| eType == ESymbolType.Class
 				|| eType == ESymbolType.Interface;
 		}
+
+		public static System.Windows.Controls.Image GetImage(this ESymbolType eType)
+		{
+			System.Windows.Controls.Image oImage = new System.Windows.Controls.Image();
+			System.Windows.Media.Imaging.BitmapImage oBitmap = new System.Windows.Media.Imaging.BitmapImage();
+			oBitmap.BeginInit();
+			oBitmap.UriSource = new Uri(eType.GetImagePath());
+			oBitmap.EndInit();
+			oImage.Stretch = System.Windows.Media.Stretch.Fill;
+			oImage.Source = oBitmap;
+
+			return oImage;
+		}
 	}
 
 	public class SymbolData
@@ -78,7 +91,7 @@ namespace VS_QuickNavigation.Data
 		public string[] Inherits { get; set; }
 		public string Parameters { get; set; }
 		public ESymbolType Type { get; set; }
-		public String TypeDesc
+		public string TypeDesc
 		{
 			get
 			{

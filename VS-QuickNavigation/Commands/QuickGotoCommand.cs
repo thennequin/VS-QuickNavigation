@@ -49,6 +49,41 @@ namespace VS_QuickNavigation
 			Instance = new QuickGotoCommand(package);
 		}
 
+		static int s_iMaxSymbolTypeNameLen = 0;
+		static void FillSymbolMenuItem(Data.SymbolData oSymbol, MenuItem oMenuItem)
+		{
+			TextBlock oTextBlock = new TextBlock();
+
+			// Cache max len of types description
+			if (s_iMaxSymbolTypeNameLen == 0)
+			{
+				foreach (ESymbolType eType in Enum.GetValues(typeof(ESymbolType)))
+				{
+					s_iMaxSymbolTypeNameLen = Math.Max(s_iMaxSymbolTypeNameLen, eType.GetDescription().Length);
+				}
+			}
+
+			System.Windows.Documents.Run oSymbolTypeText = new System.Windows.Documents.Run($"{oSymbol.Type.GetDescription()} : ".PadRight(s_iMaxSymbolTypeNameLen + 3) + "\t");
+			oTextBlock.Inlines.Add(oSymbolTypeText);
+
+			System.Windows.Documents.Run oScopeText = new System.Windows.Documents.Run(oSymbol.ScopePretty);
+			oScopeText.FontWeight = System.Windows.FontWeight.FromOpenTypeWeight(600);
+			oTextBlock.Inlines.Add(oScopeText);
+
+			System.Windows.Documents.Run oSymbolText = new System.Windows.Documents.Run(oSymbol.Symbol);
+			oSymbolText.FontWeight = System.Windows.FontWeight.FromOpenTypeWeight(700);
+			oTextBlock.Inlines.Add(oSymbolText);
+
+			System.Windows.Documents.Run oParametersText = new System.Windows.Documents.Run(oSymbol.Parameters);
+			oParametersText.FontWeight = System.Windows.FontWeight.FromOpenTypeWeight(500);
+			oTextBlock.Inlines.Add(oParametersText);
+
+			oMenuItem.Tag = oSymbol;
+			oMenuItem.Icon = oSymbol.Type.GetImage();
+			oMenuItem.Header = oTextBlock;
+			oMenuItem.InputGestureText = $"\t{oSymbol.AssociatedFilename}:{oSymbol.StartLine}";
+		}
+
 		private void GotoCurrentWord(object sender, EventArgs e)
 		{
 			string sCurrentWord = CommonUtils.GetCurrentWord();
@@ -148,8 +183,9 @@ namespace VS_QuickNavigation
 						foreach (Data.SymbolData symbol in symbols)
 						{
 							MenuItem oItem = new MenuItem();
-							oItem.Tag = symbol;
-							oItem.Header = $"{symbol.AssociatedFilename}({symbol.StartLine})  {symbol.Type}: {symbol.ScopePretty}{symbol.Symbol}{symbol.Parameters}";
+
+							FillSymbolMenuItem(symbol, oItem);
+
 							oItem.Click += GotoMenuItem_Click;
 							m_oContextMenu.Items.Add(oItem);
 							++iCurrent;
@@ -171,8 +207,7 @@ namespace VS_QuickNavigation
 							foreach (Data.SymbolData oBaseClass in lBaseClasses)
 							{
 								MenuItem oSubBaseItem = new MenuItem();
-								oSubBaseItem.Tag = oBaseClass;
-								oSubBaseItem.Header = $"{oBaseClass.AssociatedFilename}({oBaseClass.StartLine})   {oBaseClass.ScopePretty}{oBaseClass.Symbol}{oBaseClass.Parameters}";
+								FillSymbolMenuItem(oBaseClass, oSubBaseItem);
 								oSubBaseItem.Click += GotoMenuItem_Click;
 								oBaseItem.Items.Add(oSubBaseItem);
 							}
@@ -187,8 +222,7 @@ namespace VS_QuickNavigation
 							foreach (Data.SymbolData oInheritedClass in lInheritedClasses)
 							{
 								MenuItem oSubInheritedItem = new MenuItem();
-								oSubInheritedItem.Tag = oInheritedClass;
-								oSubInheritedItem.Header = $"{oInheritedClass.AssociatedFilename}({oInheritedClass.StartLine})   {oInheritedClass.ScopePretty}{oInheritedClass.Symbol}{oInheritedClass.Parameters}";
+								FillSymbolMenuItem(oInheritedClass, oSubInheritedItem);
 								oSubInheritedItem.Click += GotoMenuItem_Click;
 								oInheritedItem.Items.Add(oSubInheritedItem);
 							}
