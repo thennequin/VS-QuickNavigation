@@ -28,38 +28,44 @@
                 Width="Auto"
                 TextWrapping="Wrap" KeyDown="textBox_KeyDown" KeyUp="textBox_KeyDown" TextChanged="textBox_TextChanged" />
 
-            <Button 
-                Name="buttonSymbolPopup" 
-                Grid.Column="1" 
+            <Button
+                Name="buttonSymbolPopup"
+                Grid.Column="1"
                 Click="buttonSymbolPopup_Click">
                 <Path Fill="{Binding Foreground}" Data="M 0 0 L 3 3 L 6 0 Z"/>
             </Button>
-            <Popup 
+            <Popup
                 Name="SymbolPopup"
                 PlacementTarget="{Binding ElementName=buttonSymbolPopup}"
                 PopupAnimation="Slide"
                 ClipToBounds="True" StaysOpen="False"
                 Placement="Left"
-                VerticalOffset="{Binding ElementName=buttonSymbolPopup, Path=ActualHeight}" 
+                VerticalOffset="{Binding ElementName=buttonSymbolPopup, Path=ActualHeight}"
                 HorizontalOffset="{Binding ElementName=buttonSymbolPopup, Path=ActualWidth}">
                 <Border Name="DropDownBorder" BorderThickness="1" BorderBrush="{DynamicResource {x:Static vsfx:VsBrushes.DropDownBorderKey}}" Background="{DynamicResource {x:Static vsfx:VsBrushes.DropDownBackgroundKey}}">
-                    <ItemsControl ItemsSource="{Binding SuportedSymbolTypes}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <CheckBox 
-                                    VerticalAlignment="Center"
-                                    IsChecked="{Binding Path=IsSelected, Mode=TwoWay}"
-                                    Tag="{RelativeSource FindAncestor, AncestorType={x:Type ComboBox}}"
-                                    Margin="2,4,4,2"
-                                    >
-                                    <StackPanel Orientation="Horizontal" Margin="0" VerticalAlignment="Center">
-                                        <Image VerticalAlignment="Top" Margin="0" Source="{Binding ImagePath}" Width="16" Height="16" />
-                                        <Label VerticalAlignment="Top" Margin="4,0,0,0" Padding="0" Content="{Binding Description}" Background="Transparent" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.DropDownGlyphKey}}"/>
-                                    </StackPanel>
-                                </CheckBox>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <StackPanel Orientation="Vertical" Margin="0">
+                        <MenuItem Header="Reset" Click="Reset_Click"/>
+                        <Separator />
+                        <ItemsControl ItemsSource="{Binding SuportedSymbolTypes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox
+                                        VerticalAlignment="Center"
+                                        IsChecked="{Binding Path=IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=true}"
+                                        Tag="{RelativeSource FindAncestor, AncestorType={x:Type ComboBox}}"
+                                        Checked="CheckBox_Checked"
+                                        Unchecked="CheckBox_Unchecked"
+                                        Margin="2,4,4,2"
+                                        >
+                                        <StackPanel Orientation="Horizontal" Margin="0" VerticalAlignment="Center">
+                                            <Image VerticalAlignment="Top" Margin="0" Source="{Binding ImagePath}" Width="16" Height="16" />
+                                            <Label VerticalAlignment="Top" Margin="4,0,0,0" Padding="0" Content="{Binding Description}" Background="Transparent" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.DropDownGlyphKey}}"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                 </Border>
             </Popup>
         </Grid>
@@ -68,7 +74,7 @@
                   SelectionMode="Single"
                   KeyDown="listView_KeyDown" KeyUp="listView_KeyDown"
                   MouseDoubleClick="listView_MouseDoubleClick"
-                  SelectionChanged="listView_SelectionChanged" 
+                  SelectionChanged="listView_SelectionChanged"
                   >
             <ListView.View>
                 <GridView>

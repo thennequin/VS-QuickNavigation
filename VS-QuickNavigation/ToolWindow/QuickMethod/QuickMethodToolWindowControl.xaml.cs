@@ -15,7 +15,7 @@ namespace VS_QuickNavigation
 	/// </summary>
 	public partial class QuickMethodToolWindowControl : UserControl
 	{
-		public class SymbolTypeWrapper
+		public class SymbolTypeWrapper : System.ComponentModel.INotifyPropertyChanged
 		{
 			public SymbolTypeWrapper(ESymbolType eType, QuickMethodToolWindowControl control)
 			{
@@ -25,7 +25,9 @@ namespace VS_QuickNavigation
 
 			QuickMethodToolWindowControl mControl;
 
-			ESymbolType Type { get; set; }
+			public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+			public ESymbolType Type { get; set; }
 
 			public bool IsSelected
 			{
@@ -63,16 +65,27 @@ namespace VS_QuickNavigation
 					return Type.GetDescription();
 				}
 			}
+
+			internal void UpdateValue()
+			{
+				if (PropertyChanged != null)
+				{
+					PropertyChanged.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs("IsSelected"));
+				}
+			}
 		}
 
 		private QuickMethodToolWindow mQuickMethodToolWindow;
 		private bool mSearchInSolution;
 		private ESymbolType mSupportedSymbolTypes;
+		private ESymbolType mDefaultSupportedSymbolTypes;
 		private object mSymbolLocker = new object();
 		private IEnumerable<SymbolData> mSymbols = null;
 		private CancellationTokenSource mToken;
 		private Task mTask;
 		private DeferredAction mDeferredRefresh;
+		private List<SymbolTypeWrapper> mSymbolTypeWrappers;
+		private bool mUpdatingSupportedSymbolTypeCheckboxes = false;
 
 		const int c_RefreshDelay = 100;
 
@@ -80,10 +93,7 @@ namespace VS_QuickNavigation
 		{
 			get
 			{
-				foreach (ESymbolType eType in Enum.GetValues(typeof(ESymbolType)))
-				{
-					yield return new SymbolTypeWrapper(eType, this);
-				}
+				return mSymbolTypeWrappers;
 			}
 		}
 
@@ -95,6 +105,13 @@ namespace VS_QuickNavigation
 
 			mSearchInSolution = searchInSolution;
 			mSupportedSymbolTypes = supportedSymbolTypes;
+			mDefaultSupportedSymbolTypes = supportedSymbolTypes;
+
+			mSymbolTypeWrappers = new List<SymbolTypeWrapper>();
+			foreach (ESymbolType eType in Enum.GetValues(typeof(ESymbolType)))
+			{
+				mSymbolTypeWrappers.Add(new SymbolTypeWrapper(eType, this));
+			}
 
 			mDeferredRefresh = DeferredAction.Create(RefreshResults);
 
@@ -311,6 +328,68 @@ namespace VS_QuickNavigation
 		private void buttonSymbolPopup_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
 			SymbolPopup.IsOpen = true;
+		}
+
+		private void CheckBox_Checked(object sender, System.Windows.RoutedEventArgs e)
+		{
+			if (sender != null && sender is CheckBox && mUpdatingSupportedSymbolTypeCheckboxes == false)
+			{
+				mUpdatingSupportedSymbolTypeCheckboxes = true;
+				if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+					System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl))
+				{
+					CheckBox oCheckbox = sender as CheckBox;
+					if (oCheckbox.DataContext != null && oCheckbox.DataContext is SymbolTypeWrapper)
+					{
+						SymbolTypeWrapper oSymbolTypeWrapper = oCheckbox.DataContext as SymbolTypeWrapper;
+						mSupportedSymbolTypes = oSymbolTypeWrapper.Type;
+						UpdateTypeCheckboxes();
+					}
+				}
+				mUpdatingSupportedSymbolTypeCheckboxes = false;
+			}
+		}
+
+		private void CheckBox_Unchecked(object sender, System.Windows.RoutedEventArgs e)
+		{
+			if (sender != null && sender is CheckBox && mUpdatingSupportedSymbolTypeCheckboxes == false)
+			{
+				mUpdatingSupportedSymbolTypeCheckboxes = true;
+				if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+					System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl))
+				{
+					CheckBox oCheckbox = sender as CheckBox;
+					if (oCheckbox.DataContext != null && oCheckbox.DataContext is SymbolTypeWrapper)
+					{
+						SymbolTypeWrapper oSymbolTypeWrapper = oCheckbox.DataContext as SymbolTypeWrapper;
+						mSupportedSymbolTypes = 0;
+
+						foreach (ESymbolType eType in Enum.GetValues(typeof(ESymbolType)))
+						{
+							if (eType != oSymbolTypeWrapper.Type)
+							{
+								mSupportedSymbolTypes |= eType;
+							}
+						}
+						UpdateTypeCheckboxes();
+					}
+				}
+				mUpdatingSupportedSymbolTypeCheckboxes = false;
+			}
+		}
+
+		private void UpdateTypeCheckboxes()
+		{
+			foreach (SymbolTypeWrapper oSymbolTypeWrapper in mSymbolTypeWrappers)
+			{
+				oSymbolTypeWrapper.UpdateValue();
+			}
+		}
+
+		private void Reset_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+			mSupportedSymbolTypes = mDefaultSupportedSymbolTypes;
+			UpdateTypeCheckboxes();
 		}
 	}
 }
