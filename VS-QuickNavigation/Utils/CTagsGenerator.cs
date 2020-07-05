@@ -571,6 +571,7 @@ namespace VS_QuickNavigation.Utils
 												bTypeFound = true;
 												break;
 											case "member":
+											case "field":
 												eType = ESymbolType.Field;
 												bTypeFound = true;
 												break;
