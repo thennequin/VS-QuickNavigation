@@ -427,6 +427,52 @@ namespace VS_QuickNavigation.Utils
 				Monitor.Exit(m_sFilesToParse);
 			}
 
+			static IEnumerable<string> ParseInheritsList(string sTypes)
+			{
+				int iStart = 0;
+				int iTemplateIndex = 0;
+				int iTemplateStart = -1;
+				List<string> lInherits = new List<string>();
+				for (int i = 0; i < sTypes.Length; ++i)
+				{
+					char iChar = sTypes[i];
+					if (iChar == '<')
+					{
+						if (iTemplateIndex == 0)
+							iTemplateStart = i;
+						iTemplateIndex++;
+					}
+					else if (iChar == '>')
+					{
+						iTemplateIndex--;
+					}
+					else if (iChar == ',' && iTemplateIndex == 0)
+					{
+						if (iTemplateStart != -1)
+						{
+							yield return sTypes.Substring(iStart, iTemplateStart - iStart);
+							iTemplateStart = -1;
+						}
+						else
+						{
+							yield return sTypes.Substring(iStart, i - iStart);
+						}
+						iStart = i + 1;
+					}
+				}
+				if (iStart < sTypes.Length)
+				{
+					if (iTemplateStart != -1)
+					{
+						yield return sTypes.Substring(iStart, iTemplateStart - iStart);
+					}
+					else
+					{
+						yield return sTypes.Substring(iStart);
+					}
+				}
+			}
+
 			void TaskCTagsInteractive()
 			{
 				string args = "";
@@ -590,15 +636,15 @@ namespace VS_QuickNavigation.Utils
 										}
 										if (bTypeFound)
 										{
-											string cleanCymbol = oResult.name;
-											int iPos = cleanCymbol.LastIndexOf(':');
-											iPos = Math.Max(iPos, cleanCymbol.LastIndexOf('.'));
+											string cleanSymbol = oResult.name;
+											int iPos = cleanSymbol.LastIndexOf(':');
+											iPos = Math.Max(iPos, cleanSymbol.LastIndexOf('.'));
 											if (iPos != -1)
 											{
-												cleanCymbol = cleanCymbol.Substring(iPos + 1);
+												cleanSymbol = cleanSymbol.Substring(iPos + 1);
 											}
 
-											SymbolData oSymbol = new SymbolData(cleanCymbol, oResult.line, eType);
+											SymbolData oSymbol = new SymbolData(cleanSymbol, oResult.line, eType);
 
 											if (oResult.signature != null)
 											{
@@ -628,7 +674,7 @@ namespace VS_QuickNavigation.Utils
 
 											if (oResult.inherits != null)
 											{
-												oSymbol.Inherits = oResult.inherits.Split(',');
+												oSymbol.Inherits = ParseInheritsList(oResult.inherits).ToArray();
 											}
 
 											if (oResult.end != -1)
