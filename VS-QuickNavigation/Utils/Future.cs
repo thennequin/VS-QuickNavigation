@@ -56,11 +56,13 @@ namespace VS_QuickNavigation.Utils
 	public class FutureList<T> : IEnumerable<Future<T>>
 	{
 		List<Future<T>> m_lFutures;
+		int m_iCompleted;
 		Semaphore m_oSemaphore;
 
 		public FutureList()
 		{
 			m_lFutures = new List<Future<T>>();
+			m_iCompleted = 0;
 			m_oSemaphore = new Semaphore(0, int.MaxValue);
 		}
 
@@ -75,6 +77,7 @@ namespace VS_QuickNavigation.Utils
 
 		void OnFutureCallback(Future<T> oResult)
 		{
+			m_iCompleted++;
 			m_oSemaphore.Release();
 		}
 
@@ -101,6 +104,15 @@ namespace VS_QuickNavigation.Utils
 			get
 			{
 				return m_lFutures.All(f => f.IsCompleted);
+			}
+		}
+
+		public int Completed
+		{
+			get
+			{
+				//return m_lFutures.Count(f => f.IsCompleted);
+				return m_iCompleted;
 			}
 		}
 

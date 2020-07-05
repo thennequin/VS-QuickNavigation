@@ -229,14 +229,12 @@ namespace VS_QuickNavigation.Utils
 			FutureList<System.Collections.Generic.IEnumerable<Data.SymbolData>> oFutures = CTagsTask.GetInstance().AddFiles(filePaths);
 			if (progressAction != null)
 			{
-				int iCompletedCount = 0;
 				int iFileCount = oFutures.Count();
 				while (oFutures.IsCompleted == false && (oCancellationToken == null || oCancellationToken.IsCancellationRequested == false))
 				{
 					oFutures.WaitAny();
 
-					++iCompletedCount;
-					progressAction(iCompletedCount, iFileCount);
+					progressAction(oFutures.Completed, iFileCount);
 				}
 			}
 			else
@@ -305,7 +303,7 @@ namespace VS_QuickNavigation.Utils
 			}
 #pragma warning restore 0649
 
-			struct File
+			class File
 			{
 				public string sFile;
 				public Future<IEnumerable<SymbolData>> oResults;
@@ -406,10 +404,37 @@ namespace VS_QuickNavigation.Utils
 			public FutureList<IEnumerable<SymbolData>> AddFiles(IEnumerable<string> sFiles)
 			{
 				FutureList<IEnumerable<SymbolData>> oResults = new FutureList<IEnumerable<SymbolData>>();
-				foreach (string sFile in sFiles)
+				Monitor.Enter(m_sFilesToParse);
+
+				File[] oNewFile = sFiles
+					.AsParallel()
+					.Where(s => s != null && m_sFilesToParse.Any(f => f != null && f != null && f.sFile.Equals(s, StringComparison.InvariantCultureIgnoreCase)) == false)
+					.Select(s => new File { sFile = s, oResults = new Future<IEnumerable<SymbolData>>() })
+					.ToArray();
+
+				m_sFilesToParse.AddRange(oNewFile);
+				foreach (File oFile in oNewFile)
 				{
-					oResults.Add(AddFile(sFile));
+					oResults.Add(oFile.oResults);
 				}
+				/*foreach (string sFile in sFiles)
+				{
+					if (string.IsNullOrWhiteSpace(sFile))
+					{
+						continue;
+					}
+
+					if (m_sFilesToParse.Any(f => sFile.Equals(f.sFile, StringComparison.InvariantCultureIgnoreCase)) == false)
+					{
+						File oFile = new File { sFile = sFile, oResults = new Future<IEnumerable<SymbolData>>() };
+						m_sFilesToParse.Add(oFile);
+						oResults.Add(oFile.oResults);
+					}
+				}*/
+				if (oResults.Count() > 0)
+					m_oSemaphore.Release(oResults.Count());
+				Monitor.Exit(m_sFilesToParse);
+
 				return oResults;
 			}
 
