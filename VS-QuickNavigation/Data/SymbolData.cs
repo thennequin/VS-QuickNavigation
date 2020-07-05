@@ -20,9 +20,10 @@ namespace VS_QuickNavigation.Data
 
 		Field = 1 << 11,
 		Property = 1 << 12,
+		Event = 1 << 13,
 
-		Variable = 1 << 13,
-		Local = 1 << 14
+		Variable = 1 << 14,
+		Local = 1 << 15
 	}
 
 	static public class ESymbolTypeExtension

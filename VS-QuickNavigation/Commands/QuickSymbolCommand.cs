@@ -44,6 +44,7 @@ namespace VS_QuickNavigation
 					Data.ESymbolType.MethodPrototype |
 					Data.ESymbolType.Field |
 					Data.ESymbolType.Property |
+					Data.ESymbolType.Event |
 					Data.ESymbolType.Variable);
 		}
 

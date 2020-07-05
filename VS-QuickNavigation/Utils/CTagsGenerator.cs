@@ -575,6 +575,10 @@ namespace VS_QuickNavigation.Utils
 												eType = ESymbolType.Field;
 												bTypeFound = true;
 												break;
+											case "event":
+												eType = ESymbolType.Event;
+												bTypeFound = true;
+												break;
 											case "variable":
 												eType = ESymbolType.Variable;
 												bTypeFound = true;
