@@ -87,9 +87,47 @@ namespace VS_QuickNavigation.Data
 			}
 		}
 
+		public string TemplatedSymbol
+		{
+			get
+			{
+				string sFullSymbol = Symbol;
+				string[] sSymbolTemplateArguments = null;
+				if (Specializations != null && Specializations.Length > 0)
+				{
+					sSymbolTemplateArguments = Specializations;
+				}
+				else if (Templates != null && Templates.Length > 0)
+				{
+					sSymbolTemplateArguments = Templates;
+				}
+
+				if (sSymbolTemplateArguments != null)
+				{
+					sFullSymbol = Symbol + "<";
+
+					for (int i = 0; i < sSymbolTemplateArguments.Length; ++i)
+					{
+						if (i > 0)
+						{
+							sFullSymbol += ", ";
+						}
+
+						sFullSymbol += sSymbolTemplateArguments[i];
+					}
+
+					sFullSymbol += ">";
+				}
+
+				return sFullSymbol;
+			}
+		}
+
 		public string TypeRef { get; set; }
 		public string Access { get; set; }
 		public string[] Inherits { get; set; }
+		public string[] Templates { get; set; }
+		public string[] Specializations { get; set; }
 		public string Parameters { get; set; }
 		public ESymbolType Type { get; set; }
 		public string TypeDesc

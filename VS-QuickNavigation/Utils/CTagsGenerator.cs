@@ -300,6 +300,8 @@ namespace VS_QuickNavigation.Utils
 				public int		end;
 				public string	access;
 				public string	extras;
+				public string	template;
+				public string	specialization;
 			}
 #pragma warning restore 0649
 
@@ -452,8 +454,13 @@ namespace VS_QuickNavigation.Utils
 				Monitor.Exit(m_sFilesToParse);
 			}
 
-			static IEnumerable<string> ParseInheritsList(string sTypes)
+			static IEnumerable<string> ParseTypeList(string sTypes)
 			{
+				// Trim type list surrounded by < >
+				if (sTypes.StartsWith("<") && sTypes.EndsWith(">"))
+				{
+					sTypes = sTypes.Substring(1, sTypes.Length - 2);
+				}
 				int iStart = 0;
 				int iTemplateIndex = 0;
 				int iTemplateStart = -1;
@@ -502,22 +509,25 @@ namespace VS_QuickNavigation.Utils
 			{
 				string args = "";
 
-				args += "-n ";                          // Symbol stored by line number instead of pattern or line number
+				args += "--_interactive ";
 
-				args += "−−c++−kinds=";                 // C++ kinds
+				args += "--excmd=number ";              // Symbol stored by line number instead of pattern or line number
+
+				args += "--kinds=* ";                   // kinds
+
+				args += "--kinds-c++=";                 // C++ kinds
 				args += "+p";                           // Include function prototypes
 				args += "+l";                           // Include local variables
 				args += " ";
 
 				args += "--fields=* ";                  // Fields
+				args += "--fields-c++=* ";              // C++ Fields
 
 				args += "−−extras=";                    // Extras
 				args += "+r";                           // References
 				args += "+F";                           // File scope
 				args += "+p";                           // Pseudo tag
 				args += " ";
-
-				args += "--_interactive ";
 
 				Process process = new Process();
 				process.StartInfo.UseShellExecute = false;
@@ -699,7 +709,29 @@ namespace VS_QuickNavigation.Utils
 
 											if (oResult.inherits != null)
 											{
-												oSymbol.Inherits = ParseInheritsList(oResult.inherits).ToArray();
+												oSymbol.Inherits = ParseTypeList(oResult.inherits).ToArray();
+												if (oSymbol.Inherits != null && oSymbol.Inherits.Length == 0)
+												{
+													oSymbol.Inherits = null;
+												}
+											}
+
+											if (oResult.template != null)
+											{
+												oSymbol.Templates = ParseTypeList(oResult.template).ToArray();
+												if (oSymbol.Templates != null && oSymbol.Templates.Length == 0)
+												{
+													oSymbol.Templates = null;
+												}
+											}
+
+											if (oResult.specialization != null)
+											{
+												oSymbol.Specializations = ParseTypeList(oResult.specialization).ToArray();
+												if (oSymbol.Specializations != null && oSymbol.Specializations.Length == 0)
+												{
+													oSymbol.Specializations = null;
+												}
 											}
 
 											if (oResult.end != -1)
