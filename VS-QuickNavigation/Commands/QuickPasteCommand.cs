@@ -269,7 +269,7 @@ namespace VS_QuickNavigation
 							}
 						}
 					}
-					catch(Exception ex)
+					catch(Exception)
 					{
 						System.Threading.Thread.Sleep(50);
 					}
