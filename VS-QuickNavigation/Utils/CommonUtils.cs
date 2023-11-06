@@ -6,6 +6,18 @@ using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using System.Windows.Documents;
 
+namespace VS_QuickNavigation.EnvDTEEmbed
+{
+    public abstract class ProjectKinds
+    {
+        public const string vsProjectKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
+    }
+    public abstract class Constants
+    {
+        public const string vsViewKindTextView = "{7651A703-06E5-11D1-8EBD-00A0C90F26EA}";
+    }
+}
+
 namespace VS_QuickNavigation.Utils
 {
 	class Description : Attribute
@@ -242,7 +254,7 @@ namespace VS_QuickNavigation.Utils
 		{
 			if (sFilePath != null)
 			{
-				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(sFilePath, EnvDTE.Constants.vsViewKindTextView);
+				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(sFilePath, EnvDTEEmbed.Constants.vsViewKindTextView);
 				if (null != window)
 				{
 					window.Activate();

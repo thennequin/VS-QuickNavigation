@@ -507,7 +507,7 @@ namespace VS_QuickNavigation
 		{
 			if (project != null)
 			{
-				if (project.Kind != EnvDTE80.ProjectKinds.vsProjectKindSolutionFolder)
+				if (project.Kind != EnvDTEEmbed.ProjectKinds.vsProjectKindSolutionFolder)
 				{
 					yield return project;
 				}

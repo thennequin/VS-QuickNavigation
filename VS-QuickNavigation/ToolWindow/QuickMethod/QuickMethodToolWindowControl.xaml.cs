@@ -300,7 +300,7 @@ namespace VS_QuickNavigation
 
 			if (symbolData.Data.AssociatedFile != null)
 			{
-				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(symbolData.Data.AssociatedFile.Path, EnvDTE.Constants.vsViewKindTextView);
+				EnvDTE.Window window = Common.Instance.DTE2.ItemOperations.OpenFile(symbolData.Data.AssociatedFile.Path, EnvDTEEmbed.Constants.vsViewKindTextView);
 				if (null != window)
 				{
 					window.Activate();
