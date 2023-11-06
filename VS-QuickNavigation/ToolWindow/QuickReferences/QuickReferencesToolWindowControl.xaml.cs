@@ -11,7 +11,9 @@ namespace VS_QuickNavigation
 {
 	class Reference
 	{
-		public ReferenceScope Scope { get; set; }
+        public bool IsExpanded { get; set; } = true;
+
+        public ReferenceScope Scope { get; set; }
 		public WordRef Ref { get; set; }
 
 		public Data.FileData File
