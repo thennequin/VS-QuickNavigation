@@ -30,18 +30,18 @@ namespace VS_QuickNavigation
 	/// To get loaded into VS, the package must be referred by &lt;Asset Type="Microsoft.VisualStudio.VsPackage" ...&gt; in .vsixmanifest file.
 	/// </para>
 	/// </remarks>
-	[PackageRegistration(UseManagedResourcesOnly = true)]
+	[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	
 	[InstalledProductRegistration("#1110", "#1112", Vs_QuickNavigationVersion.Version, IconResourceID = 1400)] // Info on this package for Help/About
 	[Guid(VSQuickNavigationPackage.PackageGuidString)]
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-	[ProvideAutoLoad(UIContextGuids80.SolutionExists)]
+	[ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	//[ProvideToolWindow(typeof(QuickFileToolWindow))]
 	//[ProvideToolWindow(typeof(QuickMethodToolWindow))]
 	[ProvideToolWindow(typeof(QuickReferencesToolWindow))]
 	[ProvideOptionPage(typeof(Options.OptionsDialogPage), "QuickNavigation", "Settings", 0, 0, supportsAutomation: true)]
-	public sealed class VSQuickNavigationPackage : Package
+	public sealed class VSQuickNavigationPackage : AsyncPackage
 	{
 		/// <summary>
 		/// VSQuickNavigationPackage GUID string.
@@ -54,13 +54,6 @@ namespace VS_QuickNavigation
 		public VSQuickNavigationPackage()
 		{
 			Common.Instance.Package = this;
-			Common.Instance.DTE2 = Common.Instance.GetService<SDTE>() as EnvDTE80.DTE2;
-			Common.Instance.Shell = Common.Instance.GetService<SVsShell>() as IVsShell;
-			Common.Instance.Solution = Common.Instance.GetService<SVsSolution>() as IVsSolution2;
-			Common.Instance.Settings = new Settings();
-
-			Utils.CTagsGenerator.CTagsTask.CreateInstance();
-			Common.Instance.SolutionWatcher = new SolutionWatcher();
 		}
 
 		#region Package Members
@@ -69,15 +62,25 @@ namespace VS_QuickNavigation
 		/// Initialization of the package; this method is called right after the package is sited, so this is the place
 		/// where you can put all the initialization code that rely on services provided by VisualStudio.
 		/// </summary>
-		protected override void Initialize()
+		protected override async System.Threading.Tasks.Task InitializeAsync(System.Threading.CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
 		{
-			base.Initialize();
+			await base.InitializeAsync(cancellationToken, progress);
 
-			Common.Instance.Settings.Refresh();
+            // Switches to the UI thread in order to consume some services used in command initialization
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            Common.Instance.DTE2 = Common.Instance.GetService<SDTE>() as EnvDTE80.DTE2;
+            Common.Instance.Shell = Common.Instance.GetService<SVsShell>() as IVsShell;
+            Common.Instance.Solution = Common.Instance.GetService<SVsSolution>() as IVsSolution2;
+            Common.Instance.Settings = new Settings();
+
+            //Common.Instance.Settings.Refresh();
 			Common.Instance.Settings.LoadSettingsFromStorage();
-			//solution;
 
-			QuickFileCommand.Initialize(this);
+            Utils.CTagsGenerator.CTagsTask.CreateInstance();
+            Common.Instance.SolutionWatcher = new SolutionWatcher();
+
+            QuickFileCommand.Initialize(this);
 			QuickHistoryCommand.Initialize(this);
 			QuickMethodCommand.Initialize(this);
 			QuickSymbolCommand.Initialize(this);
