@@ -78,8 +78,8 @@
             <Trigger Property="IsSelected" Value="True">
                 <!-- A subset of TreeViewColors are used for applying styles to the ListView.  A TreeView is
                      has a superset of the colors required by a ListView (for expanders). -->
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarTextSelectedKey}}" />
             </Trigger>
 
             <!-- Selected but not active (control focused) -->
@@ -88,8 +88,8 @@
                     <Condition Property="IsSelected" Value="True" />
                     <Condition Property="Selector.IsSelectionActive" Value="False" />
                 </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarTextSelectedKey}}" />
             </MultiTrigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
@@ -239,8 +239,8 @@
         <Style.Triggers>
             <!-- Selected -->
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarTextSelectedKey}}" />
             </Trigger>
             <!-- Selected but not active (control focused) -->
             <MultiTrigger>
@@ -248,8 +248,8 @@
                     <Condition Property="IsSelected" Value="True" />
                     <Condition Property="Selector.IsSelectionActive" Value="False" />
                 </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowButtonDownActiveGlyphKey}}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarTextSelectedKey}}" />
             </MultiTrigger>
         </Style.Triggers>
     </Style>
