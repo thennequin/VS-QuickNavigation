@@ -15,6 +15,10 @@ build:
 
 artifacts:
   - path: VS-QuickNavigation\bin\Release\VS-QuickNavigation.vsix
-    name: VS-QuickNavigation
+    name: VS-QuickNavigation.vsix
   - path: VS-QuickNavigation\obj\Release\VS-QuickNavigation.pdb
     name: VS-QuickNavigation.pdb
+  - path: VS-QuickNavigation\bin\Release2022\VS-QuickNavigation.vsix
+    name: VS-QuickNavigation2022.vsix
+  - path: VS-QuickNavigation\obj\Release2022\VS-QuickNavigation.pdb
+    name: VS-QuickNavigation2022.pdb
