@@ -194,6 +194,9 @@ namespace VS_QuickNavigation
 
 		public static void Dispose(Package package)
 		{
+			if (Instance == null || Instance.m_oClipboardForm == null)
+				return;
+
 			Instance.m_oClipboardForm.PreDispose();
 			Instance.m_oClipboardForm.Dispose();
 		}

@@ -98,9 +98,14 @@ namespace VS_QuickNavigation
 
 			QuickPasteCommand.Dispose(this);
 
-			Common.Instance.SolutionWatcher.Dispose();
-			Utils.CTagsGenerator.CTagsTask.GetInstance().Dispose();
-
+			if (Common.Instance.SolutionWatcher != null)
+			{
+				Common.Instance.SolutionWatcher.Dispose();
+			}
+			if (Utils.CTagsGenerator.CTagsTask.GetInstance() != null)
+			{
+				Utils.CTagsGenerator.CTagsTask.GetInstance().Dispose();
+			}
 		}
 
 		#endregion Package Members
