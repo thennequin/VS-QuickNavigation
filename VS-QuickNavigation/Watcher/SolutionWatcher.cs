@@ -395,9 +395,16 @@ namespace VS_QuickNavigation
 
 		public void RefreshOpenHistory()
 		{
-			foreach (EnvDTE.Document doc in Common.Instance.DTE2.Documents)
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			string[] exts = Common.Instance.Settings.ListedExtensions;
+
+			foreach (RunningDocumentInfo oDoc in mRunningDocumentTable)
 			{
-				mFileHistory.Push(doc.FullName.ToLower());
+				if (exts.Any(ext => oDoc.Moniker.EndsWith(ext, StringComparison.InvariantCultureIgnoreCase)))
+				{
+					mFileHistory.Push(oDoc.Moniker.ToLower());
+				}
 			}
 
 			RefreshHistoryFileList();
