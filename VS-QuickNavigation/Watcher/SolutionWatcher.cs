@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
@@ -13,18 +14,16 @@ using VS_QuickNavigation.Utils;
 namespace VS_QuickNavigation
 {
 	//IDTExtensibility2
-	public class SolutionWatcher : IVsSolutionEvents, IVsSolutionLoadEvents, IDisposable
-	{
+	public class SolutionWatcher : IVsSolutionEvents, IVsSolutionLoadEvents, IVsRunningDocTableEvents, IDisposable
+    {
 		uint mSolutionCookie;
+
+		RunningDocumentTable mRunningDocumentTable;
+		uint mRunningDocumentTableCookie;
+
 		CancellationTokenSource mTokenFileList;
 		CancellationTokenSource mTokenSymbolList;
-		Task mTaskSymbolList;
-
-		private EnvDTE.WindowEvents mWindowEvents;
-		private EnvDTE.DocumentEvents mDocumentEvents;
-		private EnvDTE.ProjectItemsEvents mSolutionItemsEvents;
-		private EnvDTE.ProjectsEvents mProjectEvents;
-		private EnvDTE.ProjectItemsEvents mMiscItemsEvents;
+		System.Threading.Tasks.Task mTaskSymbolList;
 
 		HistoryList<string> mFileHistory = new HistoryList<string>(50);
 
@@ -36,10 +35,15 @@ namespace VS_QuickNavigation
 
 		public SolutionWatcher()
 		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
 			if (Common.Instance.Solution != null)
 			{
 				Common.Instance.Solution.AdviseSolutionEvents(this, out mSolutionCookie);
 			}
+
+			mRunningDocumentTable = new RunningDocumentTable();
+			mRunningDocumentTableCookie = mRunningDocumentTable.Advise(this);
 
 			mSyncContext = SynchronizationContext.Current;
 			mTimer = new System.Timers.Timer(1500f);
@@ -48,29 +52,7 @@ namespace VS_QuickNavigation
 
 			mFileHistory.MaxHistory = Common.Instance.Settings.MaxFileHistory;
 
-			mWindowEvents = Common.Instance.DTE2.Events.WindowEvents;
-			mWindowEvents.WindowActivated += OnWindowActivated;
-			mWindowEvents.WindowCreated += OnWindowCreated;
 
-			mDocumentEvents = Common.Instance.DTE2.Events.DocumentEvents;
-			mDocumentEvents.DocumentOpening += OnDocumentOpening;
-			mDocumentEvents.DocumentOpened += OnDocumentOpened;
-			mDocumentEvents.DocumentSaved += OnDocumentSaved;
-
-			mSolutionItemsEvents = Common.Instance.DTE2.Events.SolutionItemsEvents;
-			mSolutionItemsEvents.ItemAdded += OnItemAdded;
-			mSolutionItemsEvents.ItemRemoved += OnItemRemoved;
-			mSolutionItemsEvents.ItemRenamed += OnItemRenamed;
-
-			mProjectEvents = (Common.Instance.DTE2.Events as EnvDTE80.Events2).ProjectsEvents;
-			mProjectEvents.ItemAdded += OnProjectAdded;
-			mProjectEvents.ItemRemoved += OnProjectRemoved;
-			mProjectEvents.ItemRenamed += OnProjectRenamed;
-
-			mMiscItemsEvents = Common.Instance.DTE2.Events.MiscFilesEvents;
-			mMiscItemsEvents.ItemAdded += OnItemAdded;
-			mMiscItemsEvents.ItemRemoved += OnItemRemoved;
-			mMiscItemsEvents.ItemRenamed += OnItemRenamed;
 
 			RefreshOpenHistory();
 
@@ -94,29 +76,57 @@ namespace VS_QuickNavigation
 
 		public void Dispose()
 		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
 			if (Common.Instance.Solution != null && mSolutionCookie != 0)
 			{
 				Common.Instance.Solution.UnadviseSolutionEvents(mSolutionCookie);
 			}
+
+			mRunningDocumentTable.Unadvise(mRunningDocumentTableCookie);
 		}
 
 		#region Window events
-		void OnWindowActivated(EnvDTE.Window oWindow, EnvDTE.Window oPreviousWindow)
+		int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
 		{
-			if (null != oWindow.Document)
-			{
-				mFileHistory.Push(oWindow.Document.FullName.ToLower());
-				RefreshHistoryFileList();
-			}
+			return VSConstants.S_OK;
 		}
 
-		void OnWindowCreated(EnvDTE.Window oWindow)
+		int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
 		{
-			if (null != oWindow.Document)
+			return VSConstants.S_OK;
+		}
+
+		int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
+		{
+			string sFile = mRunningDocumentTable.GetDocumentInfo(docCookie).Moniker;
+			sFile = sFile.ToLower();
+
+			FileData fileData = GetFileDataByPath(sFile);
+			if (null != fileData)
 			{
-				mFileHistory.Push(oWindow.Document.FullName.ToLower());
-				RefreshHistoryFileList();
+				fileData.GenerateSymbols();
 			}
+			return VSConstants.S_OK;
+		}
+
+		int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+		{
+			return VSConstants.S_OK;
+		}
+
+		int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+		{
+			string sFile = mRunningDocumentTable.GetDocumentInfo(docCookie).Moniker;
+			sFile = sFile.ToLower();
+			mFileHistory.Push(sFile);
+			RefreshHistoryFileList();
+			return VSConstants.S_OK;
+		}
+
+		int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+		{
+			return VSConstants.S_OK;
 		}
 		#endregion
 
@@ -203,97 +213,96 @@ namespace VS_QuickNavigation
 		#endregion
 
 		#region IVsSolutionEvents
-		public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+		int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+		int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+		int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+		int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+		int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+		int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+		int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+		int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnBeforeCloseSolution(object pUnkReserved)
+		int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnAfterCloseSolution(object pUnkReserved)
+		int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
 		{
 			return VSConstants.S_OK;
 		}
 		#endregion
 
 		#region IVsSolutionLoadEvents
-		public int OnBeforeOpenSolution(string pszSolutionFilename)
+		int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
 		{
 			mSolutionLoaded = false;
 			return VSConstants.S_OK;
 		}
 
-		public int OnBeforeBackgroundSolutionLoadBegins()
+		int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+		int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
 		{
 			pfShouldDelayLoadToNextIdle = false;
 			return VSConstants.S_OK;
 		}
 
-		public int OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+		int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+		int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
 		{
 			return VSConstants.S_OK;
 		}
 
-		public int OnAfterBackgroundSolutionLoadComplete()
+		int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
 		{
 			mSolutionLoaded = true;
 			System.Diagnostics.Debug.WriteLine("OnAfterBackgroundSolutionLoadComplete");
+			mFiles.Clear();
 			RefreshOpenHistory();
 			TriggeringRefreshFileList();
 			//TestSpeed();
 			return VSConstants.S_OK;
 		}
 		#endregion
-
-		//public IEnumerable<>
 
 		public delegate void FilesChanged();
 		public event FilesChanged OnFilesChanged;
@@ -450,10 +459,10 @@ namespace VS_QuickNavigation
 				{
 					mFiles[file.Path.ToLower()].Projects.Add(project);
 				}
-                //FileData data = mFiles[file.Path.ToLower()];
-                //data.Projects.Add(file.Projects.First());
-            }
-        }
+				//FileData data = mFiles[file.Path.ToLower()];
+				//data.Projects.Add(file.Projects.First());
+			}
+		}
 
 		public static IEnumerable<FileData> GetSolutionsFiles(CancellationToken? cancelToken = null)
 		{
@@ -729,9 +738,9 @@ namespace VS_QuickNavigation
 			mTokenSymbolList = new CancellationTokenSource();
 
 			CancellationTokenSource oToken = mTokenSymbolList;
-			Task oPreviousTask = mTaskSymbolList;
+			System.Threading.Tasks.Task oPreviousTask = mTaskSymbolList;
 
-			mTaskSymbolList = Task.Factory.StartNew(() =>
+			mTaskSymbolList = System.Threading.Tasks.Task.Factory.StartNew(() =>
 			{
 				if (oPreviousTask != null && oPreviousTask.IsCompleted == false)
 				{
