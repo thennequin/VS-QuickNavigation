@@ -250,23 +250,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework">
-      <Version>17.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Interop">
-      <Version>17.0.32112.339</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>17.0.32112.339</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
-      <Version>17.0.32112.339</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop">
-      <Version>17.0.32112.339</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Validation">
-      <Version>17.6.11</Version>
+    <PackageReference Include="Microsoft.VisualStudio.SDK">
+      <Version>17.0.31902.203</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -274,10 +259,6 @@
   <PropertyGroup>
     <PreBuildEvent>powershell -Command "(gc '$(ProjectDir)source.extension.vsixmanifest') -replace '\[15\.0,17\.0\)', '[17.0,)' | Out-File -encoding ASCII '$(ProjectDir)source.extension.vsixmanifest'"
 powershell -Command "(gc '$(ProjectDir)source.extension.vsixmanifest') -replace '\&lt;ProductArchitecture\&gt;x86\&lt;\/ProductArchitecture\&gt;', '&lt;ProductArchitecture&gt;amd64&lt;/ProductArchitecture&gt;' | Out-File -encoding ASCII '$(ProjectDir)source.extension.vsixmanifest'"</PreBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
